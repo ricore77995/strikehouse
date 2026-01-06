@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import heroBg from "@/assets/hero-editorial.jpg";
-import heroFightersDuo from "@/assets/hero-fighters-duo.jpg";
+import heroFighter from "@/assets/hero-fighter.jpg";
+import heroFighter2 from "@/assets/hero-fighter-2.jpg";
 import OctagonFrame from "./OctagonFrame";
 
 const Hero = () => {
@@ -63,15 +64,20 @@ const Hero = () => {
             </div>
           </div>
 
-          {/* Fighters Image */}
+          {/* Fighters Side by Side */}
           <div 
-            className="relative lg:flex-1 flex justify-center animate-fade-up"
+            className="relative lg:flex-1 flex justify-center items-end gap-4 animate-fade-up"
             style={{ animationDelay: "0.2s" }}
           >
             <img 
-              src={heroFightersDuo} 
-              alt="Strikers House fighters" 
-              className="w-full max-w-xl lg:max-w-2xl h-auto object-cover"
+              src={heroFighter} 
+              alt="Strikers House fighter" 
+              className="w-40 md:w-48 lg:w-56 h-auto object-cover"
+            />
+            <img 
+              src={heroFighter2} 
+              alt="Strikers House fighter" 
+              className="w-40 md:w-48 lg:w-56 h-auto object-cover"
             />
           </div>
         </div>
