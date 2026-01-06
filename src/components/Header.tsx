@@ -1,14 +1,17 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 const Header = () => {
+  const { t } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const menuItems = [
-    { href: "#philosophy", label: "Philosophy" },
-    { href: "#training", label: "Training" },
-    { href: "#contact", label: "Contact" },
+    { href: "#philosophy", label: t('header.philosophy') },
+    { href: "#training", label: t('header.training') },
+    { href: "#contact", label: t('header.contact') },
   ];
 
   const handleLinkClick = () => {
@@ -33,10 +36,13 @@ const Header = () => {
             ))}
           </ul>
           
-          {/* Desktop CTA */}
-          <Button variant="outline" size="sm" className="hidden md:inline-flex">
-            Request Access
-          </Button>
+          {/* Desktop CTA & Language */}
+          <div className="hidden md:flex items-center gap-6">
+            <LanguageSwitcher />
+            <Button variant="outline" size="sm">
+              {t('header.requestAccess')}
+            </Button>
+          </div>
           
           {/* Mobile menu button */}
           <button 
@@ -113,14 +119,15 @@ const Header = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 20 }}
                   transition={{ duration: 0.3, delay: 0.3 }}
-                  className="mt-4"
+                  className="mt-4 flex flex-col items-center gap-6"
                 >
+                  <LanguageSwitcher />
                   <Button 
                     variant="outline" 
                     size="lg"
                     onClick={handleLinkClick}
                   >
-                    Request Access
+                    {t('header.requestAccess')}
                   </Button>
                 </motion.div>
               </motion.nav>

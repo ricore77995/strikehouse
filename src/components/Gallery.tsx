@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 
@@ -36,6 +37,7 @@ const galleryImages = [
 ];
 
 const Gallery = () => {
+  const { t } = useTranslation();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   return (
@@ -50,10 +52,10 @@ const Gallery = () => {
           className="mb-16 md:mb-20"
         >
           <span className="text-xs tracking-[0.3em] uppercase text-muted-foreground mb-4 block">
-            The Space
+            {t('gallery.subtitle')}
           </span>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-light tracking-tight">
-            Where Champions Train
+            {t('gallery.title')}
           </h2>
         </motion.div>
 

@@ -1,0 +1,128 @@
+{
+  "header": {
+    "philosophy": "Philosophy",
+    "training": "Training",
+    "contact": "Contact",
+    "requestAccess": "Request Access"
+  },
+  "hero": {
+    "controlled": "Controlled",
+    "chaos": "Chaos",
+    "subtitle": "Train with purpose. A private space for those who take discipline seriously.",
+    "bookVisit": "Book a Visit",
+    "explore": "Explore",
+    "scroll": "Scroll"
+  },
+  "philosophy": {
+    "subtitle": "Our Philosophy",
+    "title": "Discipline Creates Freedom",
+    "description1": "We are not a gym. We are a training space for those who understand that martial arts is a practice, not a performance.",
+    "description2": "Fighters, executives, expats, students. Different lives, same mat. Respect the space. Respect each other.",
+    "focus": "Focus",
+    "focusSub": "Sharp mind",
+    "respect": "Respect",
+    "respectSub": "For all",
+    "growth": "Growth",
+    "growthSub": "Every day"
+  },
+  "whyDifferent": {
+    "subtitle": "Our Approach",
+    "title": "Why Striker's House is Different",
+    "description1": "Here, competition and personal growth share the same floor.",
+    "description1a": "Athletes prepare to compete.",
+    "description1b": "Others come to become stronger — physically and mentally.",
+    "highlight": "Different paths. One discipline.",
+    "description2": "We don't separate people by ego, age or background.",
+    "description2a": "We bring them together through structure, respect and consistency.",
+    "closing": "Because real strength is built over time."
+  },
+  "training": {
+    "subtitle": "Training Programs",
+    "title": "Three Paths. One Purpose.",
+    "striking": "Striking",
+    "strikingDesc": "Boxing. Kickboxing. Muay Thai. Precision over power.",
+    "grappling": "Grappling",
+    "grapplingDesc": "Brazilian Jiu-Jitsu. Wrestling. Control through technique.",
+    "mma": "MMA",
+    "mmaDesc": "The complete discipline. For those ready to integrate all arts."
+  },
+  "kids": {
+    "subtitle": "Kids Program",
+    "title1": "Discipline First.",
+    "title2": "Confidence for Life.",
+    "description1": "At Striker's House Kids, martial arts is a tool for growth.",
+    "description2": "Through structured training, children develop focus, respect, coordination, and self-control in a safe and disciplined environment."
+  },
+  "coaches": {
+    "subtitle": "The Team",
+    "title": "World-Class Coaches",
+    "marcus": {
+      "role": "Head Coach — MMA",
+      "bio": "Former professional fighter with 15+ years of competitive experience. Specializes in developing well-rounded fighters."
+    },
+    "elena": {
+      "role": "Kickboxing & Muay Thai",
+      "bio": "World champion kickboxer. Known for her technical precision and ability to elevate students of all levels."
+    },
+    "rafael": {
+      "role": "Brazilian Jiu-Jitsu",
+      "bio": "3rd degree black belt under legendary lineage. Focuses on fundamental technique and competition preparation."
+    },
+    "dmitri": {
+      "role": "Strength & Conditioning",
+      "bio": "Elite performance coach specializing in fighter-specific training. Builds explosive power and endurance for competition."
+    }
+  },
+  "gallery": {
+    "subtitle": "The Space",
+    "title": "Where Champions Train"
+  },
+  "testimonials": {
+    "subtitle": "The Community",
+    "title": "In Their Words",
+    "david": {
+      "quote": "I have trained at gyms across three continents. This is the first place that felt like home.",
+      "detail": "Member since 2022"
+    },
+    "sarah": {
+      "quote": "The coaches here see what others miss. My technique transformed in ways I did not think possible.",
+      "detail": "Competitive Fighter"
+    },
+    "marcus": {
+      "quote": "No ego. No drama. Just people committed to getting better every single day.",
+      "detail": "Member since 2021"
+    }
+  },
+  "cta": {
+    "quote": "\"This place is different.\"",
+    "quoteAttribution": "— What we want you to feel",
+    "description": "Your first session is complimentary. Visit the space. Meet the community. See if this fits your life.",
+    "namePlaceholder": "Name",
+    "emailPlaceholder": "Email",
+    "phonePlaceholder": "Phone (optional)",
+    "messagePlaceholder": "Tell us about your training goals...",
+    "submit": "Request Your Visit",
+    "submitting": "Sending...",
+    "responseTime": "We respond within 24 hours",
+    "successTitle": "Request received",
+    "successDescription": "We'll be in touch within 24 hours to schedule your visit.",
+    "validation": {
+      "nameRequired": "Name is required",
+      "nameMax": "Name must be less than 100 characters",
+      "emailInvalid": "Please enter a valid email",
+      "emailMax": "Email must be less than 255 characters",
+      "phoneMax": "Phone must be less than 20 characters",
+      "messageRequired": "Message is required",
+      "messageMax": "Message must be less than 1000 characters"
+    }
+  },
+  "footer": {
+    "description": "MMA Boutique in Cascais. A private training space for those who take the art seriously.",
+    "location": "Location",
+    "city": "Cascais, Portugal",
+    "byAppointment": "By appointment only",
+    "contact": "Contact",
+    "copyright": "© 2026 Striker's House. All rights reserved.",
+    "instagram": "Instagram"
+  }
+}

@@ -1,34 +1,37 @@
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import coachTankImage from "@/assets/coach-tank.jpg";
 
-const coaches = [
-  {
-    name: "Marcus Silva",
-    role: "Head Coach — MMA",
-    bio: "Former professional fighter with 15+ years of competitive experience. Specializes in developing well-rounded fighters.",
-    image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&h=500&fit=crop&crop=face"
-  },
-  {
-    name: "Elena Volkov",
-    role: "Kickboxing & Muay Thai",
-    bio: "World champion kickboxer. Known for her technical precision and ability to elevate students of all levels.",
-    image: "https://images.unsplash.com/photo-1594381898411-846e7d193883?w=400&h=500&fit=crop&crop=face"
-  },
-  {
-    name: "Rafael Santos",
-    role: "Brazilian Jiu-Jitsu",
-    bio: "3rd degree black belt under legendary lineage. Focuses on fundamental technique and competition preparation.",
-    image: "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=400&h=500&fit=crop&crop=face"
-  },
-  {
-    name: "Dmitri Kozlov",
-    role: "Strength & Conditioning",
-    bio: "Elite performance coach specializing in fighter-specific training. Builds explosive power and endurance for competition.",
-    image: coachTankImage
-  },
-];
-
 const Coaches = () => {
+  const { t } = useTranslation();
+
+  const coaches = [
+    {
+      name: "Marcus Silva",
+      role: t('coaches.marcus.role'),
+      bio: t('coaches.marcus.bio'),
+      image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&h=500&fit=crop&crop=face"
+    },
+    {
+      name: "Elena Volkov",
+      role: t('coaches.elena.role'),
+      bio: t('coaches.elena.bio'),
+      image: "https://images.unsplash.com/photo-1594381898411-846e7d193883?w=400&h=500&fit=crop&crop=face"
+    },
+    {
+      name: "Rafael Santos",
+      role: t('coaches.rafael.role'),
+      bio: t('coaches.rafael.bio'),
+      image: "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=400&h=500&fit=crop&crop=face"
+    },
+    {
+      name: "Dmitri Kozlov",
+      role: t('coaches.dmitri.role'),
+      bio: t('coaches.dmitri.bio'),
+      image: coachTankImage
+    },
+  ];
+
   return (
     <section className="py-24 md:py-32 bg-background">
       <div className="container mx-auto px-6 md:px-12">
@@ -41,10 +44,10 @@ const Coaches = () => {
           className="mb-16 md:mb-20"
         >
           <span className="text-xs tracking-[0.3em] uppercase text-muted-foreground mb-4 block">
-            The Team
+            {t('coaches.subtitle')}
           </span>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-light tracking-tight">
-            World-Class Coaches
+            {t('coaches.title')}
           </h2>
         </motion.div>
 

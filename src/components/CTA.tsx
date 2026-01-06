@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,16 +8,15 @@ import { useToast } from "@/hooks/use-toast";
 import OctagonFrame from "./OctagonFrame";
 import { z } from "zod";
 
-const contactSchema = z.object({
-  name: z.string().trim().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
-  email: z.string().trim().email("Please enter a valid email").max(255, "Email must be less than 255 characters"),
-  phone: z.string().trim().max(20, "Phone must be less than 20 characters").optional(),
-  message: z.string().trim().min(1, "Message is required").max(1000, "Message must be less than 1000 characters"),
-});
-
-type ContactForm = z.infer<typeof contactSchema>;
+type ContactForm = {
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
+};
 
 const CTA = () => {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof ContactForm, string>>>({});
@@ -27,10 +27,16 @@ const CTA = () => {
     message: "",
   });
 
+  const getContactSchema = () => z.object({
+    name: z.string().trim().min(1, t('cta.validation.nameRequired')).max(100, t('cta.validation.nameMax')),
+    email: z.string().trim().email(t('cta.validation.emailInvalid')).max(255, t('cta.validation.emailMax')),
+    phone: z.string().trim().max(20, t('cta.validation.phoneMax')).optional(),
+    message: z.string().trim().min(1, t('cta.validation.messageRequired')).max(1000, t('cta.validation.messageMax')),
+  });
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // Clear error when user starts typing
     if (errors[name as keyof ContactForm]) {
       setErrors(prev => ({ ...prev, [name]: undefined }));
     }
@@ -40,6 +46,7 @@ const CTA = () => {
     e.preventDefault();
     setErrors({});
 
+    const contactSchema = getContactSchema();
     const result = contactSchema.safeParse(formData);
     if (!result.success) {
       const fieldErrors: Partial<Record<keyof ContactForm, string>> = {};
@@ -54,12 +61,11 @@ const CTA = () => {
 
     setIsSubmitting(true);
     
-    // Simulate form submission - replace with actual API call when Cloud is enabled
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     toast({
-      title: "Request received",
-      description: "We'll be in touch within 24 hours to schedule your visit.",
+      title: t('cta.successTitle'),
+      description: t('cta.successDescription'),
     });
 
     setFormData({ name: "", email: "", phone: "", message: "" });
@@ -92,10 +98,10 @@ const CTA = () => {
                 transition={{ duration: 0.6, delay: 0.2 }}
                 className="text-2xl md:text-3xl lg:text-4xl font-light tracking-[0.1em] leading-relaxed mb-6"
               >
-                "This place is different."
+                {t('cta.quote')}
               </motion.p>
               <p className="text-muted-foreground text-sm tracking-wider">
-                — What we want you to feel
+                {t('cta.quoteAttribution')}
               </p>
             </blockquote>
             
@@ -103,8 +109,7 @@ const CTA = () => {
             
             {/* CTA text */}
             <p className="text-muted-foreground font-light leading-relaxed max-w-md">
-              Your first session is complimentary. Visit the space. 
-              Meet the community. See if this fits your life.
+              {t('cta.description')}
             </p>
           </motion.div>
 
@@ -120,7 +125,7 @@ const CTA = () => {
                 <div>
                   <Input
                     name="name"
-                    placeholder="Name"
+                    placeholder={t('cta.namePlaceholder')}
                     value={formData.name}
                     onChange={handleChange}
                     className="bg-background/50 border-border/50 focus:border-accent h-12 placeholder:text-muted-foreground/50"
@@ -134,7 +139,7 @@ const CTA = () => {
                   <Input
                     name="email"
                     type="email"
-                    placeholder="Email"
+                    placeholder={t('cta.emailPlaceholder')}
                     value={formData.email}
                     onChange={handleChange}
                     className="bg-background/50 border-border/50 focus:border-accent h-12 placeholder:text-muted-foreground/50"
@@ -148,7 +153,7 @@ const CTA = () => {
                   <Input
                     name="phone"
                     type="tel"
-                    placeholder="Phone (optional)"
+                    placeholder={t('cta.phonePlaceholder')}
                     value={formData.phone}
                     onChange={handleChange}
                     className="bg-background/50 border-border/50 focus:border-accent h-12 placeholder:text-muted-foreground/50"
@@ -161,7 +166,7 @@ const CTA = () => {
                 <div>
                   <Textarea
                     name="message"
-                    placeholder="Tell us about your training goals..."
+                    placeholder={t('cta.messagePlaceholder')}
                     value={formData.message}
                     onChange={handleChange}
                     rows={4}
@@ -180,11 +185,11 @@ const CTA = () => {
                 className="w-full"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? "Sending..." : "Request Your Visit"}
+                {isSubmitting ? t('cta.submitting') : t('cta.submit')}
               </Button>
               
               <p className="text-xs text-muted-foreground/60 text-center">
-                We respond within 24 hours
+                {t('cta.responseTime')}
               </p>
             </form>
           </motion.div>

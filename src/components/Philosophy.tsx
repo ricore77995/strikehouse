@@ -1,7 +1,16 @@
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import athleteImg from "@/assets/athlete-portrait.jpg";
 
 const Philosophy = () => {
+  const { t } = useTranslation();
+
+  const values = [
+    { title: t('philosophy.focus'), subtitle: t('philosophy.focusSub') },
+    { title: t('philosophy.respect'), subtitle: t('philosophy.respectSub') },
+    { title: t('philosophy.growth'), subtitle: t('philosophy.growthSub') },
+  ];
+
   return (
     <section id="philosophy" className="py-32 md:py-40 bg-charcoal">
       <div className="container mx-auto px-6 md:px-12">
@@ -17,32 +26,22 @@ const Philosophy = () => {
             <div className="space-y-4">
               <div className="section-line" />
               <p className="text-xs tracking-[0.3em] text-muted-foreground uppercase">
-                Our Philosophy
+                {t('philosophy.subtitle')}
               </p>
             </div>
             
             <h2 className="text-3xl md:text-4xl font-light tracking-[0.1em] leading-tight">
-              Discipline Creates Freedom
+              {t('philosophy.title')}
             </h2>
             
             <div className="space-y-6 text-muted-foreground font-light leading-relaxed">
-              <p>
-                We are not a gym. We are a training space for those who understand 
-                that martial arts is a practice, not a performance.
-              </p>
-              <p>
-                Fighters, executives, expats, students. Different lives, 
-                same mat. Respect the space. Respect each other.
-              </p>
+              <p>{t('philosophy.description1')}</p>
+              <p>{t('philosophy.description2')}</p>
             </div>
             
             {/* Values */}
             <div className="grid grid-cols-3 gap-8 pt-8 border-t border-border">
-              {[
-                { title: "Focus", subtitle: "Sharp mind" },
-                { title: "Respect", subtitle: "For all" },
-                { title: "Growth", subtitle: "Every day" },
-              ].map((value, index) => (
+              {values.map((value, index) => (
                 <motion.div
                   key={value.title}
                   initial={{ opacity: 0, y: 20 }}

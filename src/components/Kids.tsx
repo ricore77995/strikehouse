@@ -1,7 +1,10 @@
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import kidsImage from "@/assets/kids-training.png";
 
 const Kids = () => {
+  const { t } = useTranslation();
+
   return (
     <section className="py-24 md:py-32 bg-charcoal">
       <div className="container mx-auto px-6">
@@ -14,22 +17,17 @@ const Kids = () => {
             transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
           >
             <span className="text-red uppercase tracking-[0.2em] text-sm font-medium">
-              Kids Program
+              {t('kids.subtitle')}
             </span>
             
             <h2 className="font-display text-3xl md:text-4xl lg:text-5xl text-foreground mt-4 mb-8 leading-tight">
-              Discipline First.<br />
-              Confidence for Life.
+              {t('kids.title1')}<br />
+              {t('kids.title2')}
             </h2>
 
             <div className="space-y-6 text-muted-foreground text-lg leading-relaxed">
-              <p>
-                At Striker's House Kids, martial arts is a tool for growth.
-              </p>
-
-              <p>
-                Through structured training, children develop focus, respect, coordination, and self-control in a safe and disciplined environment.
-              </p>
+              <p>{t('kids.description1')}</p>
+              <p>{t('kids.description2')}</p>
             </div>
 
             <div className="mt-10 w-16 h-px bg-red" />

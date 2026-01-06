@@ -1,24 +1,27 @@
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 
-const testimonials = [
-  {
-    quote: "I have trained at gyms across three continents. This is the first place that felt like home.",
-    name: "David Chen",
-    detail: "Member since 2022",
-  },
-  {
-    quote: "The coaches here see what others miss. My technique transformed in ways I did not think possible.",
-    name: "Sarah Mitchell",
-    detail: "Competitive Fighter",
-  },
-  {
-    quote: "No ego. No drama. Just people committed to getting better every single day.",
-    name: "Marcus Webb",
-    detail: "Member since 2021",
-  },
-];
-
 const Testimonials = () => {
+  const { t } = useTranslation();
+
+  const testimonials = [
+    {
+      quote: t('testimonials.david.quote'),
+      name: "David Chen",
+      detail: t('testimonials.david.detail'),
+    },
+    {
+      quote: t('testimonials.sarah.quote'),
+      name: "Sarah Mitchell",
+      detail: t('testimonials.sarah.detail'),
+    },
+    {
+      quote: t('testimonials.marcus.quote'),
+      name: "Marcus Webb",
+      detail: t('testimonials.marcus.detail'),
+    },
+  ];
+
   return (
     <section className="py-24 md:py-32 bg-charcoal">
       <div className="container mx-auto px-6 md:px-12">
@@ -31,10 +34,10 @@ const Testimonials = () => {
           className="mb-16 md:mb-20 text-center"
         >
           <span className="text-xs tracking-[0.3em] uppercase text-muted-foreground mb-4 block">
-            The Community
+            {t('testimonials.subtitle')}
           </span>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-light tracking-tight">
-            In Their Words
+            {t('testimonials.title')}
           </h2>
         </motion.div>
 
