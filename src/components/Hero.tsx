@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import heroBg from "@/assets/hero-editorial.jpg";
-import heroFighter from "@/assets/hero-fighter.jpg";
+import heroFightersDuo from "@/assets/hero-fighters-duo.jpg";
 import OctagonFrame from "./OctagonFrame";
 
 const Hero = () => {
@@ -27,7 +27,7 @@ const Hero = () => {
       
       {/* Content */}
       <div className="relative z-10 container mx-auto px-6 md:px-12 py-32">
-        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
           {/* Text Content */}
           <div className="max-w-2xl lg:flex-1">
             {/* Main heading */}
@@ -63,24 +63,16 @@ const Hero = () => {
             </div>
           </div>
 
-          {/* Fighter Image */}
+          {/* Fighters Image */}
           <div 
             className="relative lg:flex-1 flex justify-center animate-fade-up"
             style={{ animationDelay: "0.2s" }}
           >
-            <div className="relative">
-              <OctagonFrame 
-                className="absolute -inset-4 opacity-30" 
-                strokeWidth={1}
-              />
-              <img 
-                src={heroFighter} 
-                alt="Strikers House fighter" 
-                className="relative z-10 w-72 md:w-80 lg:w-96 h-auto object-cover grayscale hover:grayscale-0 transition-all duration-700"
-                style={{ clipPath: "polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)" }}
-              />
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-1 bg-accent" />
-            </div>
+            <img 
+              src={heroFightersDuo} 
+              alt="Strikers House fighters" 
+              className="w-full max-w-xl lg:max-w-2xl h-auto object-cover"
+            />
           </div>
         </div>
       </div>
