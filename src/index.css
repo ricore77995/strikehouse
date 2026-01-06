@@ -2,88 +2,86 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
 
 @layer base {
   :root {
-    /* Dark premium MMA aesthetic */
-    --background: 0 0% 8%;
-    --foreground: 45 20% 95%;
+    /* Premium dark monochrome with subtle red accent */
+    --background: 0 0% 5%;
+    --foreground: 0 0% 98%;
 
-    --card: 0 0% 11%;
-    --card-foreground: 45 20% 95%;
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 11%;
-    --popover-foreground: 45 20% 95%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 98%;
 
-    /* Gold accent - from Striker's House logo */
-    --primary: 43 50% 60%;
-    --primary-foreground: 0 0% 8%;
+    /* Clean white primary */
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 5%;
 
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 45 20% 95%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 0 0% 18%;
-    --muted-foreground: 0 0% 60%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 55%;
 
-    --accent: 43 50% 60%;
-    --accent-foreground: 0 0% 8%;
+    --accent: 0 72% 50%;
+    --accent-foreground: 0 0% 98%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 43 50% 60%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 0 0% 98%;
 
     --radius: 0rem;
 
     /* Custom tokens */
-    --gold: 43 50% 60%;
-    --gold-light: 43 40% 75%;
-    --gold-dark: 43 60% 45%;
-    --charcoal: 0 0% 12%;
-    --charcoal-light: 0 0% 18%;
-    --cream: 45 20% 95%;
+    --red: 0 72% 50%;
+    --red-subtle: 0 72% 50%;
+    --charcoal: 0 0% 8%;
+    --charcoal-deep: 0 0% 5%;
 
-    --sidebar-background: 0 0% 10%;
-    --sidebar-foreground: 45 20% 95%;
-    --sidebar-primary: 43 50% 60%;
-    --sidebar-primary-foreground: 0 0% 8%;
-    --sidebar-accent: 0 0% 15%;
-    --sidebar-accent-foreground: 45 20% 95%;
-    --sidebar-border: 0 0% 20%;
-    --sidebar-ring: 43 50% 60%;
+    --sidebar-background: 0 0% 8%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 0 0% 98%;
+    --sidebar-primary-foreground: 0 0% 5%;
+    --sidebar-accent: 0 0% 12%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 15%;
+    --sidebar-ring: 0 0% 98%;
   }
 
   .dark {
-    --background: 0 0% 8%;
-    --foreground: 45 20% 95%;
-    --card: 0 0% 11%;
-    --card-foreground: 45 20% 95%;
-    --popover: 0 0% 11%;
-    --popover-foreground: 45 20% 95%;
-    --primary: 43 50% 60%;
-    --primary-foreground: 0 0% 8%;
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 45 20% 95%;
-    --muted: 0 0% 18%;
-    --muted-foreground: 0 0% 60%;
-    --accent: 43 50% 60%;
-    --accent-foreground: 0 0% 8%;
+    --background: 0 0% 5%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 5%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 55%;
+    --accent: 0 72% 50%;
+    --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 43 50% 60%;
-    --sidebar-background: 0 0% 10%;
-    --sidebar-foreground: 45 20% 95%;
-    --sidebar-primary: 43 50% 60%;
-    --sidebar-primary-foreground: 0 0% 8%;
-    --sidebar-accent: 0 0% 15%;
-    --sidebar-accent-foreground: 45 20% 95%;
-    --sidebar-border: 0 0% 20%;
-    --sidebar-ring: 43 50% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 0 0% 98%;
+    --sidebar-background: 0 0% 8%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 0 0% 98%;
+    --sidebar-primary-foreground: 0 0% 5%;
+    --sidebar-accent: 0 0% 12%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 15%;
+    --sidebar-ring: 0 0% 98%;
   }
 }
 
@@ -99,66 +97,58 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    letter-spacing: 0.01em;
   }
 
-  h1, h2, h3 {
-    font-family: 'Bebas Neue', sans-serif;
-    letter-spacing: 0.05em;
-  }
-
-  .font-display {
-    font-family: 'Bebas Neue', sans-serif;
-  }
-
-  .font-serif {
-    font-family: 'Cormorant Garamond', serif;
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
   }
 }
 
 @layer components {
-  .text-gradient-gold {
-    @apply bg-gradient-to-r from-gold to-gold-light bg-clip-text text-transparent;
+  .text-accent-subtle {
+    @apply text-accent;
   }
 
-  .border-gradient-gold {
-    border-image: linear-gradient(135deg, hsl(43 50% 60%), hsl(43 40% 75%)) 1;
-  }
-
-  .glow-gold {
-    box-shadow: 0 0 40px -10px hsl(43 50% 60% / 0.4);
+  .border-subtle {
+    @apply border-border;
   }
 
   .hero-overlay {
     background: linear-gradient(
       to bottom,
-      hsl(0 0% 8% / 0.7) 0%,
-      hsl(0 0% 8% / 0.4) 50%,
-      hsl(0 0% 8% / 0.9) 100%
+      hsl(0 0% 5% / 0.4) 0%,
+      hsl(0 0% 5% / 0.2) 40%,
+      hsl(0 0% 5% / 0.6) 100%
     );
   }
 
-  .section-divider {
-    @apply w-24 h-px bg-gradient-to-r from-transparent via-primary to-transparent mx-auto;
+  .section-line {
+    @apply w-12 h-px bg-muted-foreground/30;
+  }
+
+  .nav-link {
+    @apply text-xs uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors duration-300;
   }
 }
 
 @layer utilities {
   .animate-fade-up {
-    animation: fadeUp 0.8s ease-out forwards;
+    animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
   .animate-fade-in {
-    animation: fadeIn 1s ease-out forwards;
-  }
-
-  .animate-scale-in {
-    animation: scaleIn 0.6s ease-out forwards;
+    animation: fadeIn 1.2s ease-out forwards;
   }
 
   @keyframes fadeUp {
     from {
       opacity: 0;
-      transform: translateY(30px);
+      transform: translateY(40px);
     }
     to {
       opacity: 1;
@@ -172,17 +162,6 @@
     }
     to {
       opacity: 1;
-    }
-  }
-
-  @keyframes scaleIn {
-    from {
-      opacity: 0;
-      transform: scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
     }
   }
 }

@@ -2,43 +2,30 @@ import { Button } from "@/components/ui/button";
 
 const CTA = () => {
   return (
-    <section className="py-24 md:py-32 bg-charcoal relative overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-          <pattern id="octagon" patternUnits="userSpaceOnUse" width="50" height="50">
-            <polygon 
-              points="25,0 50,15 50,35 25,50 0,35 0,15" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="0.5"
-            />
-          </pattern>
-          <rect width="100%" height="100%" fill="url(#octagon)" />
-        </svg>
-      </div>
-      
-      <div className="container mx-auto px-6 relative z-10">
-        <div className="max-w-3xl mx-auto text-center space-y-8">
-          <p className="text-primary uppercase tracking-[0.3em] text-sm">
-            Ready to Begin?
+    <section className="py-32 md:py-40 bg-charcoal relative">
+      <div className="container mx-auto px-6 md:px-12">
+        <div className="max-w-2xl mx-auto text-center">
+          {/* Quote */}
+          <blockquote className="mb-12">
+            <p className="text-2xl md:text-3xl lg:text-4xl font-light tracking-[0.1em] leading-relaxed mb-6">
+              "This place is different."
+            </p>
+            <p className="text-muted-foreground text-sm tracking-wider">
+              — What we want you to feel
+            </p>
+          </blockquote>
+          
+          <div className="section-line mx-auto mb-12" />
+          
+          {/* CTA text */}
+          <p className="text-muted-foreground font-light leading-relaxed mb-10 max-w-md mx-auto">
+            Your first session is complimentary. Visit the space. 
+            Meet the community. See if this fits your life.
           </p>
           
-          <h2 className="text-4xl md:text-6xl lg:text-7xl font-display tracking-wide leading-tight">
-            YOUR FIRST CLASS
-            <span className="block text-primary">IS ON US</span>
-          </h2>
-          
-          <p className="text-muted-foreground text-lg font-serif max-w-xl mx-auto">
-            Experience the Striker's House difference. Book your complimentary trial session 
-            and discover why we're Cascais' premier MMA training destination.
-          </p>
-          
-          <div className="pt-4">
-            <Button variant="gold" size="xl">
-              Book Free Trial
-            </Button>
-          </div>
+          <Button variant="default" size="lg">
+            Request Your Visit
+          </Button>
         </div>
       </div>
     </section>

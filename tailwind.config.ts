@@ -47,16 +47,14 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        gold: {
-          DEFAULT: "hsl(var(--gold))",
-          light: "hsl(var(--gold-light))",
-          dark: "hsl(var(--gold-dark))",
+        red: {
+          DEFAULT: "hsl(var(--red))",
+          subtle: "hsl(var(--red-subtle))",
         },
         charcoal: {
           DEFAULT: "hsl(var(--charcoal))",
-          light: "hsl(var(--charcoal-light))",
+          deep: "hsl(var(--charcoal-deep))",
         },
-        cream: "hsl(var(--cream))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -69,8 +67,6 @@ export default {
         },
       },
       fontFamily: {
-        display: ["Bebas Neue", "sans-serif"],
-        serif: ["Cormorant Garamond", "serif"],
         sans: ["Inter", "sans-serif"],
       },
       borderRadius: {
@@ -88,7 +84,7 @@ export default {
           to: { height: "0" },
         },
         "fade-up": {
-          from: { opacity: "0", transform: "translateY(30px)" },
+          from: { opacity: "0", transform: "translateY(40px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
         "fade-in": {
@@ -99,8 +95,8 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "fade-up": "fade-up 0.8s ease-out forwards",
-        "fade-in": "fade-in 1s ease-out forwards",
+        "fade-up": "fade-up 1s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "fade-in": "fade-in 1.2s ease-out forwards",
       },
     },
   },

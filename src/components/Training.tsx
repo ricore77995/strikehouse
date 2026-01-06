@@ -1,0 +1,78 @@
+import glovesImg from "@/assets/gloves-detail.jpg";
+import trainingImg from "@/assets/training-calm.jpg";
+import mmaImg from "@/assets/mma.jpg";
+
+const disciplines = [
+  {
+    title: "Striking",
+    description: "Boxing. Kickboxing. Muay Thai. Precision over power.",
+    image: glovesImg,
+  },
+  {
+    title: "Grappling",
+    description: "Brazilian Jiu-Jitsu. Wrestling. Control through technique.",
+    image: trainingImg,
+  },
+  {
+    title: "MMA",
+    description: "The complete discipline. For those ready to integrate all arts.",
+    image: mmaImg,
+  },
+];
+
+const Training = () => {
+  return (
+    <section id="training" className="py-32 md:py-40 bg-background">
+      <div className="container mx-auto px-6 md:px-12">
+        {/* Header */}
+        <div className="max-w-xl mb-20">
+          <div className="space-y-4 mb-8">
+            <div className="section-line" />
+            <p className="text-xs tracking-[0.3em] text-muted-foreground uppercase">
+              Training Programs
+            </p>
+          </div>
+          <h2 className="text-3xl md:text-4xl font-light tracking-[0.1em] leading-tight">
+            Three Paths. One Purpose.
+          </h2>
+        </div>
+        
+        {/* Grid */}
+        <div className="grid md:grid-cols-3 gap-px bg-border">
+          {disciplines.map((discipline, index) => (
+            <article 
+              key={discipline.title}
+              className="group bg-background relative overflow-hidden"
+            >
+              {/* Image */}
+              <div className="aspect-square overflow-hidden">
+                <img 
+                  src={discipline.image} 
+                  alt={discipline.title}
+                  className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105"
+                />
+              </div>
+              
+              {/* Content */}
+              <div className="p-8 border-t border-border">
+                <div className="flex items-start justify-between mb-4">
+                  <h3 className="text-lg font-light tracking-[0.15em]">
+                    {discipline.title}
+                  </h3>
+                  <span className="text-xs text-muted-foreground">
+                    0{index + 1}
+                  </span>
+                </div>
+                <p className="text-sm text-muted-foreground font-light leading-relaxed">
+                  {discipline.description}
+                </p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default Training;

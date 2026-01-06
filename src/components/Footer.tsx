@@ -1,72 +1,50 @@
-import logo from "@/assets/logo.jpg";
-
 const Footer = () => {
   return (
-    <footer id="contact" className="py-16 md:py-24 bg-background border-t border-border">
-      <div className="container mx-auto px-6">
-        <div className="grid md:grid-cols-3 gap-12 md:gap-8">
-          {/* Logo & Description */}
-          <div className="space-y-6">
-            <img src={logo} alt="Striker's House" className="h-20 w-auto" />
-            <p className="text-muted-foreground text-sm leading-relaxed">
-              Premium MMA training facility in the heart of Cascais. 
-              Where passion meets precision.
+    <footer id="contact" className="py-20 md:py-24 bg-background border-t border-border">
+      <div className="container mx-auto px-6 md:px-12">
+        <div className="grid md:grid-cols-4 gap-12 md:gap-8 mb-16">
+          {/* Brand */}
+          <div className="md:col-span-2 space-y-6">
+            <p className="text-sm tracking-[0.3em] uppercase font-light">
+              Striker's House
+            </p>
+            <p className="text-muted-foreground text-sm font-light leading-relaxed max-w-sm">
+              MMA Boutique in Cascais. A private training space 
+              for those who take the art seriously.
             </p>
           </div>
           
-          {/* Contact */}
-          <div className="space-y-6">
-            <h3 className="font-display text-xl tracking-wide">Contact</h3>
-            <ul className="space-y-3 text-muted-foreground text-sm">
-              <li className="flex items-start gap-3">
-                <span className="text-primary">📍</span>
-                <span>Rua Example 123<br />2750-123 Cascais, Portugal</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <span className="text-primary">📞</span>
-                <span>+351 XXX XXX XXX</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <span className="text-primary">✉️</span>
-                <span>info@strikershouse.pt</span>
-              </li>
-            </ul>
+          {/* Location */}
+          <div className="space-y-4">
+            <p className="text-xs tracking-[0.2em] uppercase text-muted-foreground">
+              Location
+            </p>
+            <div className="text-sm font-light leading-relaxed">
+              <p>Cascais, Portugal</p>
+              <p className="text-muted-foreground mt-2">By appointment only</p>
+            </div>
           </div>
           
-          {/* Hours */}
-          <div className="space-y-6">
-            <h3 className="font-display text-xl tracking-wide">Training Hours</h3>
-            <ul className="space-y-2 text-muted-foreground text-sm">
-              <li className="flex justify-between">
-                <span>Monday - Friday</span>
-                <span className="text-foreground">07:00 - 22:00</span>
-              </li>
-              <li className="flex justify-between">
-                <span>Saturday</span>
-                <span className="text-foreground">09:00 - 18:00</span>
-              </li>
-              <li className="flex justify-between">
-                <span>Sunday</span>
-                <span className="text-foreground">10:00 - 16:00</span>
-              </li>
-            </ul>
+          {/* Contact */}
+          <div className="space-y-4">
+            <p className="text-xs tracking-[0.2em] uppercase text-muted-foreground">
+              Contact
+            </p>
+            <div className="text-sm font-light space-y-2">
+              <p>info@strikershouse.pt</p>
+              <p className="text-muted-foreground">+351 XXX XXX XXX</p>
+            </div>
           </div>
         </div>
         
-        {/* Bottom Bar */}
-        <div className="mt-16 pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-muted-foreground text-sm">
+        {/* Bottom */}
+        <div className="pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-xs text-muted-foreground tracking-wider">
             © 2026 Striker's House. All rights reserved.
           </p>
-          <div className="flex gap-6">
-            <a href="#" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+          <div className="flex gap-8">
+            <a href="#" className="text-xs text-muted-foreground hover:text-foreground transition-colors tracking-wider">
               Instagram
-            </a>
-            <a href="#" className="text-muted-foreground hover:text-primary transition-colors text-sm">
-              Facebook
-            </a>
-            <a href="#" className="text-muted-foreground hover:text-primary transition-colors text-sm">
-              YouTube
             </a>
           </div>
         </div>
