@@ -4,7 +4,7 @@ import OctagonFrame from "./OctagonFrame";
 
 const Hero = () => {
   return (
-    <section className="relative min-h-screen flex items-start justify-center overflow-hidden pt-24 md:pt-28">
+    <section className="relative min-h-screen flex items-start justify-center overflow-hidden pt-32">
       {/* Background */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
