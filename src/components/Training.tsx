@@ -1,6 +1,7 @@
 import glovesImg from "@/assets/gloves-detail.jpg";
 import trainingImg from "@/assets/training-calm.jpg";
 import mmaImg from "@/assets/mma.jpg";
+import OctagonFrame from "./OctagonFrame";
 
 const disciplines = [
   {
@@ -22,8 +23,15 @@ const disciplines = [
 
 const Training = () => {
   return (
-    <section id="training" className="py-32 md:py-40 bg-background">
-      <div className="container mx-auto px-6 md:px-12">
+    <section id="training" className="py-32 md:py-40 bg-background relative overflow-hidden">
+      {/* Decorative octagon */}
+      <OctagonFrame 
+        className="absolute -right-40 top-20 w-[500px] h-[500px] opacity-10 rotate-45" 
+        strokeWidth={0.4}
+        showInner={false}
+      />
+      
+      <div className="container mx-auto px-6 md:px-12 relative z-10">
         {/* Header */}
         <div className="max-w-xl mb-20">
           <div className="space-y-4 mb-8">
