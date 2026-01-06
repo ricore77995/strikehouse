@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import coachTankImage from "@/assets/coach-tank.jpg";
 
 const coaches = [
   {
@@ -18,6 +19,12 @@ const coaches = [
     role: "Brazilian Jiu-Jitsu",
     bio: "3rd degree black belt under legendary lineage. Focuses on fundamental technique and competition preparation.",
     image: "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=400&h=500&fit=crop&crop=face"
+  },
+  {
+    name: "Dmitri Kozlov",
+    role: "Strength & Conditioning",
+    bio: "Elite performance coach specializing in fighter-specific training. Builds explosive power and endurance for competition.",
+    image: coachTankImage
   },
 ];
 
@@ -42,7 +49,7 @@ const Coaches = () => {
         </motion.div>
 
         {/* Coaches Grid */}
-        <div className="grid md:grid-cols-3 gap-8 md:gap-12">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10">
           {coaches.map((coach, index) => (
             <motion.article
               key={coach.name}
