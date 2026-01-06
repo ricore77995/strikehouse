@@ -1,9 +1,16 @@
 import { Button } from "@/components/ui/button";
+import OctagonFrame from "./OctagonFrame";
 
 const CTA = () => {
   return (
-    <section className="py-32 md:py-40 bg-charcoal relative">
-      <div className="container mx-auto px-6 md:px-12">
+    <section className="py-32 md:py-40 bg-charcoal relative overflow-hidden">
+      {/* Decorative octagon */}
+      <OctagonFrame 
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-10" 
+        strokeWidth={0.3}
+      />
+      
+      <div className="container mx-auto px-6 md:px-12 relative z-10">
         <div className="max-w-2xl mx-auto text-center">
           {/* Quote */}
           <blockquote className="mb-12">

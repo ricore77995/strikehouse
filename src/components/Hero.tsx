@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button";
 import heroBg from "@/assets/hero-editorial.jpg";
+import OctagonFrame from "./OctagonFrame";
 
 const Hero = () => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -11,20 +12,24 @@ const Hero = () => {
       />
       <div className="absolute inset-0 hero-overlay" />
       
+      {/* Decorative octagon - top right */}
+      <OctagonFrame 
+        className="absolute -top-20 -right-20 w-80 h-80 opacity-20 rotate-12" 
+        strokeWidth={0.5}
+      />
+      
+      {/* Decorative octagon - bottom left */}
+      <OctagonFrame 
+        className="absolute -bottom-32 -left-32 w-96 h-96 opacity-15 -rotate-6" 
+        strokeWidth={0.5}
+      />
+      
       {/* Content */}
       <div className="relative z-10 container mx-auto px-6 md:px-12">
         <div className="max-w-2xl">
-          {/* Tagline */}
-          <p 
-            className="text-xs tracking-[0.3em] text-muted-foreground mb-8 animate-fade-up"
-          >
-            MMA Boutique — Cascais
-          </p>
-          
           {/* Main heading */}
           <h1 
             className="text-4xl md:text-5xl lg:text-6xl font-light tracking-[0.15em] leading-tight mb-8 animate-fade-up"
-            style={{ animationDelay: "0.15s" }}
           >
             Controlled
             <span className="text-accent">.</span>
@@ -36,7 +41,7 @@ const Hero = () => {
           {/* Subtitle */}
           <p 
             className="text-muted-foreground text-base md:text-lg font-light leading-relaxed max-w-md mb-12 animate-fade-up"
-            style={{ animationDelay: "0.3s" }}
+            style={{ animationDelay: "0.15s" }}
           >
             Train with purpose. A private space for those who take discipline seriously.
           </p>
@@ -44,7 +49,7 @@ const Hero = () => {
           {/* CTA */}
           <div 
             className="flex items-center gap-6 animate-fade-up"
-            style={{ animationDelay: "0.45s" }}
+            style={{ animationDelay: "0.3s" }}
           >
             <Button variant="outline" size="lg">
               Book a Visit
