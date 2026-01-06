@@ -5,7 +5,6 @@ import Training from "@/components/Training";
 import Coaches from "@/components/Coaches";
 import Gallery from "@/components/Gallery";
 import Testimonials from "@/components/Testimonials";
-import Schedule from "@/components/Schedule";
 import CTA from "@/components/CTA";
 import Footer from "@/components/Footer";
 
@@ -20,7 +19,6 @@ const Index = () => {
         <Coaches />
         <Gallery />
         <Testimonials />
-        <Schedule />
         <CTA />
       </main>
       <Footer />
