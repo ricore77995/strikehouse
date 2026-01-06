@@ -1,54 +1,37 @@
 import { Button } from "@/components/ui/button";
-import logo from "@/assets/logo.jpg";
 
 const Header = () => {
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
-      <div className="container mx-auto px-6 py-4">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-sm">
+      <div className="container mx-auto px-6 md:px-12 py-6">
         <nav className="flex items-center justify-between">
-          <a href="#" className="flex items-center gap-3">
-            <img 
-              src={logo} 
-              alt="Striker's House" 
-              className="h-14 w-auto"
-            />
+          {/* Logo */}
+          <a href="#" className="text-sm tracking-[0.3em] uppercase font-light">
+            Striker's House
           </a>
           
-          <ul className="hidden md:flex items-center gap-8">
+          {/* Navigation */}
+          <ul className="hidden md:flex items-center gap-10">
             <li>
-              <a 
-                href="#about" 
-                className="text-sm uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
-              >
-                About
-              </a>
+              <a href="#philosophy" className="nav-link">Philosophy</a>
             </li>
             <li>
-              <a 
-                href="#disciplines" 
-                className="text-sm uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
-              >
-                Disciplines
-              </a>
+              <a href="#training" className="nav-link">Training</a>
             </li>
             <li>
-              <a 
-                href="#contact" 
-                className="text-sm uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
-              >
-                Contact
-              </a>
+              <a href="#contact" className="nav-link">Contact</a>
             </li>
           </ul>
           
+          {/* CTA */}
           <Button variant="outline" size="sm" className="hidden md:inline-flex">
-            Book Trial
+            Request Access
           </Button>
           
-          {/* Mobile menu button */}
-          <button className="md:hidden text-foreground p-2">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          {/* Mobile menu */}
+          <button className="md:hidden text-foreground p-2" aria-label="Menu">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
         </nav>

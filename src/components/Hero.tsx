@@ -1,54 +1,67 @@
 import { Button } from "@/components/ui/button";
-import heroBg from "@/assets/hero-bg.jpg";
+import heroBg from "@/assets/hero-editorial.jpg";
 
 const Hero = () => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Background Image */}
+    <section className="relative min-h-screen flex items-center justify-center">
+      {/* Background */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${heroBg})` }}
       />
-      
-      {/* Overlay */}
       <div className="absolute inset-0 hero-overlay" />
       
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-6 text-center">
-        <div className="max-w-4xl mx-auto space-y-8">
-          {/* Subtitle */}
-          <p className="text-primary uppercase tracking-[0.3em] text-sm md:text-base animate-fade-up font-sans">
-            Premium MMA Boutique • Cascais
+      <div className="relative z-10 container mx-auto px-6 md:px-12">
+        <div className="max-w-2xl">
+          {/* Tagline */}
+          <p 
+            className="text-xs tracking-[0.3em] text-muted-foreground mb-8 animate-fade-up"
+          >
+            MMA Boutique — Cascais
           </p>
           
-          {/* Main Title */}
-          <h1 className="text-6xl md:text-8xl lg:text-9xl font-display tracking-wider animate-fade-up" style={{ animationDelay: "0.2s" }}>
-            STRIKER'S
-            <span className="block font-serif italic text-4xl md:text-6xl lg:text-7xl text-primary font-normal -mt-2">
-              house
-            </span>
+          {/* Main heading */}
+          <h1 
+            className="text-4xl md:text-5xl lg:text-6xl font-light tracking-[0.15em] leading-tight mb-8 animate-fade-up"
+            style={{ animationDelay: "0.15s" }}
+          >
+            Controlled
+            <span className="text-accent">.</span>
+            <br />
+            Chaos
+            <span className="text-accent">.</span>
           </h1>
           
-          {/* Tagline */}
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto animate-fade-up font-serif italic" style={{ animationDelay: "0.4s" }}>
-            Where champions are forged. Elevate your fighting skills in Portugal's most exclusive MMA training facility.
+          {/* Subtitle */}
+          <p 
+            className="text-muted-foreground text-base md:text-lg font-light leading-relaxed max-w-md mb-12 animate-fade-up"
+            style={{ animationDelay: "0.3s" }}
+          >
+            Train with purpose. A private space for those who take discipline seriously.
           </p>
           
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6 animate-fade-up" style={{ animationDelay: "0.6s" }}>
-            <Button variant="hero" size="xl">
-              Start Your Journey
+          {/* CTA */}
+          <div 
+            className="flex items-center gap-6 animate-fade-up"
+            style={{ animationDelay: "0.45s" }}
+          >
+            <Button variant="outline" size="lg">
+              Book a Visit
             </Button>
-            <Button variant="ghost" size="lg" className="text-muted-foreground hover:text-foreground">
-              View Schedule →
-            </Button>
+            <a href="#training" className="nav-link">
+              Explore →
+            </a>
           </div>
         </div>
       </div>
       
-      {/* Scroll Indicator */}
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce">
-        <div className="w-px h-16 bg-gradient-to-b from-primary to-transparent" />
+      {/* Scroll indicator */}
+      <div className="absolute bottom-12 left-6 md:left-12 flex items-center gap-4">
+        <div className="w-px h-16 bg-muted-foreground/30" />
+        <span className="text-xs tracking-[0.2em] text-muted-foreground rotate-90 origin-left translate-y-6">
+          Scroll
+        </span>
       </div>
     </section>
   );
