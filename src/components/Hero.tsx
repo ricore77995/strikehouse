@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
 import heroBg from "@/assets/hero-editorial.jpg";
+import heroFighter from "@/assets/hero-fighter.jpg";
 import OctagonFrame from "./OctagonFrame";
 
 const Hero = () => {
   return (
-    <section className="relative min-h-screen flex items-start justify-center overflow-hidden pt-32">
+    <section className="relative min-h-screen flex items-center overflow-hidden">
       {/* Background */}
       <div 
         className="absolute inset-0 bg-cover bg-[center_75%] bg-no-repeat"
@@ -25,38 +26,61 @@ const Hero = () => {
       />
       
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-6 md:px-12">
-        <div className="max-w-2xl">
-          {/* Main heading */}
-          <h1 
-            className="text-4xl md:text-5xl lg:text-6xl font-light tracking-[0.15em] leading-tight mb-8 animate-fade-up"
-          >
-            Controlled
-            <span className="text-accent">.</span>
-            <br />
-            Chaos
-            <span className="text-accent">.</span>
-          </h1>
-          
-          {/* Subtitle */}
-          <p 
-            className="text-muted-foreground text-base md:text-lg font-light leading-relaxed max-w-md mb-12 animate-fade-up"
-            style={{ animationDelay: "0.15s" }}
-          >
-            Train with purpose. A private space for those who take discipline seriously.
-          </p>
-          
-          {/* CTA */}
+      <div className="relative z-10 container mx-auto px-6 md:px-12 py-32">
+        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+          {/* Text Content */}
+          <div className="max-w-2xl lg:flex-1">
+            {/* Main heading */}
+            <h1 
+              className="text-4xl md:text-5xl lg:text-6xl font-light tracking-[0.15em] leading-tight mb-8 animate-fade-up"
+            >
+              Controlled
+              <span className="text-accent">.</span>
+              <br />
+              Chaos
+              <span className="text-accent">.</span>
+            </h1>
+            
+            {/* Subtitle */}
+            <p 
+              className="text-muted-foreground text-base md:text-lg font-light leading-relaxed max-w-md mb-12 animate-fade-up"
+              style={{ animationDelay: "0.15s" }}
+            >
+              Train with purpose. A private space for those who take discipline seriously.
+            </p>
+            
+            {/* CTA */}
+            <div 
+              className="flex items-center gap-6 animate-fade-up"
+              style={{ animationDelay: "0.3s" }}
+            >
+              <Button variant="outline" size="lg">
+                Book a Visit
+              </Button>
+              <a href="#training" className="nav-link">
+                Explore →
+              </a>
+            </div>
+          </div>
+
+          {/* Fighter Image */}
           <div 
-            className="flex items-center gap-6 animate-fade-up"
-            style={{ animationDelay: "0.3s" }}
+            className="relative lg:flex-1 flex justify-center animate-fade-up"
+            style={{ animationDelay: "0.2s" }}
           >
-            <Button variant="outline" size="lg">
-              Book a Visit
-            </Button>
-            <a href="#training" className="nav-link">
-              Explore →
-            </a>
+            <div className="relative">
+              <OctagonFrame 
+                className="absolute -inset-4 opacity-30" 
+                strokeWidth={1}
+              />
+              <img 
+                src={heroFighter} 
+                alt="Strikers House fighter" 
+                className="relative z-10 w-72 md:w-80 lg:w-96 h-auto object-cover grayscale hover:grayscale-0 transition-all duration-700"
+                style={{ clipPath: "polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)" }}
+              />
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-1 bg-accent" />
+            </div>
           </div>
         </div>
       </div>
