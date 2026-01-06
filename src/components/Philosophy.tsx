@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import athleteImg from "@/assets/athlete-portrait.jpg";
 
 const Philosophy = () => {
@@ -6,7 +7,13 @@ const Philosophy = () => {
       <div className="container mx-auto px-6 md:px-12">
         <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
           {/* Text content */}
-          <div className="space-y-8 order-2 lg:order-1">
+          <motion.div 
+            initial={{ opacity: 0, x: -40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
+            className="space-y-8 order-2 lg:order-1"
+          >
             <div className="space-y-4">
               <div className="section-line" />
               <p className="text-xs tracking-[0.3em] text-muted-foreground uppercase">
@@ -31,35 +38,35 @@ const Philosophy = () => {
             
             {/* Values */}
             <div className="grid grid-cols-3 gap-8 pt-8 border-t border-border">
-              <div>
-                <p className="text-2xl font-light mb-1">
-                  Focus
-                </p>
-                <p className="text-xs text-muted-foreground tracking-wider">
-                  Sharp mind
-                </p>
-              </div>
-              <div>
-                <p className="text-2xl font-light mb-1">
-                  Respect
-                </p>
-                <p className="text-xs text-muted-foreground tracking-wider">
-                  For all
-                </p>
-              </div>
-              <div>
-                <p className="text-2xl font-light mb-1">
-                  Growth
-                </p>
-                <p className="text-xs text-muted-foreground tracking-wider">
-                  Every day
-                </p>
-              </div>
+              {[
+                { title: "Focus", subtitle: "Sharp mind" },
+                { title: "Respect", subtitle: "For all" },
+                { title: "Growth", subtitle: "Every day" },
+              ].map((value, index) => (
+                <motion.div
+                  key={value.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.2 + index * 0.1 }}
+                >
+                  <p className="text-2xl font-light mb-1">{value.title}</p>
+                  <p className="text-xs text-muted-foreground tracking-wider">
+                    {value.subtitle}
+                  </p>
+                </motion.div>
+              ))}
             </div>
-          </div>
+          </motion.div>
           
           {/* Image */}
-          <div className="order-1 lg:order-2">
+          <motion.div 
+            initial={{ opacity: 0, x: 40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+            className="order-1 lg:order-2"
+          >
             <div className="relative">
               <img 
                 src={athleteImg} 
@@ -69,7 +76,7 @@ const Philosophy = () => {
               {/* Accent line */}
               <div className="absolute -bottom-4 -left-4 w-24 h-px bg-accent" />
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>
