@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import glovesImg from "@/assets/gloves-detail.jpg";
 import trainingImg from "@/assets/training-calm.jpg";
 import mmaImg from "@/assets/mma.jpg";
@@ -33,7 +34,13 @@ const Training = () => {
       
       <div className="container mx-auto px-6 md:px-12 relative z-10">
         {/* Header */}
-        <div className="max-w-xl mb-20">
+        <motion.div 
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
+          className="max-w-xl mb-20"
+        >
           <div className="space-y-4 mb-8">
             <div className="section-line" />
             <p className="text-xs tracking-[0.3em] text-muted-foreground uppercase">
@@ -43,13 +50,17 @@ const Training = () => {
           <h2 className="text-3xl md:text-4xl font-light tracking-[0.1em] leading-tight">
             Three Paths. One Purpose.
           </h2>
-        </div>
+        </motion.div>
         
         {/* Grid */}
         <div className="grid md:grid-cols-3 gap-px bg-border">
           {disciplines.map((discipline, index) => (
-            <article 
+            <motion.article 
               key={discipline.title}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.6, delay: index * 0.15, ease: [0.25, 0.1, 0.25, 1] }}
               className="group bg-background relative overflow-hidden"
             >
               {/* Image */}
@@ -75,7 +86,7 @@ const Training = () => {
                   {discipline.description}
                 </p>
               </div>
-            </article>
+            </motion.article>
           ))}
         </div>
       </div>

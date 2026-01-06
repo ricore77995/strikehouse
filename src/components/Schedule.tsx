@@ -1,3 +1,5 @@
+import { motion } from "framer-motion";
+
 const Schedule = () => {
   const schedule = [
     { day: "Monday", sessions: [{ time: "07:00", class: "Open Mat" }, { time: "12:00", class: "Boxing" }, { time: "19:00", class: "BJJ" }] },
@@ -13,7 +15,13 @@ const Schedule = () => {
     <section id="schedule" className="py-32 md:py-40 bg-background">
       <div className="container mx-auto px-6 md:px-12">
         {/* Header */}
-        <div className="max-w-xl mb-16">
+        <motion.div 
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
+          className="max-w-xl mb-16"
+        >
           <div className="space-y-4 mb-8">
             <div className="section-line" />
             <p className="text-xs tracking-[0.3em] text-muted-foreground uppercase">
@@ -26,13 +34,17 @@ const Schedule = () => {
           <p className="text-muted-foreground font-light leading-relaxed">
             Structured sessions. Consistent rhythm. Your week, organized.
           </p>
-        </div>
+        </motion.div>
 
         {/* Timetable */}
         <div className="border-t border-border">
           {schedule.map((day, index) => (
-            <div 
+            <motion.div 
               key={day.day}
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5, delay: index * 0.05, ease: [0.25, 0.1, 0.25, 1] }}
               className="grid grid-cols-12 border-b border-border py-6 md:py-8 items-start"
             >
               {/* Day */}
@@ -57,14 +69,20 @@ const Schedule = () => {
                   ))}
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
 
         {/* Note */}
-        <p className="text-xs text-muted-foreground tracking-wider mt-8 font-light">
+        <motion.p 
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="text-xs text-muted-foreground tracking-wider mt-8 font-light"
+        >
           Private sessions available upon request.
-        </p>
+        </motion.p>
       </div>
     </section>
   );
