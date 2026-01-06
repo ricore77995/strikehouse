@@ -1,6 +1,7 @@
 {
   "header": {
     "philosophy": "Filosofia",
+    "team": "A Equipa",
     "training": "Treino",
     "contact": "Contacto",
     "requestAccess": "Solicitar Acesso"
@@ -124,5 +125,63 @@
     "contact": "Contacto",
     "copyright": "© 2026 Striker's House. Todos os direitos reservados.",
     "instagram": "Instagram"
+  },
+  "team": {
+    "backHome": "Voltar ao Início",
+    "subtitle": "Alunos Atletas",
+    "title": "Treinar para Competir. Competir para Crescer.",
+    "description": "O nosso programa de atletas é para quem quer mais do que treinar — querem testar-se em competição enquanto continuam o seu desenvolvimento pessoal e profissional.",
+    "athletesSubtitle": "Os Nossos Atletas",
+    "athletesTitle": "A Lutar Sob a Nossa Bandeira",
+    "athletes": {
+      "joao": {
+        "discipline": "MMA — Peso Leve",
+        "achievements": "Campeão Nacional Português 2024. 3x vencedor de torneios. Estrela em ascensão no circuito europeu.",
+        "quote": "A equipa empurra-me a ser melhor todos os dias."
+      },
+      "ana": {
+        "discipline": "Kickboxing — Peso Pena",
+        "achievements": "Medalha de Bronze Europeia. Múltiplos títulos nacionais. Conhecida pela precisão técnica.",
+        "quote": "Aqui encontrei uma família que acredita no meu potencial."
+      },
+      "miguel": {
+        "discipline": "Jiu-Jitsu Brasileiro — Faixa Preta",
+        "achievements": "Campeão Europeu IBJJF. Múltiplas medalhas de ouro NAGA. Instrutor focado em competição.",
+        "quote": "O nível de treino aqui é incomparável em Portugal."
+      }
+    },
+    "becomeSubtitle": "O Caminho",
+    "becomeTitle": "Como Tornar-te um Atleta da Striker's House",
+    "becomeDescription": "Tornar-te um aluno atleta significa comprometer-te com um nível superior de treino enquanto equilibras os teus estudos ou carreira. Não é sobre ser o melhor — é sobre estar pronto para crescer através da competição.",
+    "pathway": {
+      "step1": {
+        "title": "Treina Consistentemente",
+        "description": "Começa como membro regular. Mostra dedicação, disciplina e amor genuíno pelo desporto."
+      },
+      "step2": {
+        "title": "Avaliação dos Treinadores",
+        "description": "Os nossos treinadores identificam potenciais atletas com base em técnica, atitude e compromisso."
+      },
+      "step3": {
+        "title": "Via Competição",
+        "description": "Junta-te às aulas de preparação para competição. Treino intensificado com sparring e condicionamento."
+      },
+      "step4": {
+        "title": "Representa a Equipa",
+        "description": "Compete sob a bandeira da Striker's House com apoio total dos treinadores e da equipa."
+      }
+    },
+    "requirementsSubtitle": "O Que Procuramos",
+    "requirementsTitle": "Requisitos para Juntar-te à Equipa",
+    "requirements": {
+      "req1": "Mínimo de 6 meses de treino consistente na Striker's House",
+      "req2": "Proficiência técnica demonstrada e compreensão dos fundamentos",
+      "req3": "Forte ética de trabalho e atitude positiva com os parceiros de treino",
+      "req4": "Capacidade de equilibrar preparação para competição com trabalho ou estudos",
+      "req5": "Compromisso em representar os valores da equipa dentro e fora do ginásio"
+    },
+    "ctaTitle": "Pronto para o Próximo Passo?",
+    "ctaDescription": "Se sentes que tens o que é preciso para competir, fala com o teu treinador sobre juntar-te ao programa de atletas. Cada campeão começou com uma única decisão.",
+    "ctaButton": "Contactar-nos"
   }
 }

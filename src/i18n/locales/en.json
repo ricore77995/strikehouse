@@ -1,6 +1,7 @@
 {
   "header": {
     "philosophy": "Philosophy",
+    "team": "The Team",
     "training": "Training",
     "contact": "Contact",
     "requestAccess": "Request Access"
@@ -124,5 +125,63 @@
     "contact": "Contact",
     "copyright": "© 2026 Striker's House. All rights reserved.",
     "instagram": "Instagram"
+  },
+  "team": {
+    "backHome": "Back to Home",
+    "subtitle": "Student Athletes",
+    "title": "Train to Compete. Compete to Grow.",
+    "description": "Our athlete program is for those who want more than training — they want to test themselves in competition while continuing their personal and professional development.",
+    "athletesSubtitle": "Our Athletes",
+    "athletesTitle": "Fighting Under Our Flag",
+    "athletes": {
+      "joao": {
+        "discipline": "MMA — Lightweight",
+        "achievements": "Portuguese National Champion 2024. 3x tournament winner. Rising star in the European circuit.",
+        "quote": "The team pushes me to be better every single day."
+      },
+      "ana": {
+        "discipline": "Kickboxing — Featherweight",
+        "achievements": "European Bronze Medalist. Multiple national titles. Known for technical precision.",
+        "quote": "Here I found a family that believes in my potential."
+      },
+      "miguel": {
+        "discipline": "Brazilian Jiu-Jitsu — Black Belt",
+        "achievements": "IBJJF European Champion. Multiple NAGA gold medals. Competition-focused instructor.",
+        "quote": "The level of training here is unmatched in Portugal."
+      }
+    },
+    "becomeSubtitle": "The Path",
+    "becomeTitle": "How to Become a Striker's House Athlete",
+    "becomeDescription": "Becoming a student athlete means committing to a higher level of training while balancing your studies or career. It's not about being the best — it's about being ready to grow through competition.",
+    "pathway": {
+      "step1": {
+        "title": "Train Consistently",
+        "description": "Start as a regular member. Show dedication, discipline, and a genuine love for the sport."
+      },
+      "step2": {
+        "title": "Coach Evaluation",
+        "description": "Our coaches identify potential athletes based on skill, attitude, and commitment to growth."
+      },
+      "step3": {
+        "title": "Competition Track",
+        "description": "Join our competition preparation classes. Intensified training with sparring and conditioning."
+      },
+      "step4": {
+        "title": "Represent the Team",
+        "description": "Compete under the Striker's House flag with full coach support and team backing."
+      }
+    },
+    "requirementsSubtitle": "What We Look For",
+    "requirementsTitle": "Requirements to Join the Team",
+    "requirements": {
+      "req1": "Minimum 6 months of consistent training at Striker's House",
+      "req2": "Demonstrated technical proficiency and understanding of fundamentals",
+      "req3": "Strong work ethic and positive attitude towards training partners",
+      "req4": "Ability to balance competition preparation with work or studies",
+      "req5": "Commitment to representing the team values inside and outside the gym"
+    },
+    "ctaTitle": "Ready to Take the Next Step?",
+    "ctaDescription": "If you feel you have what it takes to compete, speak with your coach about joining the athlete program. Every champion started with a single decision.",
+    "ctaButton": "Contact Us"
   }
 }
