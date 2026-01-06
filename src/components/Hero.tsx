@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import heroFighters from "@/assets/hero-fighters-duo.jpg";
+import heroBg from "@/assets/hero-editorial.jpg";
 import OctagonFrame from "./OctagonFrame";
 
 const Hero = () => {
@@ -7,8 +7,8 @@ const Hero = () => {
     <section className="relative min-h-screen flex items-start justify-center overflow-hidden pt-32">
       {/* Background */}
       <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${heroFighters})` }}
+        className="absolute inset-0 bg-cover bg-[center_75%] bg-no-repeat"
+        style={{ backgroundImage: `url(${heroBg})` }}
       />
       <div className="absolute inset-0 hero-overlay" />
       
