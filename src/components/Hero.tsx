@@ -1,12 +1,10 @@
 import { Button } from "@/components/ui/button";
 import heroBg from "@/assets/hero-editorial.jpg";
-import heroFighter from "@/assets/hero-fighter.jpg";
-import heroFighter2 from "@/assets/hero-fighter-2.jpg";
 import OctagonFrame from "./OctagonFrame";
 
 const Hero = () => {
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden">
+    <section className="relative min-h-screen flex items-start justify-center overflow-hidden pt-32">
       {/* Background */}
       <div 
         className="absolute inset-0 bg-cover bg-[center_75%] bg-no-repeat"
@@ -27,58 +25,38 @@ const Hero = () => {
       />
       
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-6 md:px-12 py-32">
-        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
-          {/* Text Content */}
-          <div className="max-w-2xl lg:flex-1">
-            {/* Main heading */}
-            <h1 
-              className="text-4xl md:text-5xl lg:text-6xl font-light tracking-[0.15em] leading-tight mb-8 animate-fade-up"
-            >
-              Controlled
-              <span className="text-accent">.</span>
-              <br />
-              Chaos
-              <span className="text-accent">.</span>
-            </h1>
-            
-            {/* Subtitle */}
-            <p 
-              className="text-muted-foreground text-base md:text-lg font-light leading-relaxed max-w-md mb-12 animate-fade-up"
-              style={{ animationDelay: "0.15s" }}
-            >
-              Train with purpose. A private space for those who take discipline seriously.
-            </p>
-            
-            {/* CTA */}
-            <div 
-              className="flex items-center gap-6 animate-fade-up"
-              style={{ animationDelay: "0.3s" }}
-            >
-              <Button variant="outline" size="lg">
-                Book a Visit
-              </Button>
-              <a href="#training" className="nav-link">
-                Explore →
-              </a>
-            </div>
-          </div>
-
-          {/* Fighters Side by Side */}
-          <div 
-            className="relative lg:flex-1 flex justify-center items-end gap-4 animate-fade-up"
-            style={{ animationDelay: "0.2s" }}
+      <div className="relative z-10 container mx-auto px-6 md:px-12">
+        <div className="max-w-2xl">
+          {/* Main heading */}
+          <h1 
+            className="text-4xl md:text-5xl lg:text-6xl font-light tracking-[0.15em] leading-tight mb-8 animate-fade-up"
           >
-            <img 
-              src={heroFighter} 
-              alt="Strikers House fighter" 
-              className="w-40 md:w-48 lg:w-56 h-auto object-cover"
-            />
-            <img 
-              src={heroFighter2} 
-              alt="Strikers House fighter" 
-              className="w-40 md:w-48 lg:w-56 h-auto object-cover"
-            />
+            Controlled
+            <span className="text-accent">.</span>
+            <br />
+            Chaos
+            <span className="text-accent">.</span>
+          </h1>
+          
+          {/* Subtitle */}
+          <p 
+            className="text-muted-foreground text-base md:text-lg font-light leading-relaxed max-w-md mb-12 animate-fade-up"
+            style={{ animationDelay: "0.15s" }}
+          >
+            Train with purpose. A private space for those who take discipline seriously.
+          </p>
+          
+          {/* CTA */}
+          <div 
+            className="flex items-center gap-6 animate-fade-up"
+            style={{ animationDelay: "0.3s" }}
+          >
+            <Button variant="outline" size="lg">
+              Book a Visit
+            </Button>
+            <a href="#training" className="nav-link">
+              Explore →
+            </a>
           </div>
         </div>
       </div>
