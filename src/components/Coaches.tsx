@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import coachTankImage from "@/assets/coach-tank.jpg";
+import OctagonFrame from "./OctagonFrame";
 
 const Coaches = () => {
   const { t } = useTranslation();
@@ -33,7 +34,13 @@ const Coaches = () => {
   ];
 
   return (
-    <section className="py-24 md:py-32 bg-background">
+    <section className="py-24 md:py-32 bg-background relative overflow-hidden">
+      {/* Decorative octagon */}
+      <OctagonFrame 
+        className="absolute -left-20 bottom-20 w-[450px] h-[450px] opacity-10 rotate-45" 
+        strokeWidth={0.4}
+        showInner={false}
+      />
       <div className="container mx-auto px-6 md:px-12">
         {/* Section Header */}
         <motion.div

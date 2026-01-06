@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import athleteImg from "@/assets/athlete-portrait.jpg";
+import OctagonFrame from "./OctagonFrame";
 
 const Philosophy = () => {
   const { t } = useTranslation();
@@ -12,7 +13,13 @@ const Philosophy = () => {
   ];
 
   return (
-    <section id="philosophy" className="py-32 md:py-40 bg-charcoal">
+    <section id="philosophy" className="py-32 md:py-40 bg-charcoal relative overflow-hidden">
+      {/* Decorative octagon */}
+      <OctagonFrame 
+        className="absolute -left-32 top-1/4 w-[400px] h-[400px] opacity-10 -rotate-12" 
+        strokeWidth={0.4}
+        showInner={false}
+      />
       <div className="container mx-auto px-6 md:px-12">
         <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
           {/* Text content */}

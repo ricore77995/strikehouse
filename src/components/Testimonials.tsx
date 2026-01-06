@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
+import OctagonFrame from "./OctagonFrame";
 
 const Testimonials = () => {
   const { t } = useTranslation();
@@ -23,7 +24,12 @@ const Testimonials = () => {
   ];
 
   return (
-    <section className="py-24 md:py-32 bg-charcoal">
+    <section className="py-24 md:py-32 bg-charcoal relative overflow-hidden">
+      {/* Decorative octagon */}
+      <OctagonFrame 
+        className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-[0.06]" 
+        strokeWidth={0.4}
+      />
       <div className="container mx-auto px-6 md:px-12">
         {/* Section Header */}
         <motion.div

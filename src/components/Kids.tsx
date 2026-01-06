@@ -1,12 +1,19 @@
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import kidsImage from "@/assets/kids-training.png";
+import OctagonFrame from "./OctagonFrame";
 
 const Kids = () => {
   const { t } = useTranslation();
 
   return (
-    <section className="py-24 md:py-32 bg-charcoal">
+    <section className="py-24 md:py-32 bg-charcoal relative overflow-hidden">
+      {/* Decorative octagon */}
+      <OctagonFrame 
+        className="absolute -right-24 top-1/3 w-[350px] h-[350px] opacity-10 rotate-6" 
+        strokeWidth={0.4}
+        showInner={false}
+      />
       <div className="container mx-auto px-6">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           {/* Content */}

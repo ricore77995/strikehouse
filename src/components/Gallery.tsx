@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
+import OctagonFrame from "./OctagonFrame";
 
 const galleryImages = [
   {
@@ -41,7 +42,13 @@ const Gallery = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   return (
-    <section className="py-24 md:py-32 bg-background">
+    <section className="py-24 md:py-32 bg-background relative overflow-hidden">
+      {/* Decorative octagon */}
+      <OctagonFrame 
+        className="absolute -right-32 top-20 w-[500px] h-[500px] opacity-10 -rotate-12" 
+        strokeWidth={0.4}
+        showInner={false}
+      />
       <div className="container mx-auto px-6 md:px-12">
         {/* Section Header */}
         <motion.div

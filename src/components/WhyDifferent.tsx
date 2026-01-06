@@ -1,12 +1,19 @@
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import whyDifferentImage from "@/assets/why-different.png";
+import OctagonFrame from "./OctagonFrame";
 
 const WhyDifferent = () => {
   const { t } = useTranslation();
 
   return (
-    <section className="py-24 md:py-32 bg-background">
+    <section className="py-24 md:py-32 bg-background relative overflow-hidden">
+      {/* Decorative octagon */}
+      <OctagonFrame 
+        className="absolute -left-24 top-1/2 -translate-y-1/2 w-[400px] h-[400px] opacity-10 rotate-12" 
+        strokeWidth={0.4}
+        showInner={false}
+      />
       <div className="container mx-auto px-6">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           {/* Image */}
