@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import LanguageSwitcher from "./LanguageSwitcher";
@@ -7,11 +8,14 @@ import LanguageSwitcher from "./LanguageSwitcher";
 const Header = () => {
   const { t } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
+  const isHomePage = location.pathname === "/";
 
   const menuItems = [
-    { href: "#philosophy", label: t('header.philosophy') },
-    { href: "#training", label: t('header.training') },
-    { href: "#contact", label: t('header.contact') },
+    { href: isHomePage ? "#philosophy" : "/#philosophy", label: t('header.philosophy'), isAnchor: isHomePage },
+    { href: "/team", label: t('header.team'), isAnchor: false },
+    { href: isHomePage ? "#training" : "/#training", label: t('header.training'), isAnchor: isHomePage },
+    { href: isHomePage ? "#contact" : "/#contact", label: t('header.contact'), isAnchor: isHomePage },
   ];
 
   const handleLinkClick = () => {
@@ -23,15 +27,19 @@ const Header = () => {
       <div className="container mx-auto px-6 md:px-12 py-6">
         <nav className="flex items-center justify-between">
           {/* Logo */}
-          <a href="#" className="text-sm tracking-[0.3em] uppercase font-light">
+          <Link to="/" className="text-sm tracking-[0.3em] uppercase font-light">
             Striker's House
-          </a>
+          </Link>
           
           {/* Desktop Navigation */}
           <ul className="hidden md:flex items-center gap-10">
             {menuItems.map((item) => (
               <li key={item.href}>
-                <a href={item.href} className="nav-link">{item.label}</a>
+                {item.isAnchor ? (
+                  <a href={item.href} className="nav-link">{item.label}</a>
+                ) : (
+                  <Link to={item.href} className="nav-link">{item.label}</Link>
+                )}
               </li>
             ))}
           </ul>
@@ -101,18 +109,36 @@ const Header = () => {
                 className="flex flex-col items-center gap-8"
               >
                 {menuItems.map((item, index) => (
-                  <motion.a
-                    key={item.href}
-                    href={item.href}
-                    onClick={handleLinkClick}
-                    className="text-2xl tracking-[0.2em] uppercase font-light text-foreground/80 hover:text-foreground transition-colors"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 20 }}
-                    transition={{ duration: 0.3, delay: 0.15 + index * 0.05 }}
-                  >
-                    {item.label}
-                  </motion.a>
+                  item.isAnchor ? (
+                    <motion.a
+                      key={item.href}
+                      href={item.href}
+                      onClick={handleLinkClick}
+                      className="text-2xl tracking-[0.2em] uppercase font-light text-foreground/80 hover:text-foreground transition-colors"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 20 }}
+                      transition={{ duration: 0.3, delay: 0.15 + index * 0.05 }}
+                    >
+                      {item.label}
+                    </motion.a>
+                  ) : (
+                    <motion.div
+                      key={item.href}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 20 }}
+                      transition={{ duration: 0.3, delay: 0.15 + index * 0.05 }}
+                    >
+                      <Link
+                        to={item.href}
+                        onClick={handleLinkClick}
+                        className="text-2xl tracking-[0.2em] uppercase font-light text-foreground/80 hover:text-foreground transition-colors"
+                      >
+                        {item.label}
+                      </Link>
+                    </motion.div>
+                  )
                 ))}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
