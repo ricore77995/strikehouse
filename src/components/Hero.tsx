@@ -1,8 +1,11 @@
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import heroBg from "@/assets/hero-editorial.jpg";
 import OctagonFrame from "./OctagonFrame";
 
 const Hero = () => {
+  const { t } = useTranslation();
+
   return (
     <section className="relative min-h-screen flex items-start justify-center overflow-hidden pt-32">
       {/* Background */}
@@ -31,10 +34,10 @@ const Hero = () => {
           <h1 
             className="text-4xl md:text-5xl lg:text-6xl font-light tracking-[0.15em] leading-tight mb-8 animate-fade-up"
           >
-            Controlled
+            {t('hero.controlled')}
             <span className="text-accent">.</span>
             <br />
-            Chaos
+            {t('hero.chaos')}
             <span className="text-accent">.</span>
           </h1>
           
@@ -43,7 +46,7 @@ const Hero = () => {
             className="text-muted-foreground text-base md:text-lg font-light leading-relaxed max-w-md mb-12 animate-fade-up"
             style={{ animationDelay: "0.15s" }}
           >
-            Train with purpose. A private space for those who take discipline seriously.
+            {t('hero.subtitle')}
           </p>
           
           {/* CTA */}
@@ -52,10 +55,10 @@ const Hero = () => {
             style={{ animationDelay: "0.3s" }}
           >
             <Button variant="outline" size="lg">
-              Book a Visit
+              {t('hero.bookVisit')}
             </Button>
             <a href="#training" className="nav-link">
-              Explore →
+              {t('hero.explore')} →
             </a>
           </div>
         </div>
@@ -65,7 +68,7 @@ const Hero = () => {
       <div className="absolute bottom-12 left-6 md:left-12 flex items-center gap-4">
         <div className="w-px h-16 bg-muted-foreground/30" />
         <span className="text-xs tracking-[0.2em] text-muted-foreground rotate-90 origin-left translate-y-6">
-          Scroll
+          {t('hero.scroll')}
         </span>
       </div>
     </section>

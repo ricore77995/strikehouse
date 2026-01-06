@@ -1,7 +1,10 @@
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import whyDifferentImage from "@/assets/why-different.png";
 
 const WhyDifferent = () => {
+  const { t } = useTranslation();
+
   return (
     <section className="py-24 md:py-32 bg-background">
       <div className="container mx-auto px-6">
@@ -33,31 +36,31 @@ const WhyDifferent = () => {
             className="order-1 lg:order-2"
           >
             <span className="text-red uppercase tracking-[0.2em] text-sm font-medium">
-              Our Approach
+              {t('whyDifferent.subtitle')}
             </span>
             
             <h2 className="font-display text-3xl md:text-4xl lg:text-5xl text-foreground mt-4 mb-8 leading-tight">
-              Why Striker's House is Different
+              {t('whyDifferent.title')}
             </h2>
 
             <div className="space-y-6 text-muted-foreground text-lg leading-relaxed">
               <p>
-                Here, competition and personal growth share the same floor.<br />
-                Athletes prepare to compete.<br />
-                Others come to become stronger — physically and mentally.
+                {t('whyDifferent.description1')}<br />
+                {t('whyDifferent.description1a')}<br />
+                {t('whyDifferent.description1b')}
               </p>
 
               <p className="text-foreground font-medium text-xl">
-                Different paths. One discipline.
+                {t('whyDifferent.highlight')}
               </p>
 
               <p>
-                We don't separate people by ego, age or background.<br />
-                We bring them together through structure, respect and consistency.
+                {t('whyDifferent.description2')}<br />
+                {t('whyDifferent.description2a')}
               </p>
 
               <p className="text-foreground/80 italic">
-                Because real strength is built over time.
+                {t('whyDifferent.closing')}
               </p>
             </div>
 

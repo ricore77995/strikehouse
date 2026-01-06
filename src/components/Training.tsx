@@ -1,28 +1,31 @@
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import glovesImg from "@/assets/gloves-detail.jpg";
 import trainingImg from "@/assets/training-calm.jpg";
 import mmaImg from "@/assets/mma.jpg";
 import OctagonFrame from "./OctagonFrame";
 
-const disciplines = [
-  {
-    title: "Striking",
-    description: "Boxing. Kickboxing. Muay Thai. Precision over power.",
-    image: glovesImg,
-  },
-  {
-    title: "Grappling",
-    description: "Brazilian Jiu-Jitsu. Wrestling. Control through technique.",
-    image: trainingImg,
-  },
-  {
-    title: "MMA",
-    description: "The complete discipline. For those ready to integrate all arts.",
-    image: mmaImg,
-  },
-];
-
 const Training = () => {
+  const { t } = useTranslation();
+
+  const disciplines = [
+    {
+      title: t('training.striking'),
+      description: t('training.strikingDesc'),
+      image: glovesImg,
+    },
+    {
+      title: t('training.grappling'),
+      description: t('training.grapplingDesc'),
+      image: trainingImg,
+    },
+    {
+      title: t('training.mma'),
+      description: t('training.mmaDesc'),
+      image: mmaImg,
+    },
+  ];
+
   return (
     <section id="training" className="py-32 md:py-40 bg-background relative overflow-hidden">
       {/* Decorative octagon */}
@@ -44,11 +47,11 @@ const Training = () => {
           <div className="space-y-4 mb-8">
             <div className="section-line" />
             <p className="text-xs tracking-[0.3em] text-muted-foreground uppercase">
-              Training Programs
+              {t('training.subtitle')}
             </p>
           </div>
           <h2 className="text-3xl md:text-4xl font-light tracking-[0.1em] leading-tight">
-            Three Paths. One Purpose.
+            {t('training.title')}
           </h2>
         </motion.div>
         

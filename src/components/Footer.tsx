@@ -1,4 +1,8 @@
+import { useTranslation } from "react-i18next";
+
 const Footer = () => {
+  const { t } = useTranslation();
+
   return (
     <footer id="contact" className="py-20 md:py-24 bg-background border-t border-border">
       <div className="container mx-auto px-6 md:px-12">
@@ -9,26 +13,25 @@ const Footer = () => {
               Striker's House
             </p>
             <p className="text-muted-foreground text-sm font-light leading-relaxed max-w-sm">
-              MMA Boutique in Cascais. A private training space 
-              for those who take the art seriously.
+              {t('footer.description')}
             </p>
           </div>
           
           {/* Location */}
           <div className="space-y-4">
             <p className="text-xs tracking-[0.2em] uppercase text-muted-foreground">
-              Location
+              {t('footer.location')}
             </p>
             <div className="text-sm font-light leading-relaxed">
-              <p>Cascais, Portugal</p>
-              <p className="text-muted-foreground mt-2">By appointment only</p>
+              <p>{t('footer.city')}</p>
+              <p className="text-muted-foreground mt-2">{t('footer.byAppointment')}</p>
             </div>
           </div>
           
           {/* Contact */}
           <div className="space-y-4">
             <p className="text-xs tracking-[0.2em] uppercase text-muted-foreground">
-              Contact
+              {t('footer.contact')}
             </p>
             <div className="text-sm font-light space-y-2">
               <p>info@strikershouse.pt</p>
@@ -40,11 +43,11 @@ const Footer = () => {
         {/* Bottom */}
         <div className="pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-xs text-muted-foreground tracking-wider">
-            © 2026 Striker's House. All rights reserved.
+            {t('footer.copyright')}
           </p>
           <div className="flex gap-8">
             <a href="#" className="text-xs text-muted-foreground hover:text-foreground transition-colors tracking-wider">
-              Instagram
+              {t('footer.instagram')}
             </a>
           </div>
         </div>
