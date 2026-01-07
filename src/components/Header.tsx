@@ -26,6 +26,7 @@ const Header = () => {
   const menuItems = [
     { href: isHomePage ? "#philosophy" : "/#philosophy", label: t('header.philosophy'), isAnchor: isHomePage },
     { href: "/team", label: t('header.team'), isAnchor: false },
+    { href: "/membership", label: t('header.membership'), isAnchor: false },
     { href: isHomePage ? "#training" : "/#training", label: t('header.training'), isAnchor: isHomePage },
     { href: isHomePage ? "#contact" : "/#contact", label: t('header.contact'), isAnchor: isHomePage },
   ];
