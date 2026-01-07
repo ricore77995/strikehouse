@@ -47,7 +47,7 @@ const Philosophy = () => {
             </div>
             
             {/* Values */}
-            <div className="grid grid-cols-3 gap-8 pt-8 border-t border-border">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 pt-8 border-t border-border">
               {values.map((value, index) => (
                 <motion.div
                   key={value.title}
@@ -56,7 +56,7 @@ const Philosophy = () => {
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: 0.2 + index * 0.1 }}
                 >
-                  <p className="text-2xl font-light mb-1">{value.title}</p>
+                  <p className="text-xl sm:text-2xl font-light mb-1">{value.title}</p>
                   <p className="text-xs text-muted-foreground tracking-wider">
                     {value.subtitle}
                   </p>
