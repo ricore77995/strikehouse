@@ -107,6 +107,11 @@
     letter-spacing: 0.15em;
     text-transform: uppercase;
   }
+
+  /* Safe area for mobile devices */
+  .pt-safe {
+    padding-top: max(env(safe-area-inset-top), 0.5rem);
+  }
 }
 
 @layer components {
