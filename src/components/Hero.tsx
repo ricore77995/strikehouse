@@ -29,7 +29,7 @@ const Hero = () => {
       
       {/* Content */}
       <div className="relative z-10 container mx-auto px-6 md:px-12">
-        <div className="max-w-2xl">
+        <div className="max-w-2xl bg-background/70 md:bg-transparent backdrop-blur-sm md:backdrop-blur-none p-6 md:p-0 rounded-lg">
           {/* Main heading */}
           <h1 
             className="text-4xl md:text-5xl lg:text-6xl font-light tracking-[0.15em] leading-tight mb-8 animate-fade-up"
@@ -51,7 +51,7 @@ const Hero = () => {
           
           {/* CTA */}
           <div 
-            className="flex items-center gap-6 animate-fade-up"
+            className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 animate-fade-up"
             style={{ animationDelay: "0.3s" }}
           >
             <Button variant="outline" size="lg">
