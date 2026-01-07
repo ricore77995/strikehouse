@@ -73,7 +73,7 @@ const CTA = () => {
   };
 
   return (
-    <section id="contact" className="py-32 md:py-40 bg-charcoal relative overflow-hidden">
+    <section id="contact" className="py-16 md:py-32 lg:py-40 bg-charcoal relative overflow-hidden">
       {/* Decorative octagon */}
       <OctagonFrame 
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-10" 

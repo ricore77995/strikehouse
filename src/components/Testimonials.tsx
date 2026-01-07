@@ -24,7 +24,7 @@ const Testimonials = () => {
   ];
 
   return (
-    <section className="py-24 md:py-32 bg-charcoal relative overflow-hidden">
+    <section className="py-16 md:py-24 lg:py-32 bg-charcoal relative overflow-hidden">
       {/* Decorative octagon */}
       <OctagonFrame 
         className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-[0.06]" 

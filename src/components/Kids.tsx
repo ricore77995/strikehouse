@@ -7,7 +7,7 @@ const Kids = () => {
   const { t } = useTranslation();
 
   return (
-    <section className="py-24 md:py-32 bg-charcoal relative overflow-hidden">
+    <section className="py-16 md:py-24 lg:py-32 bg-charcoal relative overflow-hidden">
       {/* Decorative octagon */}
       <OctagonFrame 
         className="absolute -right-24 top-1/3 w-[350px] h-[350px] opacity-10 rotate-6" 
