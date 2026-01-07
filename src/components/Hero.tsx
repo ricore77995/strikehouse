@@ -32,7 +32,7 @@ const Hero = () => {
         <div className="max-w-2xl">
           {/* Main heading */}
           <h1 
-            className="text-4xl md:text-5xl lg:text-6xl font-light tracking-[0.15em] leading-tight mb-8 animate-fade-up"
+            className="text-4xl md:text-5xl lg:text-6xl font-light tracking-[0.15em] leading-tight mb-8 animate-fade-up drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] md:drop-shadow-none"
           >
             {t('hero.controlled')}
             <span className="text-accent">.</span>
@@ -43,7 +43,7 @@ const Hero = () => {
           
           {/* Subtitle */}
           <p 
-            className="text-muted-foreground text-base md:text-lg font-light leading-relaxed max-w-md animate-fade-up"
+            className="text-muted-foreground text-base md:text-lg font-light leading-relaxed max-w-md animate-fade-up drop-shadow-[0_1px_8px_rgba(0,0,0,0.9)] md:drop-shadow-none"
             style={{ animationDelay: "0.15s" }}
           >
             {t('hero.subtitle')}
