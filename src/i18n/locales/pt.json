@@ -2,6 +2,7 @@
   "header": {
     "philosophy": "Filosofia",
     "team": "Para Atletas",
+    "membership": "Membership",
     "training": "Treino",
     "contact": "Contacto",
     "requestAccess": "Solicitar Acesso"
@@ -184,5 +185,50 @@
     "ctaTitle": "Pronto para o Próximo Passo?",
     "ctaDescription": "Se sentes que tens o que é preciso para competir, fala com o teu treinador sobre juntar-te ao programa de atletas. Cada campeão começou com uma única decisão.",
     "ctaButton": "Contactar-nos"
+  },
+  "membership": {
+    "subtitle": "Junta-te à Família",
+    "title": "Membership",
+    "description": "Juntar-te à Striker's House é uma declaração de intenção. As nossas opções de membership foram desenhadas para se adaptar aos estilos de vida modernos, aqui para apoiar os teus objetivos nos termos que te convêm.",
+    "plansTitle": "Opções de Membership",
+    "popular": "Mais Popular",
+    "enquire": "Saber Mais",
+    "plans": {
+      "full": {
+        "name": "Acesso Total",
+        "description": "Acesso completo a todas as instalações e aulas",
+        "feature1": "Acesso ilimitado ao ginásio",
+        "feature2": "Todas as aulas de grupo incluídas",
+        "feature3": "Sessões de open mat",
+        "feature4": "Acesso a eventos de membros"
+      },
+      "offPeak": {
+        "name": "Fora de Pico",
+        "description": "Treina em horários mais calmos a um preço reduzido",
+        "feature1": "Dias úteis 9h - 17h",
+        "feature2": "Fins de semana 14h - Fecho",
+        "feature3": "Aulas selecionadas incluídas"
+      },
+      "student": {
+        "name": "Estudante",
+        "description": "Membership completa com desconto",
+        "feature1": "Cartão de estudante válido necessário",
+        "feature2": "Acesso total ao ginásio",
+        "feature3": "Todas as aulas incluídas"
+      }
+    },
+    "benefitsTitle": "Benefícios de Membro",
+    "benefitsDescription": "Todas as memberships incluem acesso a instalações de classe mundial, treinadores especializados e uma comunidade de praticantes dedicados.",
+    "benefits": {
+      "benefit1": "Equipa de treinadores especialistas",
+      "benefit2": "Equipamento premium",
+      "benefit3": "Balneários e chuveiros",
+      "benefit4": "Eventos comunitários",
+      "benefit5": "Passes de convidado disponíveis",
+      "benefit6": "Opções de pausa flexíveis"
+    },
+    "ctaTitle": "Pronto para Começar?",
+    "ctaDescription": "Agenda uma visita às nossas instalações e descobre porque a Striker's House é a escolha de quem leva o treino a sério.",
+    "ctaButton": "Agendar Visita"
   }
 }

@@ -2,6 +2,7 @@
   "header": {
     "philosophy": "Philosophy",
     "team": "For Athletes",
+    "membership": "Membership",
     "training": "Training",
     "contact": "Contact",
     "requestAccess": "Request Access"
@@ -184,5 +185,50 @@
     "ctaTitle": "Ready to Take the Next Step?",
     "ctaDescription": "If you feel you have what it takes to compete, speak with your coach about joining the athlete program. Every champion started with a single decision.",
     "ctaButton": "Contact Us"
+  },
+  "membership": {
+    "subtitle": "Join the Family",
+    "title": "Membership",
+    "description": "Joining Striker's House is a statement of intent. Our membership options are designed to meet the needs of modern lifestyles, here to support your goals and ambitions on terms that suit you.",
+    "plansTitle": "Membership Options",
+    "popular": "Most Popular",
+    "enquire": "Enquire Now",
+    "plans": {
+      "full": {
+        "name": "Full Access",
+        "description": "Complete access to all facilities and classes",
+        "feature1": "Unlimited gym floor access",
+        "feature2": "All group classes included",
+        "feature3": "Open mat sessions",
+        "feature4": "Member events access"
+      },
+      "offPeak": {
+        "name": "Off-Peak",
+        "description": "Train during quieter hours at a reduced rate",
+        "feature1": "Weekdays 9AM - 5PM",
+        "feature2": "Weekends 2PM - Close",
+        "feature3": "Selected classes included"
+      },
+      "student": {
+        "name": "Student",
+        "description": "Full membership at a discounted rate",
+        "feature1": "Valid student ID required",
+        "feature2": "Full gym access",
+        "feature3": "All classes included"
+      }
+    },
+    "benefitsTitle": "Member Benefits",
+    "benefitsDescription": "Every membership includes access to world-class facilities, expert coaching, and a community of dedicated practitioners.",
+    "benefits": {
+      "benefit1": "Expert coaching team",
+      "benefit2": "Premium equipment",
+      "benefit3": "Locker rooms & showers",
+      "benefit4": "Member community events",
+      "benefit5": "Guest passes available",
+      "benefit6": "Flexible freeze options"
+    },
+    "ctaTitle": "Ready to Start?",
+    "ctaDescription": "Book a tour of our facilities and discover why Striker's House is the choice of those who take their training seriously.",
+    "ctaButton": "Book a Visit"
   }
 }
