@@ -43,7 +43,7 @@ const Hero = () => {
           
           {/* Subtitle */}
           <div 
-            className="text-white/90 md:text-muted-foreground text-base md:text-lg font-light leading-relaxed max-w-md animate-fade-up [text-shadow:_0_2px_15px_rgb(0_0_0_/_100%),_0_4px_30px_rgb(0_0_0_/_90%)] md:[text-shadow:none]"
+            className="text-white/90 md:text-muted-foreground text-base md:text-lg font-light leading-relaxed max-w-[200px] sm:max-w-xs md:max-w-md animate-fade-up [text-shadow:_0_2px_15px_rgb(0_0_0_/_100%),_0_4px_30px_rgb(0_0_0_/_90%)] md:[text-shadow:none]"
             style={{ animationDelay: "0.15s" }}
           >
             <p>{t('hero.subtitle1')}</p>
