@@ -13,7 +13,7 @@ const Philosophy = () => {
   ];
 
   return (
-    <section id="philosophy" className="py-32 md:py-40 bg-charcoal relative overflow-hidden">
+    <section id="philosophy" className="py-16 md:py-32 lg:py-40 bg-charcoal relative overflow-hidden">
       {/* Decorative octagon */}
       <OctagonFrame 
         className="absolute -left-32 top-1/4 w-[400px] h-[400px] opacity-10 -rotate-12" 

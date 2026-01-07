@@ -7,7 +7,7 @@ const WhyDifferent = () => {
   const { t } = useTranslation();
 
   return (
-    <section className="py-24 md:py-32 bg-background relative overflow-hidden">
+    <section className="py-16 md:py-24 lg:py-32 bg-background relative overflow-hidden">
       {/* Decorative octagon */}
       <OctagonFrame 
         className="absolute -left-24 top-1/2 -translate-y-1/2 w-[400px] h-[400px] opacity-10 rotate-12" 

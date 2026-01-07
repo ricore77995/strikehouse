@@ -42,7 +42,7 @@ const Gallery = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   return (
-    <section className="py-24 md:py-32 bg-background relative overflow-hidden">
+    <section className="py-16 md:py-24 lg:py-32 bg-background relative overflow-hidden">
       {/* Decorative octagon */}
       <OctagonFrame 
         className="absolute -right-32 top-20 w-[500px] h-[500px] opacity-10 -rotate-12" 

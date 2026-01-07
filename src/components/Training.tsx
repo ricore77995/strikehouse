@@ -27,7 +27,7 @@ const Training = () => {
   ];
 
   return (
-    <section id="training" className="py-32 md:py-40 bg-background relative overflow-hidden">
+    <section id="training" className="py-16 md:py-32 lg:py-40 bg-background relative overflow-hidden">
       {/* Decorative octagon */}
       <OctagonFrame 
         className="absolute -right-40 top-20 w-[500px] h-[500px] opacity-10 rotate-45" 
