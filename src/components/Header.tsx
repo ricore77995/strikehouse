@@ -98,8 +98,21 @@ const Header = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 bg-background z-40 md:hidden"
+            className="fixed inset-0 bg-background z-[100] md:hidden"
+            style={{ top: 0, left: 0, right: 0, bottom: 0 }}
           >
+            {/* Close button */}
+            <button 
+              className="absolute top-6 right-6 text-foreground p-2 z-[110]" 
+              aria-label="Close menu"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <div className="w-5 h-5 relative">
+                <span className="absolute left-0 top-1/2 w-full h-[1px] bg-foreground rotate-45" />
+                <span className="absolute left-0 top-1/2 w-full h-[1px] bg-foreground -rotate-45" />
+              </div>
+            </button>
+
             <div className="flex flex-col items-center justify-center h-full">
               <motion.nav
                 initial={{ opacity: 0, y: 20 }}
