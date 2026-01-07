@@ -4,7 +4,6 @@ import Philosophy from "@/components/Philosophy";
 import WhyDifferent from "@/components/WhyDifferent";
 import Training from "@/components/Training";
 import Kids from "@/components/Kids";
-import Coaches from "@/components/Coaches";
 import Gallery from "@/components/Gallery";
 import Testimonials from "@/components/Testimonials";
 import CTA from "@/components/CTA";
@@ -20,7 +19,6 @@ const Index = () => {
         <WhyDifferent />
         <Training />
         <Kids />
-        <Coaches />
         <Gallery />
         <Testimonials />
         <CTA />
