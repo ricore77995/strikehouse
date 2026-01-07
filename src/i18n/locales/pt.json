@@ -9,7 +9,8 @@
   "hero": {
     "controlled": "Controlled",
     "chaos": "Chaos",
-    "subtitle": "Treina com propósito. Um espaço privado para quem leva a disciplina a sério.",
+    "subtitle1": "Treina com propósito.",
+    "subtitle2": "Um espaço privado para quem leva a disciplina a sério.",
     "bookVisit": "Agendar Visita",
     "explore": "Explorar",
     "scroll": "Deslizar"

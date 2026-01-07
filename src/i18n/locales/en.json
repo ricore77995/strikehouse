@@ -9,7 +9,8 @@
   "hero": {
     "controlled": "Controlled",
     "chaos": "Chaos",
-    "subtitle": "Train with purpose. A private space for those who take discipline seriously.",
+    "subtitle1": "Train with purpose.",
+    "subtitle2": "A private space for those who take discipline seriously.",
     "bookVisit": "Book a Visit",
     "explore": "Explore",
     "scroll": "Scroll"
