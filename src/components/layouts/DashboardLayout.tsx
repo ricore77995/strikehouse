@@ -148,15 +148,21 @@ const navItems: NavItem[] = [
     roles: ['OWNER'],
   },
   {
+    title: 'Dashboard',
+    href: '/partner/dashboard',
+    icon: LayoutDashboard,
+    roles: ['PARTNER'],
+  },
+  {
     title: 'Meus Rentals',
     href: '/partner/rentals',
     icon: CalendarDays,
     roles: ['PARTNER'],
   },
   {
-    title: 'Dashboard',
-    href: '/partner/dashboard',
-    icon: LayoutDashboard,
+    title: 'Recorrentes',
+    href: '/partner/recurring',
+    icon: CalendarDays,
     roles: ['PARTNER'],
   },
 ];
