@@ -136,6 +136,12 @@ const navItems: NavItem[] = [
     roles: ['OWNER'],
   },
   {
+    title: 'Configurações',
+    href: '/owner/settings',
+    icon: Settings,
+    roles: ['OWNER'],
+  },
+  {
     title: 'Meus Rentals',
     href: '/partner/rentals',
     icon: CalendarDays,
