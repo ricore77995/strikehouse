@@ -1,4 +1,4 @@
-import { CheckCircle, XCircle, AlertTriangle, Clock, CreditCard } from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle, Clock, CreditCard, Lock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -40,6 +40,13 @@ const CheckinResultCard = ({ result, onDismiss }: CheckinResultCardProps) => {
           iconClass: 'text-orange-500',
           title: 'SEM CRÉDITOS',
         };
+      case 'AREA_EXCLUSIVE':
+        return {
+          icon: Lock,
+          bgClass: 'bg-purple-500/10 border-purple-500/30',
+          iconClass: 'text-purple-500',
+          title: 'ÁREA EXCLUSIVA',
+        };
       default:
         return {
           icon: AlertTriangle,
@@ -74,6 +81,18 @@ const CheckinResultCard = ({ result, onDismiss }: CheckinResultCardProps) => {
                 Válido até: {new Date(result.member.access_expires_at).toLocaleDateString('pt-BR')}
               </p>
             )}
+          </div>
+        )}
+
+        {result.result === 'AREA_EXCLUSIVE' && result.rentalInfo && (
+          <div className="mb-4 p-3 bg-purple-500/10 rounded-lg">
+            <p className="text-sm font-medium">{result.rentalInfo.areaName}</p>
+            <p className="text-xs text-muted-foreground">
+              Aula com {result.rentalInfo.coachName}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Libera às {result.rentalInfo.endTime.slice(0, 5)}
+            </p>
           </div>
         )}
         

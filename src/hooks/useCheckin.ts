@@ -16,9 +16,14 @@ export interface MemberCheckinInfo {
 
 export interface CheckinResult {
   success: boolean;
-  result: 'ALLOWED' | 'BLOCKED' | 'EXPIRED' | 'NO_CREDITS' | 'NOT_FOUND';
+  result: 'ALLOWED' | 'BLOCKED' | 'EXPIRED' | 'NO_CREDITS' | 'NOT_FOUND' | 'AREA_EXCLUSIVE';
   member?: MemberCheckinInfo;
   message: string;
+  rentalInfo?: {
+    coachName: string;
+    areaName: string;
+    endTime: string;
+  };
 }
 
 export const useCheckin = () => {
@@ -115,6 +120,50 @@ export const useCheckin = () => {
     };
   };
 
+  const checkExclusiveAreaRental = async (): Promise<{
+    isBlocked: boolean;
+    rental?: { coach_nome: string; area_nome: string; end_time: string };
+  }> => {
+    const now = new Date();
+    const currentTime = now.toTimeString().slice(0, 8); // HH:MM:SS format
+    const today = now.toISOString().split('T')[0];
+
+    // Query for active rentals on exclusive areas at current time
+    const { data, error } = await supabase
+      .from('rentals')
+      .select(`
+        id,
+        start_time,
+        end_time,
+        external_coaches!inner(nome),
+        areas!inner(nome, is_exclusive)
+      `)
+      .eq('rental_date', today)
+      .eq('status', 'SCHEDULED')
+      .eq('areas.is_exclusive', true)
+      .lte('start_time', currentTime)
+      .gte('end_time', currentTime);
+
+    if (error) {
+      console.error('Error checking exclusive areas:', error);
+      return { isBlocked: false };
+    }
+
+    if (data && data.length > 0) {
+      const rental = data[0] as any;
+      return {
+        isBlocked: true,
+        rental: {
+          coach_nome: rental.external_coaches?.nome || 'Coach',
+          area_nome: rental.areas?.nome || 'Área',
+          end_time: rental.end_time,
+        },
+      };
+    }
+
+    return { isBlocked: false };
+  };
+
   const performCheckin = async (
     member: MemberCheckinInfo,
     staffId: string
@@ -122,6 +171,31 @@ export const useCheckin = () => {
     setIsLoading(true);
 
     try {
+      // First check for exclusive area rentals
+      const exclusiveCheck = await checkExclusiveAreaRental();
+      
+      if (exclusiveCheck.isBlocked && exclusiveCheck.rental) {
+        // Register blocked check-in for auditing
+        await supabase.from('check_ins').insert({
+          member_id: member.id,
+          type: 'MEMBER',
+          result: 'BLOCKED',
+          checked_in_by: staffId,
+        });
+
+        return {
+          success: false,
+          result: 'AREA_EXCLUSIVE',
+          member,
+          message: `Área exclusiva ocupada até ${exclusiveCheck.rental.end_time.slice(0, 5)}. Aula privada em andamento.`,
+          rentalInfo: {
+            coachName: exclusiveCheck.rental.coach_nome,
+            areaName: exclusiveCheck.rental.area_nome,
+            endTime: exclusiveCheck.rental.end_time,
+          },
+        };
+      }
+
       const validation = validateAccess(member);
 
       // Register check-in regardless of result (for auditing)
