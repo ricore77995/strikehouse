@@ -19,6 +19,7 @@ interface TodayRental {
   end_time: string;
   guest_count: number;
   status: string;
+  area_capacidade: number;
 }
 
 interface GuestCheckin {
@@ -82,6 +83,15 @@ const GuestCheckinPage = () => {
   const handleCheckin = async () => {
     if (!selectedRental || !guestName.trim() || !staffId) {
       toast.error('Selecione um rental e digite o nome do guest');
+      return;
+    }
+
+    // Check capacity
+    const currentGuests = selectedRental.guest_count || 0;
+    const maxCapacity = selectedRental.area_capacidade || 1;
+    
+    if (currentGuests >= maxCapacity) {
+      toast.error(`Capacidade máxima atingida (${maxCapacity} guests)`);
       return;
     }
 
@@ -227,8 +237,13 @@ const GuestCheckinPage = () => {
                         <p className="text-sm font-mono">
                           {formatTime(rental.start_time)} - {formatTime(rental.end_time)}
                         </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {rental.guest_count || 0} guests
+                        <p className={cn(
+                          'text-xs mt-1',
+                          (rental.guest_count || 0) >= rental.area_capacidade 
+                            ? 'text-destructive font-medium' 
+                            : 'text-muted-foreground'
+                        )}>
+                          {rental.guest_count || 0} / {rental.area_capacidade} guests
                         </p>
                       </div>
                     </div>
