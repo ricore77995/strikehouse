@@ -90,13 +90,13 @@
 
 | # | Tarefa | Status |
 |---|--------|--------|
-| 3.1 | CRUD Planos (`/admin/plans`) | ⬜ |
-| 3.2 | Listar membros (`/admin/members`) | ⬜ |
-| 3.3 | Criar membro com QR automático | ⬜ |
-| 3.4 | Editar membro (`/admin/members/[id]`) | ⬜ |
-| 3.5 | Adicionar/editar IBANs do membro | ⬜ |
-| 3.6 | Página do QR do membro (`/m/[qr]`) | ⬜ |
-| 3.7 | Tela de check-in (`/staff/checkin`) | ⬜ |
+| 3.1 | CRUD Planos (`/admin/plans`) | ✅ |
+| 3.2 | Listar membros (`/admin/members`) | ✅ |
+| 3.3 | Criar membro com QR automático | ✅ |
+| 3.4 | Editar membro (`/admin/members/[id]`) | ✅ |
+| 3.5 | Adicionar/editar IBANs do membro | ✅ |
+| 3.6 | Página do QR do membro (`/m/[qr]`) | ✅ |
+| 3.7 | Tela de check-in (`/staff/checkin`) | ✅ (estrutura) |
 | 3.8 | Scanner de QR (câmera) | ⬜ |
 | 3.9 | Busca manual (nome/telefone) | ⬜ |
 | 3.10 | Validação de check-in (status, expiração, créditos) | ⬜ |
