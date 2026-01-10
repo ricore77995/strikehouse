@@ -32,6 +32,7 @@ import Rentals from "./pages/admin/Rentals";
 import Products from "./pages/admin/Products";
 import Audit from "./pages/admin/Audit";
 import Finances from "./pages/admin/Finances";
+import JobLogs from "./pages/admin/JobLogs";
 
 // Staff pages
 import StaffCheckin from "./pages/staff/Checkin";
@@ -182,6 +183,14 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={['OWNER', 'ADMIN']}>
                   <Finances />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/jobs"
+              element={
+                <ProtectedRoute allowedRoles={['OWNER', 'ADMIN']}>
+                  <JobLogs />
                 </ProtectedRoute>
               }
             />

@@ -343,6 +343,39 @@ export type Database = {
         }
         Relationships: []
       }
+      job_logs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          job_name: string
+          results: Json | null
+          started_at: string
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          job_name: string
+          results?: Json | null
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          job_name?: string
+          results?: Json | null
+          started_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
       member_ibans: {
         Row: {
           created_at: string | null

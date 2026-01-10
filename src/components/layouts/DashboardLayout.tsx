@@ -136,6 +136,12 @@ const navItems: NavItem[] = [
     roles: ['OWNER', 'ADMIN'],
   },
   {
+    title: 'Jobs',
+    href: '/admin/jobs',
+    icon: ClipboardList,
+    roles: ['OWNER', 'ADMIN'],
+  },
+  {
     title: 'Equipe',
     href: '/owner/staff',
     icon: Users,
