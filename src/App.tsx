@@ -42,6 +42,7 @@ import StaffCaixa from "./pages/staff/Caixa";
 
 // Partner pages
 import PartnerDashboard from "./pages/partner/Dashboard";
+import PartnerRecurringRentals from "./pages/partner/RecurringRentals";
 
 const queryClient = new QueryClient();
 
@@ -232,6 +233,14 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={['PARTNER']}>
                   <PartnerDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/partner/recurring"
+              element={
+                <ProtectedRoute allowedRoles={['PARTNER']}>
+                  <PartnerRecurringRentals />
                 </ProtectedRoute>
               }
             />
