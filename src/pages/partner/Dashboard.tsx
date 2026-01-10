@@ -121,6 +121,23 @@ const PartnerDashboard = () => {
     enabled: !!coachId,
   });
 
+  // Fetch occupied slots for selected date and area
+  const { data: occupiedSlots } = useQuery({
+    queryKey: ['partner-occupied-slots', selectedAreaId, selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null],
+    queryFn: async () => {
+      if (!selectedAreaId || !selectedDate) return [];
+      const { data, error } = await supabase
+        .from('rentals')
+        .select('start_time, end_time, coach_id')
+        .eq('area_id', selectedAreaId)
+        .eq('rental_date', format(selectedDate, 'yyyy-MM-dd'))
+        .neq('status', 'CANCELLED');
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!selectedAreaId && !!selectedDate,
+  });
+
   const nextRental = upcomingRentals?.[0];
   const totalCredits = coachInfo?.credits_balance || 0;
   const completedRentals = monthRentals?.filter(r => r.status === 'COMPLETED').length || 0;
@@ -262,6 +279,37 @@ const PartnerDashboard = () => {
     '19:00', '20:00', '21:00', '22:00'
   ];
 
+  // Check if a time slot is occupied
+  const isSlotOccupied = (slot: string) => {
+    if (!occupiedSlots || occupiedSlots.length === 0) return false;
+    return occupiedSlots.some(rental => slot >= rental.start_time && slot < rental.end_time);
+  };
+
+  // Check if a time range would conflict with occupied slots
+  const wouldConflict = (start: string, end: string) => {
+    if (!occupiedSlots || occupiedSlots.length === 0) return false;
+    return occupiedSlots.some(rental => start < rental.end_time && end > rental.start_time);
+  };
+
+  // Get available start times (not in the middle of an occupied slot)
+  const getAvailableStartTimes = () => {
+    return timeSlots.map(slot => ({
+      time: slot,
+      occupied: isSlotOccupied(slot)
+    }));
+  };
+
+  // Get available end times (considering start time and conflicts)
+  const getAvailableEndTimes = () => {
+    if (!startTime) return [];
+    return timeSlots
+      .filter(t => t > startTime)
+      .map(slot => ({
+        time: slot,
+        conflict: wouldConflict(startTime, slot)
+      }));
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'SCHEDULED':
@@ -371,14 +419,19 @@ const PartnerDashboard = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Hora Início</Label>
-                      <Select value={startTime} onValueChange={setStartTime}>
+                      <Select value={startTime} onValueChange={(v) => { setStartTime(v); setEndTime(''); }}>
                         <SelectTrigger>
                           <SelectValue placeholder="Início" />
                         </SelectTrigger>
                         <SelectContent>
-                          {timeSlots.map((time) => (
-                            <SelectItem key={time} value={time}>
-                              {time}
+                          {getAvailableStartTimes().map(({ time, occupied }) => (
+                            <SelectItem 
+                              key={time} 
+                              value={time}
+                              disabled={occupied}
+                              className={occupied ? 'text-muted-foreground line-through' : ''}
+                            >
+                              {time} {occupied && '(ocupado)'}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -386,20 +439,35 @@ const PartnerDashboard = () => {
                     </div>
                     <div className="space-y-2">
                       <Label>Hora Fim</Label>
-                      <Select value={endTime} onValueChange={setEndTime}>
+                      <Select value={endTime} onValueChange={setEndTime} disabled={!startTime}>
                         <SelectTrigger>
                           <SelectValue placeholder="Fim" />
                         </SelectTrigger>
                         <SelectContent>
-                          {timeSlots.filter(t => t > startTime).map((time) => (
-                            <SelectItem key={time} value={time}>
-                              {time}
+                          {getAvailableEndTimes().map(({ time, conflict }) => (
+                            <SelectItem 
+                              key={time} 
+                              value={time}
+                              disabled={conflict}
+                              className={conflict ? 'text-muted-foreground line-through' : ''}
+                            >
+                              {time} {conflict && '(conflito)'}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
+                  {occupiedSlots && occupiedSlots.length > 0 && (
+                    <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                      <p className="font-medium mb-1">Horários ocupados nesta área:</p>
+                      {occupiedSlots.map((slot, i) => (
+                        <span key={i} className="inline-block mr-2 text-yellow-500">
+                          {slot.start_time.slice(0, 5)}-{slot.end_time.slice(0, 5)}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                   {coachInfo?.fee_type === 'FIXED' && (
                     <p className="text-sm text-muted-foreground">
                       Taxa: €{(coachInfo.fee_value / 100).toFixed(2)}
