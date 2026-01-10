@@ -25,10 +25,16 @@ import MemberForm from "./pages/admin/MemberForm";
 import Coaches from "./pages/admin/Coaches";
 import PendingPayments from "./pages/admin/PendingPayments";
 import Billing from "./pages/admin/Billing";
+import Areas from "./pages/admin/Areas";
+import Rentals from "./pages/admin/Rentals";
+import Products from "./pages/admin/Products";
+import Audit from "./pages/admin/Audit";
 
 // Staff pages
 import StaffCheckin from "./pages/staff/Checkin";
 import StaffPayment from "./pages/staff/Payment";
+import StaffSales from "./pages/staff/Sales";
+import StaffCaixa from "./pages/staff/Caixa";
 
 // Partner pages
 import PartnerDashboard from "./pages/partner/Dashboard";
@@ -117,6 +123,38 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/admin/areas"
+              element={
+                <ProtectedRoute allowedRoles={['OWNER', 'ADMIN']}>
+                  <Areas />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/rentals"
+              element={
+                <ProtectedRoute allowedRoles={['OWNER', 'ADMIN']}>
+                  <Rentals />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/products"
+              element={
+                <ProtectedRoute allowedRoles={['OWNER', 'ADMIN']}>
+                  <Products />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/audit"
+              element={
+                <ProtectedRoute allowedRoles={['OWNER', 'ADMIN']}>
+                  <Audit />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Staff routes */}
             <Route
@@ -132,6 +170,22 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={['OWNER', 'ADMIN', 'STAFF']}>
                   <StaffPayment />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/staff/sales"
+              element={
+                <ProtectedRoute allowedRoles={['OWNER', 'ADMIN', 'STAFF']}>
+                  <StaffSales />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/staff/caixa"
+              element={
+                <ProtectedRoute allowedRoles={['OWNER', 'ADMIN', 'STAFF']}>
+                  <StaffCaixa />
                 </ProtectedRoute>
               }
             />
