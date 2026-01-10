@@ -165,6 +165,12 @@ const navItems: NavItem[] = [
     icon: CalendarDays,
     roles: ['PARTNER'],
   },
+  {
+    title: 'Calendário',
+    href: '/partner/calendar',
+    icon: CalendarDays,
+    roles: ['PARTNER'],
+  },
 ];
 
 interface DashboardLayoutProps {

@@ -43,6 +43,7 @@ import StaffCaixa from "./pages/staff/Caixa";
 // Partner pages
 import PartnerDashboard from "./pages/partner/Dashboard";
 import PartnerRecurringRentals from "./pages/partner/RecurringRentals";
+import PartnerCalendar from "./pages/partner/Calendar";
 
 const queryClient = new QueryClient();
 
@@ -244,7 +245,14 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-
+            <Route
+              path="/partner/calendar"
+              element={
+                <ProtectedRoute allowedRoles={['PARTNER']}>
+                  <PartnerCalendar />
+                </ProtectedRoute>
+              }
+            />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
