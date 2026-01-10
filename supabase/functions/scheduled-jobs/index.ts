@@ -155,6 +155,58 @@ serve(async (req: Request) => {
       console.log(`Cancelled ${results.cancelledPayments} expired payments`);
     }
 
+    // 4. SEND RENTAL REMINDERS - 24h before
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowDate = tomorrow.toISOString().split("T")[0];
+
+    const { data: upcomingRentals, error: upcomingError } = await supabase
+      .from("rentals")
+      .select(`
+        id,
+        rental_date,
+        start_time,
+        end_time,
+        external_coaches(nome, email),
+        areas(nome)
+      `)
+      .eq("status", "SCHEDULED")
+      .eq("rental_date", tomorrowDate);
+
+    if (upcomingError) {
+      console.error("Error fetching upcoming rentals:", upcomingError);
+    } else if (upcomingRentals && upcomingRentals.length > 0 && resend) {
+      for (const rental of upcomingRentals) {
+        const coach = rental.external_coaches as any;
+        const area = rental.areas as any;
+        
+        if (coach?.email) {
+          try {
+            await resend.emails.send({
+              from: "BoxeMaster <onboarding@resend.dev>",
+              to: [coach.email],
+              subject: "Lembrete: Rental Amanhã",
+              html: `
+                <h1>Olá ${coach.nome}!</h1>
+                <p>Este é um lembrete do seu rental agendado para <strong>amanhã</strong>:</p>
+                <ul>
+                  <li><strong>Data:</strong> ${rental.rental_date}</li>
+                  <li><strong>Horário:</strong> ${rental.start_time.slice(0, 5)} - ${rental.end_time.slice(0, 5)}</li>
+                  <li><strong>Área:</strong> ${area?.nome || "N/A"}</li>
+                </ul>
+                <p>Não se esqueça de fazer o check-in quando chegar!</p>
+                <p>- Equipe BoxeMaster</p>
+              `,
+            });
+            results.emailsSent++;
+            console.log(`Sent reminder to ${coach.email} for rental ${rental.id}`);
+          } catch (emailError) {
+            console.error(`Error sending reminder to ${coach.email}:`, emailError);
+          }
+        }
+      }
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
