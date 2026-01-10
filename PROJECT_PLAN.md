@@ -57,30 +57,30 @@
 
 | # | Tarefa | Status |
 |---|--------|--------|
-| 2.1 | Criar página `/login` | ⬜ |
-| 2.2 | Implementar login com Supabase Auth | ⬜ |
-| 2.3 | Criar middleware de proteção de rotas | ⬜ |
-| 2.4 | Implementar redirecionamento por role | ⬜ |
-| 2.5 | Criar layout `/owner` | ⬜ |
-| 2.6 | Criar layout `/admin` | ⬜ |
-| 2.7 | Criar layout `/staff` | ⬜ |
-| 2.8 | Criar layout `/partner` | ⬜ |
-| 2.9 | Criar página pública `/m/[qr_code]` | ⬜ |
-| 2.10 | Seed de usuários de teste (1 por role) | ⬜ |
+| 2.1 | Criar página `/login` | ✅ |
+| 2.2 | Implementar login com Supabase Auth | ✅ |
+| 2.3 | Criar middleware de proteção de rotas | ✅ |
+| 2.4 | Implementar redirecionamento por role | ✅ |
+| 2.5 | Criar layout `/owner` | ✅ |
+| 2.6 | Criar layout `/admin` | ✅ |
+| 2.7 | Criar layout `/staff` | ✅ |
+| 2.8 | Criar layout `/partner` | ✅ |
+| 2.9 | Criar página pública `/m/[qr_code]` | ✅ |
+| 2.10 | Seed de usuários de teste (1 por role) | ✅ |
 
 ### Checklist de Validação
 
-- [ ] Login funciona com email/senha
-- [ ] OWNER logado → redireciona para `/owner/dashboard`
-- [ ] ADMIN logado → redireciona para `/admin/dashboard`
-- [ ] STAFF logado → redireciona para `/staff/checkin`
-- [ ] PARTNER logado → redireciona para `/partner/dashboard`
-- [ ] OWNER não consegue acessar `/admin/*` (ou consegue, se permitido)
-- [ ] STAFF não consegue acessar `/owner/*`
-- [ ] PARTNER não consegue acessar `/admin/*`
-- [ ] Usuário não logado → redireciona para `/login`
-- [ ] `/m/MBR-XXXXX` acessível sem login
-- [ ] Logout funciona corretamente
+- [x] Login funciona com email/senha
+- [x] OWNER logado → redireciona para `/owner/dashboard`
+- [x] ADMIN logado → redireciona para `/admin/dashboard`
+- [x] STAFF logado → redireciona para `/staff/checkin`
+- [x] PARTNER logado → redireciona para `/partner/dashboard`
+- [x] OWNER não consegue acessar `/admin/*` (ou consegue, se permitido)
+- [x] STAFF não consegue acessar `/owner/*`
+- [x] PARTNER não consegue acessar `/admin/*`
+- [x] Usuário não logado → redireciona para `/login`
+- [x] `/m/MBR-XXXXX` acessível sem login
+- [x] Logout funciona corretamente
 
 ---
 
