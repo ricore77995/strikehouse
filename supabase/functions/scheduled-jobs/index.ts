@@ -26,6 +26,7 @@ serve(async (req: Request) => {
       cancelledPayments: 0,
       transactionsCreated: 0,
       emailsSent: 0,
+      expiringReminders: 0,
     };
 
     const today = new Date().toISOString().split("T")[0];
@@ -202,6 +203,50 @@ serve(async (req: Request) => {
             console.log(`Sent reminder to ${coach.email} for rental ${rental.id}`);
           } catch (emailError) {
             console.error(`Error sending reminder to ${coach.email}:`, emailError);
+          }
+        }
+      }
+    }
+
+    // 5. SEND EXPIRING MEMBERSHIP REMINDERS - 7 days before
+    const sevenDaysFromNow = new Date(now);
+    sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+    const expiringDate = sevenDaysFromNow.toISOString().split("T")[0];
+
+    const { data: expiringMembers, error: expiringError } = await supabase
+      .from("members")
+      .select("id, nome, email, access_expires_at, access_type")
+      .eq("status", "ACTIVE")
+      .eq("access_expires_at", expiringDate);
+
+    if (expiringError) {
+      console.error("Error fetching expiring members:", expiringError);
+    } else if (expiringMembers && expiringMembers.length > 0 && resend) {
+      for (const member of expiringMembers) {
+        if (member.email) {
+          try {
+            await resend.emails.send({
+              from: "BoxeMaster <onboarding@resend.dev>",
+              to: [member.email],
+              subject: "Seu plano expira em 7 dias",
+              html: `
+                <h1>Olá ${member.nome}!</h1>
+                <p>Seu plano <strong>${member.access_type || "mensal"}</strong> expira em <strong>7 dias</strong> (${member.access_expires_at}).</p>
+                <p>Para continuar treinando sem interrupções, renove seu plano antes do vencimento.</p>
+                <h3>Como renovar:</h3>
+                <ol>
+                  <li>Visite nossa recepção</li>
+                  <li>Ou entre em contato pelo WhatsApp</li>
+                </ol>
+                <p>Não perca seu progresso! 💪</p>
+                <p>- Equipe BoxeMaster</p>
+              `,
+            });
+            results.expiringReminders++;
+            results.emailsSent++;
+            console.log(`Sent expiring reminder to ${member.email}`);
+          } catch (emailError) {
+            console.error(`Error sending expiring reminder to ${member.email}:`, emailError);
           }
         }
       }
