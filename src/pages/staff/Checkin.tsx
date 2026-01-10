@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useCheckin, type CheckinResult, type MemberCheckinInfo } from '@/hooks/useCheckin';
 import QRScanner from '@/components/QRScanner';
 import CheckinResultCard from '@/components/CheckinResultCard';
+import QuickMemberModal from '@/components/QuickMemberModal';
 import { cn } from '@/lib/utils';
 
 interface RecentCheckin {
@@ -31,6 +32,7 @@ const StaffCheckin = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [checkinResult, setCheckinResult] = useState<CheckinResult | null>(null);
   const [recentCheckins, setRecentCheckins] = useState<RecentCheckin[]>([]);
+  const [showQuickMember, setShowQuickMember] = useState(false);
 
   // Load recent check-ins
   useEffect(() => {
@@ -114,7 +116,11 @@ const StaffCheckin = () => {
               Registrar entrada de membros
             </p>
           </div>
-          <Button variant="outline" className="uppercase tracking-wider text-xs">
+          <Button 
+            variant="outline" 
+            className="uppercase tracking-wider text-xs"
+            onClick={() => setShowQuickMember(true)}
+          >
             <UserPlus className="h-4 w-4 mr-2" />
             Cadastro Rápido
           </Button>
@@ -282,6 +288,12 @@ const StaffCheckin = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Quick Member Modal */}
+        <QuickMemberModal
+          open={showQuickMember}
+          onOpenChange={setShowQuickMember}
+        />
       </div>
     </DashboardLayout>
   );
