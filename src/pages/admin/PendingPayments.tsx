@@ -212,6 +212,30 @@ const PendingPayments = () => {
           is_primary: false,
         });
       }
+
+      // Send email notification (non-blocking)
+      const { data: memberData } = await supabase
+        .from('members')
+        .select('nome, email, access_expires_at')
+        .eq('id', memberId)
+        .single();
+
+      if (memberData?.email) {
+        supabase.functions.invoke('send-notification', {
+          body: {
+            type: 'PAYMENT_CONFIRMED',
+            recipientEmail: memberData.email,
+            recipientName: memberData.nome,
+            data: {
+              amount_cents: payment.amount_cents,
+              plan_name: plan?.nome || 'N/A',
+              access_expires_at: memberData.access_expires_at 
+                ? format(new Date(memberData.access_expires_at), 'dd/MM/yyyy')
+                : 'N/A',
+            },
+          },
+        }).catch(console.error); // Fire and forget
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pending-payments'] });
