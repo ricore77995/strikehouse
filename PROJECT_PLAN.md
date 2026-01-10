@@ -30,24 +30,24 @@
 
 | # | Tarefa | Status |
 |---|--------|--------|
-| 1.1 | Criar projeto Next.js 14 (App Router) | ⬜ |
-| 1.2 | Configurar Tailwind CSS | ⬜ |
-| 1.3 | Configurar TypeScript | ⬜ |
-| 1.4 | Criar projeto Supabase | ⬜ |
-| 1.5 | Configurar variáveis de ambiente | ⬜ |
-| 1.6 | Executar schema SQL completo | ⬜ |
-| 1.7 | Configurar Supabase client (client + server) | ⬜ |
-| 1.8 | Deploy inicial Vercel | ⬜ |
+| 1.1 | Criar projeto Next.js 14 (App Router) | ✅ (React + Vite) |
+| 1.2 | Configurar Tailwind CSS | ✅ |
+| 1.3 | Configurar TypeScript | ✅ |
+| 1.4 | Criar projeto Supabase | ✅ (Lovable Cloud) |
+| 1.5 | Configurar variáveis de ambiente | ✅ |
+| 1.6 | Executar schema SQL completo | ✅ |
+| 1.7 | Configurar Supabase client (client + server) | ✅ |
+| 1.8 | Deploy inicial Vercel | ⬜ (Lovable Preview) |
 | 1.9 | Configurar domínio (opcional) | ⬜ |
 
 ### Checklist de Validação
 
-- [ ] `npm run dev` funciona sem erros
-- [ ] Tailwind renderiza estilos corretamente
-- [ ] Conexão com Supabase funciona (testar query simples)
-- [ ] Todas as tabelas existem no Supabase
+- [x] `npm run dev` funciona sem erros
+- [x] Tailwind renderiza estilos corretamente
+- [x] Conexão com Supabase funciona (testar query simples)
+- [x] Todas as tabelas existem no Supabase (17 tabelas + 5 views)
 - [ ] Deploy Vercel acessível via URL
-- [ ] Variáveis de ambiente configuradas em produção
+- [x] Variáveis de ambiente configuradas em produção
 
 ---
 
