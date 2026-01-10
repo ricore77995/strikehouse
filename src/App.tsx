@@ -35,6 +35,7 @@ import Finances from "./pages/admin/Finances";
 
 // Staff pages
 import StaffCheckin from "./pages/staff/Checkin";
+import StaffGuestCheckin from "./pages/staff/GuestCheckin";
 import StaffPayment from "./pages/staff/Payment";
 import StaffSales from "./pages/staff/Sales";
 import StaffCaixa from "./pages/staff/Caixa";
@@ -189,6 +190,14 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={['OWNER', 'ADMIN', 'STAFF']}>
                   <StaffCheckin />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/staff/guests"
+              element={
+                <ProtectedRoute allowedRoles={['OWNER', 'ADMIN', 'STAFF']}>
+                  <StaffGuestCheckin />
                 </ProtectedRoute>
               }
             />
