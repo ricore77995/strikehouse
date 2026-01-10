@@ -1071,6 +1071,7 @@ export type Database = {
       }
       v_today_rentals: {
         Row: {
+          area_capacidade: number | null
           area_id: string | null
           area_nome: string | null
           cancelled_at: string | null
