@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   const { t } = useTranslation();
@@ -49,6 +50,9 @@ const Footer = () => {
             <a href="#" className="text-xs text-muted-foreground hover:text-foreground transition-colors tracking-wider">
               {t('footer.instagram')}
             </a>
+            <Link to="/login" className="text-xs text-muted-foreground hover:text-foreground transition-colors tracking-wider uppercase">
+              Área Restrita
+            </Link>
           </div>
         </div>
       </div>
