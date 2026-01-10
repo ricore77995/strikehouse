@@ -12,14 +12,32 @@ serve(async (req: Request) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const resendApiKey = Deno.env.get("RESEND_API_KEY");
+
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  const resend = resendApiKey ? new Resend(resendApiKey) : null;
+
+  const now = new Date();
+  let logId: string | null = null;
+
+  // Create job log entry
+  const { data: logEntry, error: logError } = await supabase
+    .from("job_logs")
+    .insert({
+      job_name: "scheduled-jobs",
+      started_at: now.toISOString(),
+      status: "RUNNING",
+    })
+    .select("id")
+    .single();
+
+  if (!logError && logEntry) {
+    logId = logEntry.id;
+  }
+
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
-
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const resend = resendApiKey ? new Resend(resendApiKey) : null;
-
     const results = {
       expiredMembers: 0,
       completedRentals: 0,
@@ -27,10 +45,10 @@ serve(async (req: Request) => {
       transactionsCreated: 0,
       emailsSent: 0,
       expiringReminders: 0,
+      rentalReminders: 0,
     };
 
-    const today = new Date().toISOString().split("T")[0];
-    const now = new Date();
+    const today = now.toISOString().split("T")[0];
     const currentTime = now.toTimeString().slice(0, 5);
 
     // 1. EXPIRE MEMBERS - Update status to EXPIRED when access_expires_at has passed
@@ -69,13 +87,11 @@ serve(async (req: Request) => {
       console.error("Error fetching rentals:", rentalsSelectError);
     } else if (rentalsToComplete && rentalsToComplete.length > 0) {
       for (const rental of rentalsToComplete) {
-        // Check if rental date is in the past OR if it's today and end_time has passed
         const rentalDate = rental.rental_date;
         const shouldComplete = rentalDate < today || 
           (rentalDate === today && rental.end_time <= currentTime);
 
         if (shouldComplete) {
-          // Update rental to COMPLETED
           const { error: updateError } = await supabase
             .from("rentals")
             .update({ status: "COMPLETED" })
@@ -88,7 +104,6 @@ serve(async (req: Request) => {
 
           results.completedRentals++;
 
-          // Create transaction for the rental
           if (rental.fee_charged_cents && rental.fee_charged_cents > 0) {
             const coach = rental.external_coaches as any;
             const { error: txError } = await supabase
@@ -102,7 +117,7 @@ serve(async (req: Request) => {
                 transaction_date: rental.rental_date,
                 reference_type: "RENTAL",
                 reference_id: rental.id,
-                created_by: rental.coach_id, // Using coach_id as reference
+                created_by: rental.coach_id,
               });
 
             if (txError) {
@@ -112,7 +127,6 @@ serve(async (req: Request) => {
             }
           }
 
-          // Send email notification to coach
           if (resend && rental.external_coaches) {
             const coach = rental.external_coaches as any;
             if (coach.email) {
@@ -199,6 +213,7 @@ serve(async (req: Request) => {
                 <p>- Equipe BoxeMaster</p>
               `,
             });
+            results.rentalReminders++;
             results.emailsSent++;
             console.log(`Sent reminder to ${coach.email} for rental ${rental.id}`);
           } catch (emailError) {
@@ -252,6 +267,18 @@ serve(async (req: Request) => {
       }
     }
 
+    // Update job log with success
+    if (logId) {
+      await supabase
+        .from("job_logs")
+        .update({
+          completed_at: new Date().toISOString(),
+          status: "SUCCESS",
+          results: results,
+        })
+        .eq("id", logId);
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -266,6 +293,19 @@ serve(async (req: Request) => {
     );
   } catch (error: any) {
     console.error("Error in scheduled-jobs:", error);
+
+    // Update job log with error
+    if (logId) {
+      await supabase
+        .from("job_logs")
+        .update({
+          completed_at: new Date().toISOString(),
+          status: "ERROR",
+          error_message: error.message,
+        })
+        .eq("id", logId);
+    }
+
     return new Response(
       JSON.stringify({ error: error.message }),
       {
