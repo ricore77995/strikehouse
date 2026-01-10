@@ -19,6 +19,9 @@ import OwnerDashboard from "./pages/owner/Dashboard";
 
 // Admin pages
 import AdminDashboard from "./pages/admin/Dashboard";
+import Plans from "./pages/admin/Plans";
+import Members from "./pages/admin/Members";
+import MemberForm from "./pages/admin/MemberForm";
 
 // Staff pages
 import StaffCheckin from "./pages/staff/Checkin";
@@ -59,6 +62,30 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={['OWNER', 'ADMIN']}>
                   <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/plans"
+              element={
+                <ProtectedRoute allowedRoles={['OWNER', 'ADMIN']}>
+                  <Plans />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/members"
+              element={
+                <ProtectedRoute allowedRoles={['OWNER', 'ADMIN', 'STAFF']}>
+                  <Members />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/members/:id"
+              element={
+                <ProtectedRoute allowedRoles={['OWNER', 'ADMIN', 'STAFF']}>
+                  <MemberForm />
                 </ProtectedRoute>
               }
             />
