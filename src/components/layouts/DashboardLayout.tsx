@@ -52,6 +52,12 @@ const navItems: NavItem[] = [
     roles: ['OWNER', 'ADMIN', 'STAFF'],
   },
   {
+    title: 'Novo Membro',
+    href: '/staff/members/new',
+    icon: Users,
+    roles: ['OWNER', 'ADMIN', 'STAFF'],
+  },
+  {
     title: 'Guests',
     href: '/staff/guests',
     icon: Users,

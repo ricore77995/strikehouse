@@ -40,6 +40,7 @@ import StaffGuestCheckin from "./pages/staff/GuestCheckin";
 import StaffPayment from "./pages/staff/Payment";
 import StaffSales from "./pages/staff/Sales";
 import StaffCaixa from "./pages/staff/Caixa";
+import StaffMemberNew from "./pages/staff/MemberNew";
 
 // Partner pages
 import PartnerDashboard from "./pages/partner/Dashboard";
@@ -233,6 +234,14 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={['OWNER', 'ADMIN', 'STAFF']}>
                   <StaffCaixa />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/staff/members/new"
+              element={
+                <ProtectedRoute allowedRoles={['OWNER', 'ADMIN', 'STAFF']}>
+                  <StaffMemberNew />
                 </ProtectedRoute>
               }
             />
