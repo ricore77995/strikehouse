@@ -1,13 +1,22 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { format, startOfMonth, endOfMonth } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format, startOfMonth, endOfMonth, addDays, differenceInHours } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CalendarDays, Wallet, Clock, Users, MapPin, History } from 'lucide-react';
+import { CalendarDays, Wallet, Clock, Users, MapPin, History, Plus, X, CalendarIcon } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 const PartnerDashboard = () => {
   const { staff } = useAuth();
@@ -17,6 +26,14 @@ const PartnerDashboard = () => {
 
   // Get coach_id from staff
   const coachId = staff?.coach_id;
+
+  const queryClient = useQueryClient();
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date>();
+  const [selectedAreaId, setSelectedAreaId] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [cancellingRentalId, setCancellingRentalId] = useState<string | null>(null);
 
   const { data: coachInfo } = useQuery({
     queryKey: ['partner-coach-info', coachId],
@@ -31,6 +48,19 @@ const PartnerDashboard = () => {
       return data;
     },
     enabled: !!coachId,
+  });
+
+  const { data: areas } = useQuery({
+    queryKey: ['partner-areas'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('areas')
+        .select('*')
+        .eq('ativo', true)
+        .order('nome');
+      if (error) throw error;
+      return data;
+    },
   });
 
   const { data: upcomingRentals } = useQuery({
@@ -96,6 +126,118 @@ const PartnerDashboard = () => {
   const completedRentals = monthRentals?.filter(r => r.status === 'COMPLETED').length || 0;
   const scheduledRentals = monthRentals?.filter(r => r.status === 'SCHEDULED').length || 0;
 
+  // Calculate fee for rental
+  const calculateFee = () => {
+    if (!coachInfo) return 0;
+    if (coachInfo.fee_type === 'FIXED') {
+      return coachInfo.fee_value;
+    }
+    return 0; // Per-student fee will be calculated later
+  };
+
+  // Create rental mutation
+  const createRentalMutation = useMutation({
+    mutationFn: async () => {
+      if (!coachId || !selectedDate || !selectedAreaId || !startTime || !endTime) {
+        throw new Error('Preencha todos os campos');
+      }
+      
+      const fee = calculateFee();
+      const { error } = await supabase
+        .from('rentals')
+        .insert({
+          coach_id: coachId,
+          area_id: selectedAreaId,
+          rental_date: format(selectedDate, 'yyyy-MM-dd'),
+          start_time: startTime,
+          end_time: endTime,
+          fee_charged_cents: fee,
+          status: 'SCHEDULED',
+        });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Rental criado com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['partner-upcoming-rentals'] });
+      queryClient.invalidateQueries({ queryKey: ['partner-month-rentals'] });
+      setIsCreateOpen(false);
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Erro ao criar rental');
+    },
+  });
+
+  // Cancel rental mutation
+  const cancelRentalMutation = useMutation({
+    mutationFn: async (rentalId: string) => {
+      const rental = upcomingRentals?.find(r => r.id === rentalId);
+      if (!rental) throw new Error('Rental não encontrado');
+
+      // Calculate hours until rental
+      const rentalDateTime = new Date(`${rental.rental_date}T${rental.start_time}`);
+      const hoursUntil = differenceInHours(rentalDateTime, new Date());
+
+      // Update rental status
+      const { error: updateError } = await supabase
+        .from('rentals')
+        .update({
+          status: 'CANCELLED',
+          cancelled_at: new Date().toISOString(),
+        })
+        .eq('id', rentalId);
+
+      if (updateError) throw updateError;
+
+      // Generate credit if cancelled with enough notice (24h+)
+      if (hoursUntil >= 24 && rental.fee_charged_cents && rental.fee_charged_cents > 0) {
+        const { error: creditError } = await supabase
+          .from('coach_credits')
+          .insert({
+            coach_id: coachId!,
+            amount: rental.fee_charged_cents,
+            reason: `Cancelamento antecipado (${hoursUntil}h antes)`,
+            rental_id: rentalId,
+            expires_at: format(addDays(new Date(), 90), 'yyyy-MM-dd'),
+          });
+        
+        if (creditError) throw creditError;
+
+        // Update coach balance
+        await supabase
+          .from('external_coaches')
+          .update({ credits_balance: (coachInfo?.credits_balance || 0) + rental.fee_charged_cents })
+          .eq('id', coachId!);
+      }
+    },
+    onSuccess: () => {
+      toast.success('Rental cancelado com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['partner-upcoming-rentals'] });
+      queryClient.invalidateQueries({ queryKey: ['partner-month-rentals'] });
+      queryClient.invalidateQueries({ queryKey: ['partner-credits'] });
+      queryClient.invalidateQueries({ queryKey: ['partner-coach-info'] });
+      setCancellingRentalId(null);
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Erro ao cancelar rental');
+      setCancellingRentalId(null);
+    },
+  });
+
+  const resetForm = () => {
+    setSelectedDate(undefined);
+    setSelectedAreaId('');
+    setStartTime('');
+    setEndTime('');
+  };
+
+  const timeSlots = [
+    '07:00', '08:00', '09:00', '10:00', '11:00', '12:00',
+    '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
+    '19:00', '20:00', '21:00', '22:00'
+  ];
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'SCHEDULED':
@@ -131,20 +273,132 @@ const PartnerDashboard = () => {
     <DashboardLayout>
       <div className="p-4 lg:p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-2xl tracking-wider mb-1">PORTAL DO PARTNER</h1>
             <p className="text-muted-foreground text-sm">
               {coachInfo?.modalidade ? `Coach de ${coachInfo.modalidade}` : 'Coach'} • {format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR })}
             </p>
           </div>
-          {coachInfo && (
-            <Badge variant="outline" className="uppercase">
-              {coachInfo.fee_type === 'FIXED' 
-                ? `€${(coachInfo.fee_value / 100).toFixed(2)}/sessão` 
-                : `${coachInfo.fee_value}% por aluno`}
-            </Badge>
-          )}
+          <div className="flex items-center gap-2">
+            {coachInfo && (
+              <Badge variant="outline" className="uppercase">
+                {coachInfo.fee_type === 'FIXED' 
+                  ? `€${(coachInfo.fee_value / 100).toFixed(2)}/sessão` 
+                  : `${coachInfo.fee_value}% por aluno`}
+              </Badge>
+            )}
+            <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Novo Rental
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Agendar Novo Rental</DialogTitle>
+                  <DialogDescription>
+                    Preencha os dados para agendar uma nova sessão
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label>Data</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !selectedDate && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {selectedDate ? format(selectedDate, "PPP", { locale: ptBR }) : "Selecionar data"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={selectedDate}
+                          onSelect={setSelectedDate}
+                          disabled={(date) => date < new Date()}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Área</Label>
+                    <Select value={selectedAreaId} onValueChange={setSelectedAreaId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecionar área" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {areas?.map((area) => (
+                          <SelectItem key={area.id} value={area.id}>
+                            {area.nome} {area.is_exclusive && '(Exclusiva)'}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Hora Início</Label>
+                      <Select value={startTime} onValueChange={setStartTime}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Início" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {timeSlots.map((time) => (
+                            <SelectItem key={time} value={time}>
+                              {time}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Hora Fim</Label>
+                      <Select value={endTime} onValueChange={setEndTime}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Fim" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {timeSlots.filter(t => t > startTime).map((time) => (
+                            <SelectItem key={time} value={time}>
+                              {time}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  {coachInfo?.fee_type === 'FIXED' && (
+                    <p className="text-sm text-muted-foreground">
+                      Taxa: €{(coachInfo.fee_value / 100).toFixed(2)}
+                    </p>
+                  )}
+                </div>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsCreateOpen(false)}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={() => createRentalMutation.mutate()}
+                    disabled={!selectedDate || !selectedAreaId || !startTime || !endTime || createRentalMutation.isPending}
+                  >
+                    {createRentalMutation.isPending ? 'Agendando...' : 'Agendar'}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
 
         {/* Stats */}
@@ -228,8 +482,8 @@ const PartnerDashboard = () => {
                         key={rental.id}
                         className="p-4 bg-muted/50 rounded-lg border border-border"
                       >
-                        <div className="flex items-start justify-between">
-                          <div className="space-y-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="space-y-1 flex-1">
                             <p className="font-medium">
                               {format(new Date(rental.rental_date), "EEEE, d 'de' MMMM", { locale: ptBR })}
                             </p>
@@ -250,7 +504,55 @@ const PartnerDashboard = () => {
                               </div>
                             )}
                           </div>
-                          {getStatusBadge(rental.status || 'SCHEDULED')}
+                          <div className="flex flex-col items-end gap-2">
+                            {getStatusBadge(rental.status || 'SCHEDULED')}
+                            {rental.status === 'SCHEDULED' && (
+                              <Dialog open={cancellingRentalId === rental.id} onOpenChange={(open) => setCancellingRentalId(open ? rental.id : null)}>
+                                <DialogTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/10 h-7 px-2">
+                                    <X className="h-3 w-3 mr-1" />
+                                    Cancelar
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                  <DialogHeader>
+                                    <DialogTitle>Cancelar Rental</DialogTitle>
+                                    <DialogDescription>
+                                      Tem certeza que deseja cancelar este rental?
+                                      {(() => {
+                                        const rentalDateTime = new Date(`${rental.rental_date}T${rental.start_time}`);
+                                        const hoursUntil = differenceInHours(rentalDateTime, new Date());
+                                        if (hoursUntil >= 24) {
+                                          return (
+                                            <span className="block mt-2 text-green-500">
+                                              ✓ Cancelamento com mais de 24h de antecedência. Você receberá um crédito de €{((rental.fee_charged_cents || 0) / 100).toFixed(2)}.
+                                            </span>
+                                          );
+                                        }
+                                        return (
+                                          <span className="block mt-2 text-yellow-500">
+                                            ⚠ Cancelamento com menos de 24h. Não há crédito disponível.
+                                          </span>
+                                        );
+                                      })()}
+                                    </DialogDescription>
+                                  </DialogHeader>
+                                  <DialogFooter>
+                                    <Button variant="outline" onClick={() => setCancellingRentalId(null)}>
+                                      Voltar
+                                    </Button>
+                                    <Button 
+                                      variant="destructive"
+                                      onClick={() => cancelRentalMutation.mutate(rental.id)}
+                                      disabled={cancelRentalMutation.isPending}
+                                    >
+                                      {cancelRentalMutation.isPending ? 'Cancelando...' : 'Confirmar Cancelamento'}
+                                    </Button>
+                                  </DialogFooter>
+                                </DialogContent>
+                              </Dialog>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}
