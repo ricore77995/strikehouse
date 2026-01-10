@@ -70,6 +70,12 @@ const navItems: NavItem[] = [
     roles: ['OWNER', 'ADMIN', 'STAFF'],
   },
   {
+    title: 'Verificar Transf.',
+    href: '/admin/finances/verify',
+    icon: FileText,
+    roles: ['OWNER', 'ADMIN'],
+  },
+  {
     title: 'Cobranças',
     href: '/admin/billing',
     icon: FileText,

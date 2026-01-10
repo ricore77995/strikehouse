@@ -23,6 +23,8 @@ import Plans from "./pages/admin/Plans";
 import Members from "./pages/admin/Members";
 import MemberForm from "./pages/admin/MemberForm";
 import Coaches from "./pages/admin/Coaches";
+import PendingPayments from "./pages/admin/PendingPayments";
+import Billing from "./pages/admin/Billing";
 
 // Staff pages
 import StaffCheckin from "./pages/staff/Checkin";
@@ -96,6 +98,22 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={['OWNER', 'ADMIN']}>
                   <Coaches />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/finances/verify"
+              element={
+                <ProtectedRoute allowedRoles={['OWNER', 'ADMIN']}>
+                  <PendingPayments />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/billing"
+              element={
+                <ProtectedRoute allowedRoles={['OWNER', 'ADMIN']}>
+                  <Billing />
                 </ProtectedRoute>
               }
             />
