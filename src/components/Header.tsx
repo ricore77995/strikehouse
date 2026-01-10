@@ -61,6 +61,9 @@ const Header = () => {
             {/* Desktop CTA & Language */}
             <div className="hidden md:flex items-center gap-6">
               <LanguageSwitcher />
+              <Link to="/login" className="nav-link">
+                Login
+              </Link>
               <Button variant="outline" size="sm">
                 {t('header.requestAccess')}
               </Button>
@@ -129,6 +132,13 @@ const Header = () => {
               
               <div className="mt-8 flex flex-col items-center gap-6">
                 <LanguageSwitcher />
+                <Link
+                  to="/login"
+                  onClick={handleLinkClick}
+                  className="text-lg tracking-[0.2em] uppercase font-light text-white/60 hover:text-white transition-colors"
+                >
+                  Login
+                </Link>
                 <Button 
                   variant="outline" 
                   size="lg"
