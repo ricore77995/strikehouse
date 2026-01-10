@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,21 +7,65 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { format, startOfMonth, endOfMonth, subMonths, eachDayOfInterval, parseISO } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { format, startOfMonth, endOfMonth, subMonths, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
+import { z } from 'zod';
 import { 
-  BarChart3, TrendingUp, TrendingDown, DollarSign, CreditCard, 
-  ShoppingCart, Calendar, Users, ArrowUpRight, ArrowDownRight,
-  Wallet, PiggyBank
+  BarChart3, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight,
+  Wallet, PiggyBank, Plus, MinusCircle
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, 
-  LineChart, Line, PieChart, Pie, Cell, AreaChart, Area,
+  PieChart, Pie, Cell, AreaChart, Area,
   CartesianGrid, Legend
 } from 'recharts';
 
+// Expense categories
+const EXPENSE_CATEGORIES = [
+  { code: 'AGUA', nome: 'Água' },
+  { code: 'ALUGUEL', nome: 'Aluguel' },
+  { code: 'LUZ', nome: 'Energia Elétrica' },
+  { code: 'EQUIPAMENTOS', nome: 'Equipamentos' },
+  { code: 'INTERNET', nome: 'Internet' },
+  { code: 'LIMPEZA', nome: 'Limpeza' },
+  { code: 'MANUTENCAO', nome: 'Manutenção' },
+  { code: 'MARKETING', nome: 'Marketing' },
+  { code: 'COACHES', nome: 'Pagamento Coaches' },
+  { code: 'SALARIOS', nome: 'Salários' },
+  { code: 'OUTROS_DESP', nome: 'Outras Despesas' },
+];
+
+const PAYMENT_METHODS = ['DINHEIRO', 'CARTAO', 'MBWAY', 'TRANSFERENCIA'];
+
+// Validation schema
+const expenseSchema = z.object({
+  amount: z.number().min(0.01, 'Valor deve ser maior que 0'),
+  category: z.string().min(1, 'Selecione uma categoria'),
+  payment_method: z.string().min(1, 'Selecione um método'),
+  description: z.string().max(500, 'Descrição muito longa').optional(),
+});
+
 const Finances = () => {
+  const { staffId } = useAuth();
+  const queryClient = useQueryClient();
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'yyyy-MM'));
+  const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Expense form state
+  const [expenseForm, setExpenseForm] = useState({
+    amount: '',
+    category: '',
+    payment_method: '',
+    description: '',
+  });
   
   const monthDate = parseISO(`${selectedMonth}-01`);
   const monthStart = format(startOfMonth(monthDate), 'yyyy-MM-dd');
@@ -134,17 +178,15 @@ const Finances = () => {
   const COLORS = ['#E11D48', '#F97316', '#FBBF24', '#22C55E', '#3B82F6', '#8B5CF6'];
 
   function getCategoryLabel(code: string) {
+    const category = EXPENSE_CATEGORIES.find(c => c.code === code);
+    if (category) return category.nome;
+    
     const labels: Record<string, string> = {
       'MENSALIDADE': 'Mensalidades',
       'VENDA_PRODUTO': 'Vendas',
       'RENTAL': 'Rentals',
       'ENTRADA_AVULSA': 'Entradas Avulsas',
       'OUTROS': 'Outros',
-      'SALARIO': 'Salários',
-      'ALUGUEL': 'Aluguel',
-      'UTILIDADES': 'Utilidades',
-      'EQUIPAMENTO': 'Equipamentos',
-      'MARKETING': 'Marketing',
     };
     return labels[code] || code;
   }
@@ -159,6 +201,66 @@ const Finances = () => {
     return labels[code] || code;
   }
 
+  const resetExpenseForm = () => {
+    setExpenseForm({
+      amount: '',
+      category: '',
+      payment_method: '',
+      description: '',
+    });
+  };
+
+  const handleSubmitExpense = async () => {
+    if (!staffId) {
+      toast.error('Erro de autenticação');
+      return;
+    }
+
+    const amountCents = Math.round(parseFloat(expenseForm.amount) * 100);
+    
+    // Validate
+    const validation = expenseSchema.safeParse({
+      amount: amountCents / 100,
+      category: expenseForm.category,
+      payment_method: expenseForm.payment_method,
+      description: expenseForm.description,
+    });
+
+    if (!validation.success) {
+      toast.error(validation.error.errors[0]?.message || 'Dados inválidos');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const { error } = await supabase.from('transactions').insert({
+        type: 'DESPESA',
+        amount_cents: amountCents,
+        category: expenseForm.category,
+        payment_method: expenseForm.payment_method,
+        description: expenseForm.description.trim() || null,
+        created_by: staffId,
+        transaction_date: format(new Date(), 'yyyy-MM-dd'),
+      });
+
+      if (error) throw error;
+
+      toast.success('Despesa registrada com sucesso');
+      setExpenseDialogOpen(false);
+      resetExpenseForm();
+      
+      // Refresh data
+      queryClient.invalidateQueries({ queryKey: ['finance-transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-daily-summary'] });
+    } catch (error) {
+      console.error('Error registering expense:', error);
+      toast.error('Erro ao registrar despesa');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="p-4 lg:p-6 space-y-6">
@@ -172,18 +274,116 @@ const Finances = () => {
             </div>
           </div>
 
-          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {monthOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-3">
+            <Dialog open={expenseDialogOpen} onOpenChange={setExpenseDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="destructive" className="uppercase tracking-wider text-xs">
+                  <MinusCircle className="h-4 w-4 mr-2" />
+                  Registrar Despesa
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle className="uppercase tracking-wider">Registrar Despesa</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="amount">Valor (€)</Label>
+                    <Input
+                      id="amount"
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      placeholder="0,00"
+                      value={expenseForm.amount}
+                      onChange={(e) => setExpenseForm(prev => ({ ...prev, amount: e.target.value }))}
+                      className="bg-secondary"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="category">Categoria</Label>
+                    <Select 
+                      value={expenseForm.category} 
+                      onValueChange={(v) => setExpenseForm(prev => ({ ...prev, category: v }))}
+                    >
+                      <SelectTrigger className="bg-secondary">
+                        <SelectValue placeholder="Selecione a categoria" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {EXPENSE_CATEGORIES.map((cat) => (
+                          <SelectItem key={cat.code} value={cat.code}>
+                            {cat.nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="payment_method">Método de Pagamento</Label>
+                    <Select 
+                      value={expenseForm.payment_method} 
+                      onValueChange={(v) => setExpenseForm(prev => ({ ...prev, payment_method: v }))}
+                    >
+                      <SelectTrigger className="bg-secondary">
+                        <SelectValue placeholder="Selecione o método" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PAYMENT_METHODS.map((method) => (
+                          <SelectItem key={method} value={method}>
+                            {getMethodLabel(method)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Descrição (opcional)</Label>
+                    <Textarea
+                      id="description"
+                      placeholder="Descrição da despesa..."
+                      value={expenseForm.description}
+                      onChange={(e) => setExpenseForm(prev => ({ ...prev, description: e.target.value }))}
+                      className="bg-secondary resize-none"
+                      rows={3}
+                      maxLength={500}
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setExpenseDialogOpen(false)}
+                    className="uppercase tracking-wider text-xs"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button 
+                    onClick={handleSubmitExpense}
+                    disabled={isSubmitting || !expenseForm.amount || !expenseForm.category || !expenseForm.payment_method}
+                    className="uppercase tracking-wider text-xs bg-destructive hover:bg-destructive/90"
+                  >
+                    {isSubmitting ? 'Registrando...' : 'Registrar'}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {monthOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Summary Cards */}
