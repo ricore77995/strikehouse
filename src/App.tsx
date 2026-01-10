@@ -22,6 +22,7 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import Plans from "./pages/admin/Plans";
 import Members from "./pages/admin/Members";
 import MemberForm from "./pages/admin/MemberForm";
+import Coaches from "./pages/admin/Coaches";
 
 // Staff pages
 import StaffCheckin from "./pages/staff/Checkin";
@@ -86,6 +87,14 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={['OWNER', 'ADMIN', 'STAFF']}>
                   <MemberForm />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/coaches"
+              element={
+                <ProtectedRoute allowedRoles={['OWNER', 'ADMIN']}>
+                  <Coaches />
                 </ProtectedRoute>
               }
             />
