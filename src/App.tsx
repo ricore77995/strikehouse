@@ -26,6 +26,7 @@ import Coaches from "./pages/admin/Coaches";
 
 // Staff pages
 import StaffCheckin from "./pages/staff/Checkin";
+import StaffPayment from "./pages/staff/Payment";
 
 // Partner pages
 import PartnerDashboard from "./pages/partner/Dashboard";
@@ -105,6 +106,14 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={['OWNER', 'ADMIN', 'STAFF']}>
                   <StaffCheckin />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/staff/payment"
+              element={
+                <ProtectedRoute allowedRoles={['OWNER', 'ADMIN', 'STAFF']}>
+                  <StaffPayment />
                 </ProtectedRoute>
               }
             />
