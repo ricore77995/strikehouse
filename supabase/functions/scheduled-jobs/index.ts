@@ -45,7 +45,10 @@ serve(async (req: Request) => {
       cancelledPayments: 0,
       transactionsCreated: 0,
       emailsSent: 0,
-      expiringReminders: 0,
+      reminders3DaysBefore: 0,
+      remindersDayOf: 0,
+      reminders1DayAfter: 0,
+      reminders3DaysAfter: 0,
       rentalReminders: 0,
     };
 
@@ -224,49 +227,148 @@ serve(async (req: Request) => {
       }
     }
 
-    // 5. SEND EXPIRING MEMBERSHIP REMINDERS - 7 days before
-    const sevenDaysFromNow = new Date(now);
-    sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
-    const expiringDate = sevenDaysFromNow.toISOString().split("T")[0];
-
-    const { data: expiringMembers, error: expiringError } = await supabase
-      .from("members")
-      .select("id, nome, email, access_expires_at, access_type")
-      .eq("status", "ACTIVE")
-      .eq("access_expires_at", expiringDate);
-
-    if (expiringError) {
-      console.error("Error fetching expiring members:", expiringError);
-    } else if (expiringMembers && expiringMembers.length > 0 && resend) {
-      for (const member of expiringMembers) {
+    // 5. MEMBERSHIP REMINDERS - Multiple timing notifications
+    
+    // Helper function to send membership reminder
+    const sendMemberReminder = async (
+      members: any[],
+      subject: string,
+      getMessage: (member: any) => string,
+      resultKey: 'reminders3DaysBefore' | 'remindersDayOf' | 'reminders1DayAfter' | 'reminders3DaysAfter'
+    ) => {
+      if (!members || members.length === 0 || !resend) return;
+      
+      for (const member of members) {
         if (member.email) {
           try {
             await resend.emails.send({
               from: "BoxeMaster <onboarding@resend.dev>",
               to: [member.email],
-              subject: "Seu plano expira em 7 dias",
-              html: `
-                <h1>Olá ${member.nome}!</h1>
-                <p>Seu plano <strong>${member.access_type || "mensal"}</strong> expira em <strong>7 dias</strong> (${member.access_expires_at}).</p>
-                <p>Para continuar treinando sem interrupções, renove seu plano antes do vencimento.</p>
-                <h3>Como renovar:</h3>
-                <ol>
-                  <li>Visite nossa recepção</li>
-                  <li>Ou entre em contato pelo WhatsApp</li>
-                </ol>
-                <p>Não perca seu progresso! 💪</p>
-                <p>- Equipe BoxeMaster</p>
-              `,
+              subject,
+              html: getMessage(member),
             });
-            results.expiringReminders++;
+            results[resultKey]++;
             results.emailsSent++;
-            console.log(`Sent expiring reminder to ${member.email}`);
           } catch (emailError) {
-            console.error(`Error sending expiring reminder to ${member.email}:`, emailError);
+            console.error(`Error sending reminder to ${member.email}:`, emailError);
           }
         }
       }
-    }
+    };
+
+    // 5a. 3 DAYS BEFORE expiration
+    const threeDaysFromNow = new Date(now);
+    threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
+    const threeDaysDate = threeDaysFromNow.toISOString().split("T")[0];
+
+    const { data: members3Days } = await supabase
+      .from("members")
+      .select("id, nome, email, access_expires_at, telefone")
+      .eq("status", "ACTIVE")
+      .eq("access_expires_at", threeDaysDate);
+
+    await sendMemberReminder(
+      members3Days || [],
+      "⚠️ Seu plano expira em 3 dias!",
+      (m) => `
+        <h1>Olá ${m.nome}!</h1>
+        <p>Seu plano expira em <strong>3 dias</strong> (${m.access_expires_at}).</p>
+        <p>Renove agora para continuar treinando sem interrupções!</p>
+        <h3>Como renovar:</h3>
+        <ul>
+          <li>Visite nossa recepção</li>
+          <li>Pague online e envie o comprovante</li>
+        </ul>
+        <p>Dúvidas? Entre em contato!</p>
+        <p>- Equipe BoxeMaster 💪</p>
+      `,
+      'reminders3DaysBefore'
+    );
+
+    // 5b. DAY OF expiration
+    const { data: membersToday } = await supabase
+      .from("members")
+      .select("id, nome, email, access_expires_at, telefone")
+      .eq("status", "ACTIVE")
+      .eq("access_expires_at", today);
+
+    await sendMemberReminder(
+      membersToday || [],
+      "🚨 Seu plano expira HOJE!",
+      (m) => `
+        <h1>Olá ${m.nome}!</h1>
+        <p><strong>Seu plano expira HOJE!</strong></p>
+        <p>A partir de amanhã, você não poderá fazer check-in até renovar.</p>
+        <h3>Renove agora:</h3>
+        <ul>
+          <li>Visite nossa recepção ainda hoje</li>
+          <li>Ou faça transferência e envie o comprovante</li>
+        </ul>
+        <p>Não perca seu ritmo de treino! 🥊</p>
+        <p>- Equipe BoxeMaster</p>
+      `,
+      'remindersDayOf'
+    );
+
+    // 5c. 1 DAY AFTER expiration
+    const oneDayAgo = new Date(now);
+    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+    const oneDayAgoDate = oneDayAgo.toISOString().split("T")[0];
+
+    const { data: members1DayAfter } = await supabase
+      .from("members")
+      .select("id, nome, email, access_expires_at, telefone")
+      .in("status", ["ACTIVE", "EXPIRED", "BLOQUEADO"])
+      .eq("access_expires_at", oneDayAgoDate);
+
+    await sendMemberReminder(
+      members1DayAfter || [],
+      "❌ Seu plano expirou ontem",
+      (m) => `
+        <h1>Olá ${m.nome}!</h1>
+        <p>Seu plano expirou <strong>ontem</strong> e seu acesso está bloqueado.</p>
+        <p>Renove agora para voltar a treinar!</p>
+        <h3>Como renovar:</h3>
+        <ul>
+          <li>Visite nossa recepção</li>
+          <li>Faça transferência e envie o comprovante</li>
+        </ul>
+        <p>Estamos esperando você de volta! 💪</p>
+        <p>- Equipe BoxeMaster</p>
+      `,
+      'reminders1DayAfter'
+    );
+
+    // 5d. 3 DAYS AFTER expiration
+    const threeDaysAgo = new Date(now);
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+    const threeDaysAgoDate = threeDaysAgo.toISOString().split("T")[0];
+
+    const { data: members3DaysAfter } = await supabase
+      .from("members")
+      .select("id, nome, email, access_expires_at, telefone")
+      .in("status", ["EXPIRED", "BLOQUEADO"])
+      .eq("access_expires_at", threeDaysAgoDate);
+
+    await sendMemberReminder(
+      members3DaysAfter || [],
+      "😢 Sentimos sua falta!",
+      (m) => `
+        <h1>Olá ${m.nome}!</h1>
+        <p>Seu plano expirou há 3 dias e você ainda não renovou.</p>
+        <p><strong>Sentimos sua falta!</strong> Volte a treinar conosco.</p>
+        <h3>Renove agora:</h3>
+        <ul>
+          <li>Visite nossa recepção</li>
+          <li>Ou entre em contato para verificar opções de planos</li>
+        </ul>
+        <p>Cada dia conta para sua evolução! 🥊</p>
+        <p>- Equipe BoxeMaster</p>
+      `,
+      'reminders3DaysAfter'
+    );
+
+    console.log(`Reminders sent: 3d before=${results.reminders3DaysBefore}, day of=${results.remindersDayOf}, 1d after=${results.reminders1DayAfter}, 3d after=${results.reminders3DaysAfter}`);
 
     // 6. CANCEL MEMBERS BLOCKED FOR 30+ DAYS
     const thirtyDaysAgo = new Date(now);
