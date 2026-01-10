@@ -40,6 +40,7 @@ serve(async (req: Request) => {
   try {
     const results = {
       expiredMembers: 0,
+      cancelledMembers: 0,
       completedRentals: 0,
       cancelledPayments: 0,
       transactionsCreated: 0,
@@ -262,6 +263,54 @@ serve(async (req: Request) => {
             console.log(`Sent expiring reminder to ${member.email}`);
           } catch (emailError) {
             console.error(`Error sending expiring reminder to ${member.email}:`, emailError);
+          }
+        }
+      }
+    }
+
+    // 6. CANCEL MEMBERS BLOCKED FOR 30+ DAYS
+    const thirtyDaysAgo = new Date(now);
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const thirtyDaysAgoDate = thirtyDaysAgo.toISOString();
+
+    const { data: blockedMembers, error: blockedError } = await supabase
+      .from("members")
+      .update({ status: "CANCELADO" })
+      .eq("status", "BLOQUEADO")
+      .lt("updated_at", thirtyDaysAgoDate)
+      .select("id, nome, email");
+
+    if (blockedError) {
+      console.error("Error cancelling blocked members:", blockedError);
+    } else {
+      results.cancelledMembers = blockedMembers?.length || 0;
+      console.log(`Cancelled ${results.cancelledMembers} members blocked for 30+ days`);
+
+      // Send notification emails to cancelled members
+      if (blockedMembers && blockedMembers.length > 0 && resend) {
+        for (const member of blockedMembers) {
+          if (member.email) {
+            try {
+              await resend.emails.send({
+                from: "BoxeMaster <onboarding@resend.dev>",
+                to: [member.email],
+                subject: "Sua conta foi cancelada",
+                html: `
+                  <h1>Olá ${member.nome},</h1>
+                  <p>Sua conta foi cancelada automaticamente após 30 dias de bloqueio.</p>
+                  <p>Se deseja reativar sua conta, entre em contato conosco:</p>
+                  <ul>
+                    <li>Visite nossa recepção</li>
+                    <li>Ou entre em contato pelo WhatsApp</li>
+                  </ul>
+                  <p>Esperamos vê-lo novamente em breve!</p>
+                  <p>- Equipe BoxeMaster</p>
+                `,
+              });
+              results.emailsSent++;
+            } catch (emailError) {
+              console.error(`Error sending cancellation email to ${member.email}:`, emailError);
+            }
           }
         }
       }
