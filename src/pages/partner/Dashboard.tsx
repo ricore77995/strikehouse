@@ -141,6 +141,30 @@ const PartnerDashboard = () => {
       if (!coachId || !selectedDate || !selectedAreaId || !startTime || !endTime) {
         throw new Error('Preencha todos os campos');
       }
+
+      const rentalDate = format(selectedDate, 'yyyy-MM-dd');
+      
+      // Check for time conflicts in the same area
+      const { data: conflictingRentals, error: conflictError } = await supabase
+        .from('rentals')
+        .select('id, start_time, end_time')
+        .eq('area_id', selectedAreaId)
+        .eq('rental_date', rentalDate)
+        .neq('status', 'CANCELLED');
+
+      if (conflictError) throw conflictError;
+
+      // Check for overlapping times
+      const hasConflict = conflictingRentals?.some(rental => {
+        const existingStart = rental.start_time;
+        const existingEnd = rental.end_time;
+        // Overlap: new start < existing end AND new end > existing start
+        return startTime < existingEnd && endTime > existingStart;
+      });
+
+      if (hasConflict) {
+        throw new Error('Já existe um rental agendado nesta área neste horário. Escolha outro horário ou área.');
+      }
       
       const fee = calculateFee();
       const { error } = await supabase
@@ -148,7 +172,7 @@ const PartnerDashboard = () => {
         .insert({
           coach_id: coachId,
           area_id: selectedAreaId,
-          rental_date: format(selectedDate, 'yyyy-MM-dd'),
+          rental_date: rentalDate,
           start_time: startTime,
           end_time: endTime,
           fee_charged_cents: fee,
