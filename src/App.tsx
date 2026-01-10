@@ -17,6 +17,7 @@ import MemberQR from "./pages/MemberQR";
 // Owner pages
 import OwnerDashboard from "./pages/owner/Dashboard";
 import OwnerStaff from "./pages/owner/Staff";
+import OwnerSettings from "./pages/owner/Settings";
 
 // Admin pages
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -72,6 +73,14 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={['OWNER']}>
                   <OwnerStaff />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/owner/settings"
+              element={
+                <ProtectedRoute allowedRoles={['OWNER']}>
+                  <OwnerSettings />
                 </ProtectedRoute>
               }
             />
