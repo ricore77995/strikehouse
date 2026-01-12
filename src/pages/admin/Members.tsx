@@ -60,6 +60,24 @@ const getStatusLabel = (status: string) => {
   }
 };
 
+const getAccessTypeLabel = (accessType: string | null) => {
+  switch (accessType) {
+    case 'SUBSCRIPTION': return 'Mensalidade';
+    case 'CREDITS': return 'Créditos';
+    case 'DAILY_PASS': return 'Diária';
+    default: return '—';
+  }
+};
+
+const getAccessTypeColor = (accessType: string | null) => {
+  switch (accessType) {
+    case 'SUBSCRIPTION': return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
+    case 'CREDITS': return 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30';
+    case 'DAILY_PASS': return 'bg-orange-500/20 text-orange-400 border-orange-500/30';
+    default: return 'bg-muted text-muted-foreground';
+  }
+};
+
 const Members = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');

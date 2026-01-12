@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { format, addDays, addMinutes, subMinutes } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import {
   createServiceClient,
   createTestCoach,
@@ -407,19 +407,19 @@ describe('Exclusive Area Blocking (CRITICAL)', () => {
     await cleanupTrackedEntities();
   });
 
-  it('BLOCKS member when exclusive area has active rental', async () => {
-    const today = format(new Date(), 'yyyy-MM-dd');
-    const now = new Date();
-    const startTime = format(subMinutes(now, 30), 'HH:mm');
-    const endTime = format(addMinutes(now, 30), 'HH:mm');
+  // NOTE: Each test uses a different future date to avoid overlap constraint violations
 
-    // Create active rental on exclusive area
+  it('BLOCKS member when exclusive area has active rental', async () => {
+    // Use a future date with fixed time slot to avoid midnight edge cases
+    const futureDate = format(addDays(new Date(), 40), 'yyyy-MM-dd');
+
+    // Create active rental on exclusive area (simulating "current" window)
     const rental = await createTestRental(client, {
       coach_id: coachId,
       area_id: exclusiveAreaId,
-      rental_date: today,
-      start_time: startTime,
-      end_time: endTime,
+      rental_date: futureDate,
+      start_time: '14:00',
+      end_time: '16:00',
       status: 'SCHEDULED',
     });
     createdIds.rentals.push(rental.id);
@@ -433,19 +433,19 @@ describe('Exclusive Area Blocking (CRITICAL)', () => {
     });
     createdIds.members.push(member.id);
 
-    // Query for active exclusive rentals (as check-in logic would)
-    const currentTime = format(now, 'HH:mm:ss');
+    // Query for active exclusive rentals (simulating time within window: 15:00)
+    const simulatedTime = '15:00:00';
     const { data: activeExclusiveRentals } = await client
       .from('rentals')
       .select(`
         *,
         area:areas!inner(is_exclusive)
       `)
-      .eq('rental_date', today)
+      .eq('rental_date', futureDate)
       .eq('status', 'SCHEDULED')
       .eq('area.is_exclusive', true)
-      .lte('start_time', currentTime)
-      .gte('end_time', currentTime);
+      .lte('start_time', simulatedTime)
+      .gte('end_time', simulatedTime);
 
     // Should find the active rental
     expect(activeExclusiveRentals!.length).toBeGreaterThan(0);
@@ -457,30 +457,28 @@ describe('Exclusive Area Blocking (CRITICAL)', () => {
         type: 'MEMBER',
         result: 'BLOCKED',
         member_id: member.id,
-                checked_in_by: staffId,
+        checked_in_by: staffId,
       })
       .select()
       .single();
 
     expect(error).toBeNull();
     expect(checkin.result).toBe('BLOCKED');
-    
+
     createdIds.checkins.push(checkin.id);
   });
 
   it('ALLOWS member when exclusive area rental is in FUTURE', async () => {
-    const today = format(new Date(), 'yyyy-MM-dd');
-    const now = new Date();
-    const startTime = format(addMinutes(now, 60), 'HH:mm'); // 1 hour from now
-    const endTime = format(addMinutes(now, 120), 'HH:mm');
+    // Use a different future date
+    const futureDate = format(addDays(new Date(), 41), 'yyyy-MM-dd');
 
-    // Create FUTURE rental (not yet active)
+    // Create FUTURE rental (not yet active) - rental is 18:00-20:00
     const rental = await createTestRental(client, {
       coach_id: coachId,
       area_id: exclusiveAreaId,
-      rental_date: today,
-      start_time: startTime,
-      end_time: endTime,
+      rental_date: futureDate,
+      start_time: '18:00',
+      end_time: '20:00',
       status: 'SCHEDULED',
     });
     createdIds.rentals.push(rental.id);
@@ -494,21 +492,21 @@ describe('Exclusive Area Blocking (CRITICAL)', () => {
     });
     createdIds.members.push(member.id);
 
-    // Query for CURRENTLY active exclusive rentals
-    const currentTime = format(now, 'HH:mm:ss');
+    // Query for CURRENTLY active exclusive rentals (simulating time 14:00 - before rental)
+    const simulatedTime = '14:00:00';
     const { data: activeExclusiveRentals } = await client
       .from('rentals')
       .select(`
         *,
         area:areas!inner(is_exclusive)
       `)
-      .eq('rental_date', today)
+      .eq('rental_date', futureDate)
       .eq('status', 'SCHEDULED')
       .eq('area.is_exclusive', true)
-      .lte('start_time', currentTime)
-      .gte('end_time', currentTime);
+      .lte('start_time', simulatedTime)
+      .gte('end_time', simulatedTime);
 
-    // Future rental should NOT be in this query
+    // Future rental should NOT be in this query (18:00 is after 14:00)
     const hasActiveNow = activeExclusiveRentals?.some((r) => r.id === rental.id);
     expect(hasActiveNow).toBe(false);
 
@@ -531,18 +529,16 @@ describe('Exclusive Area Blocking (CRITICAL)', () => {
   });
 
   it('ALLOWS member when only NON-exclusive areas have rentals', async () => {
-    const today = format(new Date(), 'yyyy-MM-dd');
-    const now = new Date();
-    const startTime = format(subMinutes(now, 30), 'HH:mm');
-    const endTime = format(addMinutes(now, 30), 'HH:mm');
+    // Use a different future date
+    const futureDate = format(addDays(new Date(), 42), 'yyyy-MM-dd');
 
     // Create active rental on NON-exclusive area
     const rental = await createTestRental(client, {
       coach_id: coachId,
       area_id: nonExclusiveAreaId, // NOT exclusive
-      rental_date: today,
-      start_time: startTime,
-      end_time: endTime,
+      rental_date: futureDate,
+      start_time: '10:00',
+      end_time: '12:00',
       status: 'SCHEDULED',
     });
     createdIds.rentals.push(rental.id);
@@ -556,21 +552,21 @@ describe('Exclusive Area Blocking (CRITICAL)', () => {
     });
     createdIds.members.push(member.id);
 
-    // Query for EXCLUSIVE active rentals only
-    const currentTime = format(now, 'HH:mm:ss');
+    // Query for EXCLUSIVE active rentals only (simulating time 11:00 - within rental window)
+    const simulatedTime = '11:00:00';
     const { data: activeExclusiveRentals } = await client
       .from('rentals')
       .select(`
         *,
         area:areas!inner(is_exclusive)
       `)
-      .eq('rental_date', today)
+      .eq('rental_date', futureDate)
       .eq('status', 'SCHEDULED')
       .eq('area.is_exclusive', true) // Only exclusive
-      .lte('start_time', currentTime)
-      .gte('end_time', currentTime);
+      .lte('start_time', simulatedTime)
+      .gte('end_time', simulatedTime);
 
-    // Non-exclusive rental should NOT appear
+    // Non-exclusive rental should NOT appear (it's on non-exclusive area)
     const hasNonExclusive = activeExclusiveRentals?.some((r) => r.id === rental.id);
     expect(hasNonExclusive).toBe(false);
 
@@ -593,18 +589,16 @@ describe('Exclusive Area Blocking (CRITICAL)', () => {
   });
 
   it('ALLOWS member when exclusive rental is CANCELLED', async () => {
-    const today = format(new Date(), 'yyyy-MM-dd');
-    const now = new Date();
-    const startTime = format(subMinutes(now, 30), 'HH:mm');
-    const endTime = format(addMinutes(now, 30), 'HH:mm');
+    // Use a different future date
+    const futureDate = format(addDays(new Date(), 43), 'yyyy-MM-dd');
 
     // Create and cancel rental
     const rental = await createTestRental(client, {
       coach_id: coachId,
       area_id: exclusiveAreaId,
-      rental_date: today,
-      start_time: startTime,
-      end_time: endTime,
+      rental_date: futureDate,
+      start_time: '09:00',
+      end_time: '11:00',
       status: 'SCHEDULED',
     });
     createdIds.rentals.push(rental.id);
@@ -624,19 +618,19 @@ describe('Exclusive Area Blocking (CRITICAL)', () => {
     });
     createdIds.members.push(member.id);
 
-    // Query for SCHEDULED exclusive rentals
-    const currentTime = format(now, 'HH:mm:ss');
+    // Query for SCHEDULED exclusive rentals (simulating time 10:00 - within original window)
+    const simulatedTime = '10:00:00';
     const { data: activeExclusiveRentals } = await client
       .from('rentals')
       .select(`
         *,
         area:areas!inner(is_exclusive)
       `)
-      .eq('rental_date', today)
+      .eq('rental_date', futureDate)
       .eq('status', 'SCHEDULED') // Only SCHEDULED, not CANCELLED
       .eq('area.is_exclusive', true)
-      .lte('start_time', currentTime)
-      .gte('end_time', currentTime);
+      .lte('start_time', simulatedTime)
+      .gte('end_time', simulatedTime);
 
     // Cancelled rental should NOT appear
     const hasCancelled = activeExclusiveRentals?.some((r) => r.id === rental.id);

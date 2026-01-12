@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { format, addDays, addHours, subHours } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import {
   createServiceClient,
   createTestCoach,
@@ -262,10 +262,13 @@ describe('Coach Rental CRUD (Real Supabase)', () => {
 
   describe('Guest Count', () => {
     it('increments guest_count on check-in', async () => {
+      // Use a unique future date to avoid overlap with other tests
+      const rentalDate = format(addDays(new Date(), 8), 'yyyy-MM-dd');
+
       const rental = await createTestRental(client, {
         coach_id: coachId,
         area_id: areaId,
-        rental_date: format(new Date(), 'yyyy-MM-dd'),
+        rental_date: rentalDate,
         start_time: '07:00',
         end_time: '23:00',
         guest_count: 0,
@@ -326,96 +329,97 @@ describe('Exclusive Area Blocking (Real Supabase)', () => {
     await cleanupTrackedEntities();
   });
 
-  it('finds active exclusive rental', async () => {
-    const today = format(new Date(), 'yyyy-MM-dd');
-    const now = format(new Date(), 'HH:mm');
-    const oneHourLater = format(addHours(new Date(), 1), 'HH:mm');
+  // NOTE: Each test uses a different future date to avoid overlap constraint violations
 
-    // Create rental in exclusive area for NOW
+  it('finds active exclusive rental', async () => {
+    // Use a specific future date with fixed time slots
+    const testDate = format(addDays(new Date(), 60), 'yyyy-MM-dd');
+
+    // Create rental in exclusive area (simulating "active" window)
     const rental = await createTestRental(client, {
       coach_id: coachId,
       area_id: exclusiveAreaId,
-      rental_date: today,
-      start_time: now,
-      end_time: oneHourLater,
+      rental_date: testDate,
+      start_time: '14:00',
+      end_time: '16:00',
     });
     createdIds.rentals.push(rental.id);
 
-    // Query for active exclusive rentals (like useCheckin does)
+    // Query for active exclusive rentals (simulating time 15:00 - within window)
+    const simulatedTime = '15:00:00';
     const { data: activeExclusive } = await client
       .from('rentals')
       .select(`
         *,
         area:areas!inner(id, nome, is_exclusive)
       `)
-      .eq('rental_date', today)
+      .eq('rental_date', testDate)
       .eq('status', 'SCHEDULED')
       .eq('area.is_exclusive', true)
-      .lte('start_time', now)
-      .gte('end_time', now);
+      .lte('start_time', simulatedTime)
+      .gte('end_time', simulatedTime);
 
     expect(activeExclusive!.length).toBeGreaterThan(0);
     expect(activeExclusive![0].area_id).toBe(exclusiveAreaId);
   });
 
   it('does NOT find ended exclusive rental', async () => {
-    const today = format(new Date(), 'yyyy-MM-dd');
-    const twoHoursAgo = format(subHours(new Date(), 2), 'HH:mm');
-    const oneHourAgo = format(subHours(new Date(), 1), 'HH:mm');
-    const now = format(new Date(), 'HH:mm');
+    // Use a different future date
+    const testDate = format(addDays(new Date(), 61), 'yyyy-MM-dd');
 
-    // Create rental that ENDED
+    // Create rental that has "ended" (10:00-12:00)
     const rental = await createTestRental(client, {
       coach_id: coachId,
       area_id: exclusiveAreaId,
-      rental_date: today,
-      start_time: twoHoursAgo,
-      end_time: oneHourAgo, // Ended 1 hour ago
+      rental_date: testDate,
+      start_time: '10:00',
+      end_time: '12:00',
     });
     createdIds.rentals.push(rental.id);
 
-    // Query - should NOT find ended rental
+    // Query at simulated time 14:00 - rental has "ended"
+    const simulatedTime = '14:00:00';
     const { data: activeExclusive } = await client
       .from('rentals')
       .select('*')
-      .eq('rental_date', today)
+      .eq('rental_date', testDate)
       .eq('status', 'SCHEDULED')
       .eq('area_id', exclusiveAreaId)
-      .lte('start_time', now)
-      .gte('end_time', now);
+      .lte('start_time', simulatedTime)
+      .gte('end_time', simulatedTime);
 
-    // The ended rental should not match
+    // The ended rental should not match (12:00 < 14:00)
     const endedRental = activeExclusive?.find((r) => r.id === rental.id);
     expect(endedRental).toBeUndefined();
   });
 
   it('non-exclusive area rental does NOT block', async () => {
-    const today = format(new Date(), 'yyyy-MM-dd');
-    const now = format(new Date(), 'HH:mm');
-    const oneHourLater = format(addHours(new Date(), 1), 'HH:mm');
+    // Use a different future date
+    const testDate = format(addDays(new Date(), 62), 'yyyy-MM-dd');
 
     // Create rental in NORMAL area
     const rental = await createTestRental(client, {
       coach_id: coachId,
       area_id: normalAreaId,
-      rental_date: today,
-      start_time: now,
-      end_time: oneHourLater,
+      rental_date: testDate,
+      start_time: '18:00',
+      end_time: '20:00',
     });
     createdIds.rentals.push(rental.id);
 
-    // Query for EXCLUSIVE rentals only
+    // Query for EXCLUSIVE rentals only (simulating time 19:00 - within rental window)
+    const simulatedTime = '19:00:00';
     const { data: exclusiveRentals } = await client
       .from('rentals')
       .select(`
         *,
         area:areas!inner(is_exclusive)
       `)
-      .eq('rental_date', today)
+      .eq('rental_date', testDate)
       .eq('status', 'SCHEDULED')
       .eq('area.is_exclusive', true)
-      .lte('start_time', now)
-      .gte('end_time', now);
+      .lte('start_time', simulatedTime)
+      .gte('end_time', simulatedTime);
 
     // Normal area rental should NOT be in exclusive results
     const foundNormal = exclusiveRentals?.find((r) => r.area_id === normalAreaId);

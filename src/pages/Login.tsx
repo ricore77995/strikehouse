@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth, getRedirectPath } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -138,6 +138,15 @@ const Login = () => {
               )}
             </Button>
           </form>
+
+          <div className="mt-6 text-center">
+            <Link
+              to="/coach/login"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              ← Entrar como Coach
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </div>

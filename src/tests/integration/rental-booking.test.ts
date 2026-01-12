@@ -20,13 +20,6 @@ import { createdIds, cleanupTrackedEntities } from '../fixtures/setup';
  *
  * PREREQUISITE: Migration 20260112_rental_overlap_constraint.sql must be applied
  */
-/**
- * NOTE: These tests require migration 20260112_rental_overlap_constraint.sql
- * to be applied to the remote database. Until then, these tests will fail.
- *
- * To apply: Run the migration via Supabase dashboard SQL editor
- * or via `supabase db push` if Docker is available.
- */
 describe('Rental Overlap Constraint (Real Supabase)', () => {
   const client = createServiceClient();
   let coach1Id: string;
@@ -72,8 +65,7 @@ describe('Rental Overlap Constraint (Real Supabase)', () => {
     await cleanupTrackedEntities();
   });
 
-  // Skip until migration is applied - these WILL pass once trigger exists
-  describe.skip('Overlap Rejection (CRITICAL) - REQUIRES MIGRATION', () => {
+  describe('Overlap Rejection (CRITICAL)', () => {
     it('REJECTS overlapping rental in SAME area', async () => {
       const rentalDate = format(addDays(new Date(), 5), 'yyyy-MM-dd');
 
@@ -315,8 +307,7 @@ describe('Rental Overlap Constraint (Real Supabase)', () => {
   });
 
   describe('Update Scenarios', () => {
-    // Skip until migration is applied
-    it.skip('REJECTS update that creates overlap - REQUIRES MIGRATION', async () => {
+    it('REJECTS update that creates overlap', async () => {
       const rentalDate = format(addDays(new Date(), 14), 'yyyy-MM-dd');
 
       // Rental 1: 09:00-10:00
@@ -418,8 +409,7 @@ describe('Rental Overlap Constraint (Real Supabase)', () => {
     });
   });
 
-  // Skip until migration is applied - constraint added by migration
-  describe.skip('Time Range Constraint - REQUIRES MIGRATION', () => {
+  describe('Time Range Constraint', () => {
     it('REJECTS rental with end_time <= start_time', async () => {
       const rentalDate = format(addDays(new Date(), 17), 'yyyy-MM-dd');
 

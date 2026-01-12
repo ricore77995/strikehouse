@@ -9,12 +9,30 @@ interface QRScannerProps {
 }
 
 const QRScanner = ({ onScan, onClose }: QRScannerProps) => {
-  const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const hasScannedRef = useRef(false);
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
+    isMountedRef.current = true;
+
+    const stopScanner = async () => {
+      const scanner = scannerRef.current;
+      if (scanner) {
+        try {
+          const state = scanner.getState();
+          // Only stop if scanning (state 2) or paused (state 3)
+          if (state === 2 || state === 3) {
+            await scanner.stop();
+          }
+        } catch (err) {
+          console.error('Error stopping scanner:', err);
+        }
+        scannerRef.current = null;
+      }
+    };
+
     const startScanner = async () => {
       try {
         const scanner = new Html5Qrcode('qr-reader');
@@ -27,30 +45,29 @@ const QRScanner = ({ onScan, onClose }: QRScannerProps) => {
             qrbox: { width: 250, height: 250 },
             aspectRatio: 1,
           },
-          (decodedText) => {
-            onScan(decodedText);
-            stopScanner();
+          async (decodedText) => {
+            // Prevent multiple scans
+            if (hasScannedRef.current) return;
+            hasScannedRef.current = true;
+
+            // Stop scanner first
+            await stopScanner();
+
+            // Then notify parent (which will close the scanner UI)
+            if (isMountedRef.current) {
+              onScan(decodedText);
+              onClose();
+            }
           },
           () => {
             // Ignore scan failures
           }
         );
-        setIsScanning(true);
         setError(null);
       } catch (err) {
         console.error('Scanner error:', err);
-        setError('Não foi possível acessar a câmera. Verifique as permissões.');
-      }
-    };
-
-    const stopScanner = async () => {
-      if (scannerRef.current && isScanning) {
-        try {
-          await scannerRef.current.stop();
-          scannerRef.current = null;
-          setIsScanning(false);
-        } catch (err) {
-          console.error('Error stopping scanner:', err);
+        if (isMountedRef.current) {
+          setError('Não foi possível acessar a câmera. Verifique as permissões.');
         }
       }
     };
@@ -58,18 +75,24 @@ const QRScanner = ({ onScan, onClose }: QRScannerProps) => {
     startScanner();
 
     return () => {
+      isMountedRef.current = false;
       stopScanner();
     };
-  }, [onScan]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleClose = async () => {
-    if (scannerRef.current) {
+    const scanner = scannerRef.current;
+    if (scanner) {
       try {
-        await scannerRef.current.stop();
-        scannerRef.current = null;
+        const state = scanner.getState();
+        if (state === 2 || state === 3) {
+          await scanner.stop();
+        }
       } catch (err) {
         console.error('Error stopping scanner:', err);
       }
+      scannerRef.current = null;
     }
     onClose();
   };
@@ -101,7 +124,6 @@ const QRScanner = ({ onScan, onClose }: QRScannerProps) => {
         <div className="relative">
           <div
             id="qr-reader"
-            ref={containerRef}
             className="aspect-square bg-secondary rounded-lg overflow-hidden"
           />
           <div className="absolute inset-0 pointer-events-none flex items-center justify-center">

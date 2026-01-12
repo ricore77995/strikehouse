@@ -81,8 +81,8 @@ const StaffCheckin = () => {
 
   const handleQRScan = async (code: string) => {
     if (!staffId) return;
-    
-    setScanMode(false);
+
+    // Note: setScanMode(false) is now called by QRScanner via onClose
     const result = await processQRCode(code, staffId);
     setCheckinResult(result);
     loadRecentCheckins();

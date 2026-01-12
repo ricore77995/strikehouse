@@ -113,12 +113,6 @@ const navGroups: NavGroup[] = [
         icon: Users,
       },
       {
-        title: 'Cobranças',
-        href: '/admin/billing',
-        icon: FileText,
-        roles: ['OWNER', 'ADMIN'],
-      },
-      {
         title: 'Planos',
         href: '/admin/plans',
         icon: CreditCard,
@@ -159,6 +153,12 @@ const navGroups: NavGroup[] = [
         title: 'Relatório Financeiro',
         href: '/admin/finances',
         icon: BarChart3,
+        roles: ['OWNER', 'ADMIN'],
+      },
+      {
+        title: 'Cobranças',
+        href: '/admin/billing',
+        icon: FileText,
         roles: ['OWNER', 'ADMIN'],
       },
     ],
