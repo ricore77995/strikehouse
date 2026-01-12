@@ -1,3 +1,25 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Build outputs
+dist
+dist-ssr
+build
+*.local
+
+# Environment variables (CRITICAL - contains secrets)
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+.env*.local
+
 # Logs
 logs
 *.log
@@ -7,18 +29,62 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Testing
+coverage
+*.lcov
+.nyc_output
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
 .idea
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Vercel
+.vercel
+
+# Supabase
+supabase/.temp
+supabase/.branches
+
+# Debug
+*.pem
+
+# Optional npm cache
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Typescript
+*.tsbuildinfo
+
+# Secrets and credentials (catch-all patterns)
+*.key
+*.pem
+*credentials*.json
+*secrets*.json
+*secret*.json
+.secrets
+secrets/
+credentials/
