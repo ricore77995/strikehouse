@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { toast } from 'sonner';
 import { Users, Plus, Mail, Shield, UserCog, Trash2 } from 'lucide-react';
 
-type StaffRole = 'OWNER' | 'ADMIN' | 'STAFF' | 'PARTNER';
+type StaffRole = 'OWNER' | 'ADMIN' | 'STAFF';
 
 interface StaffMember {
   id: string;
@@ -34,7 +34,6 @@ const Staff = () => {
     nome: '',
     email: '',
     role: 'STAFF' as StaffRole,
-    coach_id: '',
   });
 
   const { data: staffList, isLoading } = useQuery({
@@ -53,26 +52,12 @@ const Staff = () => {
     },
   });
 
-  const { data: coaches } = useQuery({
-    queryKey: ['coaches-for-staff'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('external_coaches')
-        .select('id, nome')
-        .eq('ativo', true)
-        .order('nome');
-      if (error) throw error;
-      return data;
-    },
-  });
-
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       const { error } = await supabase.from('staff').insert({
         nome: data.nome,
         email: data.email,
         role: data.role,
-        coach_id: data.role === 'PARTNER' && data.coach_id ? data.coach_id : null,
         ativo: true,
       });
       if (error) throw error;
@@ -153,8 +138,6 @@ const Staff = () => {
         return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">Admin</Badge>;
       case 'STAFF':
         return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Staff</Badge>;
-      case 'PARTNER':
-        return <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">Partner</Badge>;
       default:
         return <Badge variant="secondary">{role}</Badge>;
     }
@@ -230,32 +213,11 @@ const Staff = () => {
                       <SelectContent>
                         <SelectItem value="STAFF">Staff - Operações básicas</SelectItem>
                         <SelectItem value="ADMIN">Admin - Gestão completa</SelectItem>
-                        <SelectItem value="PARTNER">Partner - Coach externo</SelectItem>
                         <SelectItem value="OWNER">Owner - Acesso total</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
-                  {formData.role === 'PARTNER' && (
-                    <div className="space-y-2">
-                      <Label htmlFor="coach">Coach vinculado</Label>
-                      <Select
-                        value={formData.coach_id}
-                        onValueChange={(v) => setFormData({ ...formData, coach_id: v })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o coach..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {coaches?.map((coach) => (
-                            <SelectItem key={coach.id} value={coach.id}>
-                              {coach.nome}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
                 </div>
 
                 <DialogFooter>

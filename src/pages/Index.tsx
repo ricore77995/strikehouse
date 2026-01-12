@@ -4,8 +4,8 @@ import Philosophy from "@/components/Philosophy";
 import WhyDifferent from "@/components/WhyDifferent";
 import Training from "@/components/Training";
 import Kids from "@/components/Kids";
-import Gallery from "@/components/Gallery";
-import Testimonials from "@/components/Testimonials";
+// import Gallery from "@/components/Gallery"; // Hidden - O Espaço
+// import Testimonials from "@/components/Testimonials"; // Hidden - A Comunidade
 import CTA from "@/components/CTA";
 import Footer from "@/components/Footer";
 
@@ -19,8 +19,8 @@ const Index = () => {
         <WhyDifferent />
         <Training />
         <Kids />
-        <Gallery />
-        <Testimonials />
+        {/* <Gallery /> */}
+        {/* <Testimonials /> */}
         <CTA />
       </main>
       <Footer />

@@ -26,17 +26,19 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  Plus, 
-  CalendarDays, 
-  Clock, 
-  MapPin, 
-  User, 
+import { useGymSettings, getGymSetting } from '@/hooks/useGymSettings';
+import {
+  Plus,
+  CalendarDays,
+  Clock,
+  MapPin,
+  User,
   XCircle,
   Loader2,
-  Calendar as CalendarIcon
+  Calendar as CalendarIcon,
+  RepeatIcon
 } from 'lucide-react';
-import { format, addDays, differenceInHours, isBefore } from 'date-fns';
+import { format, addDays, addWeeks, differenceInHours, isBefore } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
@@ -70,11 +72,22 @@ interface Area {
   is_exclusive: boolean;
 }
 
+const WEEKDAYS = [
+  { value: 0, label: 'Domingo' },
+  { value: 1, label: 'Segunda-feira' },
+  { value: 2, label: 'Terça-feira' },
+  { value: 3, label: 'Quarta-feira' },
+  { value: 4, label: 'Quinta-feira' },
+  { value: 5, label: 'Sexta-feira' },
+  { value: 6, label: 'Sábado' },
+];
+
 const Rentals = () => {
   const { staffId } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const [activeTab, setActiveTab] = useState('single');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [formData, setFormData] = useState({
@@ -83,6 +96,17 @@ const Rentals = () => {
     rental_date: new Date(),
     start_time: '09:00',
     end_time: '10:00',
+  });
+
+  // State for recurring rentals
+  const [isRecurringDialogOpen, setIsRecurringDialogOpen] = useState(false);
+  const [recurringFormData, setRecurringFormData] = useState({
+    coach_id: '',
+    area_id: '',
+    weekday: null as number | null,
+    start_time: '',
+    end_time: '',
+    weeks_to_generate: 4,
   });
 
   // Fetch rentals for selected date
@@ -135,6 +159,38 @@ const Rentals = () => {
     },
   });
 
+  // Fetch recurring rentals (all future rentals with series_id)
+  const { data: recurringRentals, isLoading: isLoadingRecurring } = useQuery({
+    queryKey: ['admin-recurring-rentals'],
+    queryFn: async () => {
+      const today = format(new Date(), 'yyyy-MM-dd');
+      const { data, error } = await supabase
+        .from('rentals')
+        .select(`
+          *,
+          coach:external_coaches!rentals_coach_id_fkey(id, nome, modalidade),
+          area:areas!rentals_area_id_fkey(id, nome)
+        `)
+        .eq('is_recurring', true)
+        .gte('rental_date', today)
+        .neq('status', 'CANCELLED')
+        .order('rental_date', { ascending: true });
+
+      if (error) throw error;
+      return data as Rental[];
+    },
+  });
+
+  // Group by series_id
+  const groupedBySeries = recurringRentals?.reduce((acc, rental) => {
+    const seriesId = rental.series_id || rental.id;
+    if (!acc[seriesId]) {
+      acc[seriesId] = [];
+    }
+    acc[seriesId].push(rental);
+    return acc;
+  }, {} as Record<string, typeof recurringRentals>);
+
   // Create rental mutation
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -172,7 +228,11 @@ const Rentals = () => {
     mutationFn: async (rental: Rental) => {
       const rentalDateTime = new Date(`${rental.rental_date}T${rental.start_time}`);
       const hoursUntil = differenceInHours(rentalDateTime, new Date());
-      const generateCredit = hoursUntil >= 24;
+
+      // Get configurable threshold from settings
+      const threshold = await getGymSetting('cancellation_hours_threshold', '24');
+      const creditExpiryDays = await getGymSetting('credit_expiry_days', '90');
+      const generateCredit = hoursUntil >= parseInt(threshold);
 
       const { error } = await supabase
         .from('rentals')
@@ -186,14 +246,14 @@ const Rentals = () => {
 
       if (error) throw error;
 
-      // Generate credit if cancelled with >24h notice
+      // Generate credit if cancelled with enough notice
       if (generateCredit && rental.fee_charged_cents) {
         await supabase.from('coach_credits').insert({
           coach_id: rental.coach_id,
           amount: rental.fee_charged_cents,
-          reason: 'Cancelamento com antecedência',
+          reason: 'CANCELLATION',
           rental_id: rental.id,
-          expires_at: format(addDays(new Date(), 90), 'yyyy-MM-dd'),
+          expires_at: format(addDays(new Date(), parseInt(creditExpiryDays)), 'yyyy-MM-dd'),
         });
       }
 
@@ -212,6 +272,129 @@ const Rentals = () => {
       toast({ title: 'Erro ao cancelar', variant: 'destructive' });
     },
   });
+
+  // Create recurring rentals mutation
+  const createRecurringMutation = useMutation({
+    mutationFn: async (data: typeof recurringFormData) => {
+      if (!data.coach_id || !data.area_id || data.weekday === null || !data.start_time || !data.end_time) {
+        throw new Error('Preencha todos os campos');
+      }
+
+      const coach = coaches?.find(c => c.id === data.coach_id);
+      const feeCharged = coach?.fee_type === 'FIXED' ? coach.fee_value : null;
+
+      const seriesId = crypto.randomUUID();
+      const rentalsToCreate = [];
+
+      // Get next occurrence of selected weekday
+      const today = new Date();
+      const currentWeekday = today.getDay();
+      let daysUntilNext = data.weekday - currentWeekday;
+      if (daysUntilNext <= 0) daysUntilNext += 7;
+
+      let nextDate = addDays(today, daysUntilNext);
+
+      // Generate rentals for X weeks
+      for (let i = 0; i < data.weeks_to_generate; i++) {
+        const rentalDate = format(nextDate, 'yyyy-MM-dd');
+
+        // Check for conflicts
+        const { data: conflicts } = await supabase
+          .from('rentals')
+          .select('id')
+          .eq('area_id', data.area_id)
+          .eq('rental_date', rentalDate)
+          .neq('status', 'CANCELLED')
+          .or(`and(start_time.lt.${data.end_time},end_time.gt.${data.start_time})`);
+
+        if (!conflicts || conflicts.length === 0) {
+          rentalsToCreate.push({
+            coach_id: data.coach_id,
+            area_id: data.area_id,
+            rental_date: rentalDate,
+            start_time: data.start_time,
+            end_time: data.end_time,
+            fee_charged_cents: feeCharged,
+            status: 'SCHEDULED',
+            is_recurring: true,
+            series_id: seriesId,
+            created_by: staffId,
+          });
+        }
+
+        nextDate = addWeeks(nextDate, 1);
+      }
+
+      if (rentalsToCreate.length === 0) {
+        throw new Error('Todos os horários selecionados já estão ocupados');
+      }
+
+      const { error } = await supabase
+        .from('rentals')
+        .insert(rentalsToCreate);
+
+      if (error) throw error;
+
+      return rentalsToCreate.length;
+    },
+    onSuccess: (count) => {
+      toast({
+        title: `${count} rentals recorrentes criados`,
+        description: 'Série agendada com sucesso'
+      });
+      queryClient.invalidateQueries({ queryKey: ['admin-recurring-rentals'] });
+      queryClient.invalidateQueries({ queryKey: ['rentals'] });
+      setIsRecurringDialogOpen(false);
+      resetRecurringForm();
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro ao criar série',
+        description: error.message,
+        variant: 'destructive'
+      });
+    },
+  });
+
+  // Cancel entire series mutation
+  const cancelSeriesMutation = useMutation({
+    mutationFn: async (seriesId: string) => {
+      const { error } = await supabase
+        .from('rentals')
+        .update({
+          status: 'CANCELLED',
+          cancelled_at: new Date().toISOString(),
+          cancelled_by: staffId,
+        })
+        .eq('series_id', seriesId)
+        .eq('status', 'SCHEDULED');
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: 'Série cancelada com sucesso' });
+      queryClient.invalidateQueries({ queryKey: ['admin-recurring-rentals'] });
+      queryClient.invalidateQueries({ queryKey: ['rentals'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro ao cancelar série',
+        description: error.message,
+        variant: 'destructive'
+      });
+    },
+  });
+
+  const resetRecurringForm = () => {
+    setRecurringFormData({
+      coach_id: '',
+      area_id: '',
+      weekday: null,
+      start_time: '',
+      end_time: '',
+      weeks_to_generate: 4,
+    });
+  };
 
   const resetForm = () => {
     setFormData({
@@ -255,19 +438,28 @@ const Rentals = () => {
           <div>
             <h1 className="text-2xl tracking-wider mb-1">RENTALS</h1>
             <p className="text-muted-foreground text-sm">
-              Agendar sublocação de espaços
+              Gerenciar sublocação de espaços
             </p>
           </div>
-          <Button onClick={() => setIsDialogOpen(true)}>
+          <Button onClick={() => activeTab === 'single' ? setIsDialogOpen(true) : setIsRecurringDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Novo Rental
+            {activeTab === 'single' ? 'Novo Rental' : 'Nova Série'}
           </Button>
         </div>
 
-        {/* Date Selector */}
-        <Card className="bg-card border-border">
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="single">Single</TabsTrigger>
+            <TabsTrigger value="recurring">Recorrente</TabsTrigger>
+          </TabsList>
+
+          {/* Tab 1: Single Rentals (existing content) */}
+          <TabsContent value="single" className="space-y-4">
+            {/* Date Selector */}
+            <Card className="bg-card border-border">
           <CardContent className="p-4">
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4">
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-[240px] justify-start text-left font-normal">
@@ -510,6 +702,248 @@ const Rentals = () => {
             </form>
           </DialogContent>
         </Dialog>
+          </TabsContent>
+
+          {/* Tab 2: Recurring Rentals (new content) */}
+          <TabsContent value="recurring" className="space-y-4">
+            {isLoadingRecurring ? (
+              <Card className="bg-card border-border">
+                <CardContent className="py-12 text-center">
+                  <Loader2 className="h-6 w-6 mx-auto animate-spin text-muted-foreground" />
+                </CardContent>
+              </Card>
+            ) : groupedBySeries && Object.keys(groupedBySeries).length > 0 ? (
+              <div className="space-y-4">
+                {Object.entries(groupedBySeries).map(([seriesId, rentals]) => {
+                  if (!rentals || rentals.length === 0) return null;
+                  const firstRental = rentals[0];
+                  const weekday = new Date(firstRental.rental_date).getDay();
+                  const weekdayName = WEEKDAYS.find(d => d.value === weekday)?.label;
+
+                  return (
+                    <Card key={seriesId} className="bg-card border-border">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-lg bg-accent/20 flex items-center justify-center">
+                              <RepeatIcon className="h-5 w-5 text-accent" />
+                            </div>
+                            <div>
+                              <CardTitle className="text-base uppercase tracking-wider">
+                                {weekdayName}s às {firstRental.start_time.slice(0, 5)}
+                              </CardTitle>
+                              <CardDescription className="flex items-center gap-2 text-xs">
+                                <User className="h-3 w-3" />
+                                {firstRental.coach.nome}
+                                {firstRental.coach.modalidade && ` (${firstRental.coach.modalidade})`}
+                                <span className="mx-1">•</span>
+                                <MapPin className="h-3 w-3" />
+                                {firstRental.area.nome}
+                                <span className="mx-1">•</span>
+                                <Clock className="h-3 w-3" />
+                                {firstRental.start_time.slice(0, 5)} - {firstRental.end_time.slice(0, 5)}
+                              </CardDescription>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="secondary" className="text-xs">
+                              {rentals.length} sessões
+                            </Badge>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              onClick={() => cancelSeriesMutation.mutate(seriesId)}
+                              disabled={cancelSeriesMutation.isPending}
+                            >
+                              <XCircle className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex flex-wrap gap-2">
+                          {rentals.map((rental) => (
+                            <Badge key={rental.id} variant="outline" className="text-xs">
+                              {format(new Date(rental.rental_date), 'dd/MM', { locale: pt })}
+                            </Badge>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            ) : (
+              <Card className="bg-card border-border">
+                <CardContent className="py-12 text-center">
+                  <CalendarDays className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+                  <p className="text-muted-foreground mb-4">
+                    Nenhuma série recorrente agendada
+                  </p>
+                  <Button onClick={() => setIsRecurringDialogOpen(true)} className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Criar Primeira Série
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Recurring Rental Dialog */}
+            <Dialog open={isRecurringDialogOpen} onOpenChange={setIsRecurringDialogOpen}>
+              <DialogContent className="sm:max-w-md bg-card border-border">
+                <DialogHeader>
+                  <DialogTitle className="uppercase tracking-wider">Nova Série Recorrente</DialogTitle>
+                  <DialogDescription>
+                    Agendar rentals semanais fixos
+                  </DialogDescription>
+                </DialogHeader>
+
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    createRecurringMutation.mutate(recurringFormData);
+                  }}
+                  className="space-y-4"
+                >
+                  <div className="space-y-2">
+                    <Label>Coach *</Label>
+                    <Select
+                      value={recurringFormData.coach_id}
+                      onValueChange={(value) => setRecurringFormData({ ...recurringFormData, coach_id: value })}
+                    >
+                      <SelectTrigger className="bg-secondary border-border">
+                        <SelectValue placeholder="Selecione o coach" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {coaches?.map((coach) => (
+                          <SelectItem key={coach.id} value={coach.id}>
+                            {coach.nome} {coach.modalidade && `(${coach.modalidade})`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Área *</Label>
+                    <Select
+                      value={recurringFormData.area_id}
+                      onValueChange={(value) => setRecurringFormData({ ...recurringFormData, area_id: value })}
+                    >
+                      <SelectTrigger className="bg-secondary border-border">
+                        <SelectValue placeholder="Selecione a área" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {areas?.map((area) => (
+                          <SelectItem key={area.id} value={area.id}>
+                            {area.nome} {area.is_exclusive && '(Exclusiva)'}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Dia da Semana *</Label>
+                    <Select
+                      value={recurringFormData.weekday?.toString() ?? ''}
+                      onValueChange={(v) => setRecurringFormData({ ...recurringFormData, weekday: parseInt(v) })}
+                    >
+                      <SelectTrigger className="bg-secondary border-border">
+                        <SelectValue placeholder="Selecionar dia" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {WEEKDAYS.map((day) => (
+                          <SelectItem key={day.value} value={day.value.toString()}>
+                            {day.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Início *</Label>
+                      <Select
+                        value={recurringFormData.start_time}
+                        onValueChange={(value) => setRecurringFormData({ ...recurringFormData, start_time: value, end_time: '' })}
+                      >
+                        <SelectTrigger className="bg-secondary border-border">
+                          <SelectValue placeholder="Hora início" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {timeSlots.map((time) => (
+                            <SelectItem key={time} value={time}>
+                              {time}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Fim *</Label>
+                      <Select
+                        value={recurringFormData.end_time}
+                        onValueChange={(value) => setRecurringFormData({ ...recurringFormData, end_time: value })}
+                        disabled={!recurringFormData.start_time}
+                      >
+                        <SelectTrigger className="bg-secondary border-border">
+                          <SelectValue placeholder="Hora fim" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {timeSlots.filter(t => t > recurringFormData.start_time).map((time) => (
+                            <SelectItem key={time} value={time}>
+                              {time}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Número de Semanas</Label>
+                    <Select
+                      value={recurringFormData.weeks_to_generate.toString()}
+                      onValueChange={(v) => setRecurringFormData({ ...recurringFormData, weeks_to_generate: parseInt(v) })}
+                    >
+                      <SelectTrigger className="bg-secondary border-border">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="2">2 semanas</SelectItem>
+                        <SelectItem value="4">4 semanas (1 mês)</SelectItem>
+                        <SelectItem value="8">8 semanas (2 meses)</SelectItem>
+                        <SelectItem value="12">12 semanas (3 meses)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex gap-2 pt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => setIsRecurringDialogOpen(false)}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      type="submit"
+                      className="flex-1 bg-accent hover:bg-accent/90"
+                      disabled={createRecurringMutation.isPending}
+                    >
+                      {createRecurringMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                      Criar Série
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );

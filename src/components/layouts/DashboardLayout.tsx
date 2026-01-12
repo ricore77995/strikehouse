@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth, StaffRole } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,6 @@ import {
   CreditCard,
   CalendarDays,
   DollarSign,
-  ClipboardList,
   Package,
   BarChart3,
   Settings,
@@ -22,166 +21,227 @@ import {
   FileText,
   Shield,
   ChevronDown,
+  UserCheck,
+  UserPlus,
+  GraduationCap,
+  UsersRound,
+  MapPin,
+  Wallet,
+  Cog,
+  FileCheck,
+  Activity,
 } from 'lucide-react';
 
 interface NavItem {
   title: string;
   href: string;
   icon: React.ElementType;
-  roles: StaffRole[];
-  children?: { title: string; href: string }[];
+  roles?: StaffRole[];
 }
 
-const navItems: NavItem[] = [
+interface NavGroup {
+  title: string;
+  icon: React.ElementType;
+  roles: StaffRole[];
+  items: NavItem[];
+  defaultOpen?: boolean;
+}
+
+const navGroups: NavGroup[] = [
+  // Dashboard - OWNER & ADMIN
   {
     title: 'Dashboard',
-    href: '/owner/dashboard',
     icon: LayoutDashboard,
-    roles: ['OWNER'],
+    roles: ['OWNER', 'ADMIN'],
+    defaultOpen: true,
+    items: [
+      {
+        title: 'Visão Geral',
+        href: '/admin/dashboard',
+        icon: LayoutDashboard,
+        roles: ['ADMIN'],
+      },
+      {
+        title: 'Visão Executiva',
+        href: '/owner/dashboard',
+        icon: LayoutDashboard,
+        roles: ['OWNER'],
+      },
+    ],
   },
+
+  // Operações Diárias - ALL
   {
-    title: 'Dashboard',
-    href: '/admin/dashboard',
-    icon: LayoutDashboard,
-    roles: ['ADMIN'],
-  },
-  {
-    title: 'Check-in',
-    href: '/staff/checkin',
-    icon: QrCode,
+    title: 'Operações Diárias',
+    icon: Activity,
     roles: ['OWNER', 'ADMIN', 'STAFF'],
+    defaultOpen: true,
+    items: [
+      {
+        title: 'Check-in',
+        href: '/staff/checkin',
+        icon: QrCode,
+      },
+      {
+        title: 'Guests',
+        href: '/staff/guests',
+        icon: UserPlus,
+      },
+      {
+        title: 'Novo Membro',
+        href: '/staff/members/new',
+        icon: UserCheck,
+      },
+      {
+        title: 'Matrícula',
+        href: '/staff/enrollment',
+        icon: UserPlus,
+      },
+    ],
   },
-  {
-    title: 'Novo Membro',
-    href: '/staff/members/new',
-    icon: Users,
-    roles: ['OWNER', 'ADMIN', 'STAFF'],
-  },
-  {
-    title: 'Guests',
-    href: '/staff/guests',
-    icon: Users,
-    roles: ['OWNER', 'ADMIN', 'STAFF'],
-  },
+
+  // Membros - ALL
   {
     title: 'Membros',
-    href: '/admin/members',
     icon: Users,
     roles: ['OWNER', 'ADMIN', 'STAFF'],
+    defaultOpen: false,
+    items: [
+      {
+        title: 'Todos os Membros',
+        href: '/admin/members',
+        icon: Users,
+      },
+      {
+        title: 'Cobranças',
+        href: '/admin/billing',
+        icon: FileText,
+        roles: ['OWNER', 'ADMIN'],
+      },
+      {
+        title: 'Planos',
+        href: '/admin/plans',
+        icon: CreditCard,
+        roles: ['OWNER', 'ADMIN'],
+      },
+    ],
   },
-  {
-    title: 'Planos',
-    href: '/admin/plans',
-    icon: CreditCard,
-    roles: ['OWNER', 'ADMIN'],
-  },
-  {
-    title: 'Pagamentos',
-    href: '/staff/payment',
-    icon: DollarSign,
-    roles: ['OWNER', 'ADMIN', 'STAFF'],
-  },
-  {
-    title: 'Verificar Transf.',
-    href: '/admin/finances/verify',
-    icon: FileText,
-    roles: ['OWNER', 'ADMIN'],
-  },
-  {
-    title: 'Cobranças',
-    href: '/admin/billing',
-    icon: FileText,
-    roles: ['OWNER', 'ADMIN'],
-  },
-  {
-    title: 'Coaches',
-    href: '/admin/coaches',
-    icon: Users,
-    roles: ['OWNER', 'ADMIN'],
-  },
-  {
-    title: 'Áreas',
-    href: '/admin/areas',
-    icon: LayoutDashboard,
-    roles: ['OWNER', 'ADMIN'],
-  },
-  {
-    title: 'Rentals',
-    href: '/admin/rentals',
-    icon: CalendarDays,
-    roles: ['OWNER', 'ADMIN'],
-  },
-  {
-    title: 'Vendas',
-    href: '/staff/sales',
-    icon: ShoppingCart,
-    roles: ['OWNER', 'ADMIN', 'STAFF'],
-  },
-  {
-    title: 'Produtos',
-    href: '/admin/products',
-    icon: Package,
-    roles: ['OWNER', 'ADMIN'],
-  },
+
+  // Financeiro - ALL
   {
     title: 'Financeiro',
-    href: '/admin/finances',
-    icon: BarChart3,
-    roles: ['OWNER', 'ADMIN'],
-  },
-  {
-    title: 'Caixa',
-    href: '/staff/caixa',
-    icon: ClipboardList,
+    icon: DollarSign,
     roles: ['OWNER', 'ADMIN', 'STAFF'],
+    defaultOpen: false,
+    items: [
+      {
+        title: 'Pagamentos',
+        href: '/staff/payment',
+        icon: DollarSign,
+      },
+      {
+        title: 'Verificar Transf.',
+        href: '/admin/finances/verify',
+        icon: FileCheck,
+        roles: ['OWNER', 'ADMIN'],
+      },
+      {
+        title: 'Vendas',
+        href: '/staff/sales',
+        icon: ShoppingCart,
+      },
+      {
+        title: 'Caixa',
+        href: '/staff/caixa',
+        icon: Wallet,
+      },
+      {
+        title: 'Relatório Financeiro',
+        href: '/admin/finances',
+        icon: BarChart3,
+        roles: ['OWNER', 'ADMIN'],
+      },
+    ],
   },
+
+  // Rentals & Parceiros - OWNER & ADMIN
+  {
+    title: 'Rentals & Parceiros',
+    icon: CalendarDays,
+    roles: ['OWNER', 'ADMIN'],
+    defaultOpen: false,
+    items: [
+      {
+        title: 'Coaches Externos',
+        href: '/admin/coaches',
+        icon: GraduationCap,
+      },
+      {
+        title: 'Rentals',
+        href: '/admin/rentals',
+        icon: CalendarDays,
+      },
+      {
+        title: 'Áreas',
+        href: '/admin/areas',
+        icon: MapPin,
+      },
+    ],
+  },
+
+  // Produtos - OWNER & ADMIN
+  {
+    title: 'Produtos',
+    icon: Package,
+    roles: ['OWNER', 'ADMIN'],
+    defaultOpen: false,
+    items: [
+      {
+        title: 'Catálogo',
+        href: '/admin/products',
+        icon: Package,
+      },
+    ],
+  },
+
+  // Gestão - OWNER & ADMIN
+  {
+    title: 'Gestão',
+    icon: Settings,
+    roles: ['OWNER', 'ADMIN'],
+    defaultOpen: false,
+    items: [
+      {
+        title: 'Equipe',
+        href: '/owner/staff',
+        icon: UsersRound,
+      },
+      {
+        title: 'Configurações',
+        href: '/owner/settings',
+        icon: Settings,
+      },
+    ],
+  },
+
+  // Auditoria - OWNER & ADMIN
   {
     title: 'Auditoria',
-    href: '/admin/audit',
     icon: Shield,
     roles: ['OWNER', 'ADMIN'],
-  },
-  {
-    title: 'Jobs',
-    href: '/admin/jobs',
-    icon: ClipboardList,
-    roles: ['OWNER', 'ADMIN'],
-  },
-  {
-    title: 'Equipe',
-    href: '/owner/staff',
-    icon: Users,
-    roles: ['OWNER'],
-  },
-  {
-    title: 'Configurações',
-    href: '/owner/settings',
-    icon: Settings,
-    roles: ['OWNER'],
-  },
-  {
-    title: 'Dashboard',
-    href: '/partner/dashboard',
-    icon: LayoutDashboard,
-    roles: ['PARTNER'],
-  },
-  {
-    title: 'Meus Rentals',
-    href: '/partner/rentals',
-    icon: CalendarDays,
-    roles: ['PARTNER'],
-  },
-  {
-    title: 'Recorrentes',
-    href: '/partner/recurring',
-    icon: CalendarDays,
-    roles: ['PARTNER'],
-  },
-  {
-    title: 'Calendário',
-    href: '/partner/calendar',
-    icon: CalendarDays,
-    roles: ['PARTNER'],
+    defaultOpen: false,
+    items: [
+      {
+        title: 'Logs',
+        href: '/admin/audit',
+        icon: Shield,
+      },
+      {
+        title: 'Jobs',
+        href: '/admin/jobs',
+        icon: Cog,
+      },
+    ],
   },
 ];
 
@@ -200,19 +260,19 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     navigate('/login');
   };
 
-  const filteredNavItems = navItems.filter(
-    (item) => staff && item.roles.includes(staff.role)
-  );
-
   const getRoleLabel = (role: StaffRole) => {
     switch (role) {
       case 'OWNER': return 'Proprietário';
       case 'ADMIN': return 'Administrador';
       case 'STAFF': return 'Staff';
-      case 'PARTNER': return 'Partner';
       default: return role;
     }
   };
+
+  // Filter groups by role
+  const filteredNavGroups = navGroups.filter(
+    (group) => staff && group.roles.includes(staff.role)
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -252,28 +312,15 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
           {/* Navigation */}
           <ScrollArea className="flex-1 py-4">
-            <nav className="px-2 space-y-1">
-              {filteredNavItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = location.pathname === item.href;
-
-                return (
-                  <Link
-                    key={item.href}
-                    to={item.href}
-                    onClick={() => setSidebarOpen(false)}
-                    className={cn(
-                      'flex items-center gap-3 px-3 py-2 text-sm rounded-sm transition-colors',
-                      isActive
-                        ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
-                    )}
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span className="uppercase tracking-wider text-xs">{item.title}</span>
-                  </Link>
-                );
-              })}
+            <nav className="px-2 space-y-2">
+              {filteredNavGroups.map((group) => (
+                <NavGroup
+                  key={group.title}
+                  group={group}
+                  staff={staff!}
+                  setSidebarOpen={setSidebarOpen}
+                />
+              ))}
             </nav>
           </ScrollArea>
 
@@ -318,6 +365,90 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           {children}
         </div>
       </main>
+    </div>
+  );
+};
+
+// NavGroup Component
+interface NavGroupProps {
+  group: NavGroup;
+  staff: NonNullable<ReturnType<typeof useAuth>['staff']>;
+  setSidebarOpen: (open: boolean) => void;
+}
+
+const NavGroup = ({ group, staff, setSidebarOpen }: NavGroupProps) => {
+  const location = useLocation();
+  const [isOpen, setIsOpen] = useState(group.defaultOpen ?? false);
+
+  // Check if any child is active
+  const hasActiveChild = group.items.some(
+    (item) =>
+      (!item.roles || item.roles.includes(staff.role)) &&
+      (location.pathname === item.href || location.pathname.startsWith(item.href + '/'))
+  );
+
+  // Auto-expand if active child
+  useEffect(() => {
+    if (hasActiveChild) setIsOpen(true);
+  }, [hasActiveChild]);
+
+  const Icon = group.icon;
+
+  // Filter items by role
+  const visibleItems = group.items.filter(
+    (item) => !item.roles || item.roles.includes(staff.role)
+  );
+
+  return (
+    <div className="space-y-1">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={cn(
+          'w-full flex items-center justify-between gap-3 px-3 py-2 text-sm rounded-sm transition-colors',
+          hasActiveChild
+            ? 'bg-sidebar-accent/30 text-sidebar-accent-foreground'
+            : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50'
+        )}
+      >
+        <div className="flex items-center gap-3">
+          <Icon className="h-4 w-4" />
+          <span className="uppercase tracking-wider text-xs font-medium">
+            {group.title}
+          </span>
+        </div>
+        <ChevronDown
+          className={cn(
+            'h-3 w-3 transition-transform',
+            isOpen && 'rotate-180'
+          )}
+        />
+      </button>
+
+      {isOpen && (
+        <div className="pl-4 space-y-1">
+          {visibleItems.map((item) => {
+            const ItemIcon = item.icon;
+            const isActive = location.pathname === item.href;
+
+            return (
+              <Link
+                key={item.href}
+                to={item.href}
+                onClick={() => setSidebarOpen(false)}
+                className={cn(
+                  'flex items-center gap-3 px-3 py-2 text-sm rounded-sm transition-colors',
+                  isActive
+                    ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                    : 'text-sidebar-foreground/60 hover:bg-sidebar-accent/30 hover:text-sidebar-foreground'
+                )}
+              >
+                <ItemIcon className="h-3.5 w-3.5" />
+                <span className="text-xs">{item.title}</span>
+              </Link>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

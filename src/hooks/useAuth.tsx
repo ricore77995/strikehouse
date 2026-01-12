@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
-export type StaffRole = 'OWNER' | 'ADMIN' | 'STAFF' | 'PARTNER';
+export type StaffRole = 'OWNER' | 'ADMIN' | 'STAFF';
 
 interface StaffData {
   id: string;
@@ -10,7 +10,6 @@ interface StaffData {
   nome: string;
   email: string;
   role: StaffRole;
-  coach_id: string | null;
   ativo: boolean;
 }
 
@@ -62,12 +61,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(currentSession?.user ?? null);
 
         if (currentSession?.user) {
-          // Use setTimeout to avoid potential race conditions
-          setTimeout(async () => {
-            const staffData = await fetchStaffData(currentSession.user.id);
+          // Fetch staff data sem bloquear o callback
+          fetchStaffData(currentSession.user.id).then(staffData => {
             setStaff(staffData);
             setLoading(false);
-          }, 0);
+          });
         } else {
           setStaff(null);
           setLoading(false);
@@ -147,8 +145,6 @@ export const getRedirectPath = (role: StaffRole): string => {
       return '/admin/dashboard';
     case 'STAFF':
       return '/staff/checkin';
-    case 'PARTNER':
-      return '/partner/dashboard';
     default:
       return '/login';
   }

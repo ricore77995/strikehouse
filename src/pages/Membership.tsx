@@ -222,8 +222,14 @@ const Membership = () => {
             <p className="text-muted-foreground font-light mb-8">
               {t('membership.ctaDescription')}
             </p>
-            <Button variant="outline" size="lg">
-              {t('membership.ctaButton')}
+            <Button variant="outline" size="lg" asChild>
+              <a
+                href="https://wa.me/351913378459"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {t('membership.ctaButton')}
+              </a>
             </Button>
           </motion.div>
         </div>

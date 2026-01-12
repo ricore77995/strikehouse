@@ -289,9 +289,13 @@ const TheTeam = () => {
                 {t('team.ctaDescription')}
               </p>
               <Button variant="default" size="lg" asChild>
-                <Link to="/#contact">
+                <a
+                  href="https://wa.me/351913378459"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   {t('team.ctaButton')}
-                </Link>
+                </a>
               </Button>
             </motion.div>
           </div>

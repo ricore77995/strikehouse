@@ -136,6 +136,9 @@ const PendingPayments = () => {
       if (paymentError || !payment) throw new Error('Payment not found');
 
       const plan = payment.plan;
+      const isEnrollment = payment.reference.startsWith('ENR-');
+      const isReactivation = payment.reference.startsWith('REA-');
+      const hasEnrollmentFee = isEnrollment || isReactivation;
 
       // Calculate new access
       let updateData: Record<string, unknown> = { status: 'ATIVO' };
@@ -174,22 +177,70 @@ const PendingPayments = () => {
 
       if (memberError) throw memberError;
 
-      // Create transaction
-      const { data: transaction, error: txError } = await supabase
-        .from('transactions')
-        .insert({
-          type: 'RECEITA',
-          category: 'MENSALIDADE',
-          amount_cents: payment.amount_cents,
-          payment_method: 'TRANSFERENCIA',
-          member_id: memberId,
-          description: `Confirmação: ${payment.reference}`,
-          created_by: staffId,
-        })
-        .select()
-        .single();
+      // Create transaction(s)
+      let transactionId: string;
 
-      if (txError) throw txError;
+      if (hasEnrollmentFee && plan) {
+        // Enrollment/Reactivation: Create 2 separate transactions (plan + enrollment fee)
+        const enrollmentFeeCents = payment.amount_cents - plan.preco_cents;
+
+        // Transaction 1: Plan payment
+        const { data: planTx, error: planTxError } = await supabase
+          .from('transactions')
+          .insert({
+            type: 'RECEITA',
+            category: plan.tipo,
+            amount_cents: plan.preco_cents,
+            payment_method: 'TRANSFERENCIA',
+            member_id: memberId,
+            description: isEnrollment
+              ? `Plano: ${plan.nome} (Matrícula)`
+              : `Plano: ${plan.nome} (Reativação)`,
+            created_by: staffId,
+          })
+          .select()
+          .single();
+
+        if (planTxError) throw planTxError;
+        transactionId = planTx.id;
+
+        // Transaction 2: Enrollment fee (if > 0)
+        if (enrollmentFeeCents > 0) {
+          const { error: feeTxError } = await supabase
+            .from('transactions')
+            .insert({
+              type: 'RECEITA',
+              category: 'TAXA_MATRICULA',
+              amount_cents: enrollmentFeeCents,
+              payment_method: 'TRANSFERENCIA',
+              member_id: memberId,
+              description: isEnrollment
+                ? `Taxa de Matrícula - ${plan.nome}`
+                : `Taxa de Matrícula (Reativação) - ${plan.nome}`,
+              created_by: staffId,
+            });
+
+          if (feeTxError) throw feeTxError;
+        }
+      } else {
+        // Regular payment: 1 transaction
+        const { data: transaction, error: txError } = await supabase
+          .from('transactions')
+          .insert({
+            type: 'RECEITA',
+            category: plan?.tipo || 'SUBSCRIPTION',
+            amount_cents: payment.amount_cents,
+            payment_method: 'TRANSFERENCIA',
+            member_id: memberId,
+            description: `Confirmação: ${payment.reference}`,
+            created_by: staffId,
+          })
+          .select()
+          .single();
+
+        if (txError) throw txError;
+        transactionId = transaction.id;
+      }
 
       // Update pending payment
       const { error: updateError } = await supabase
@@ -198,7 +249,7 @@ const PendingPayments = () => {
           status: 'CONFIRMED',
           confirmed_at: new Date().toISOString(),
           confirmed_by: staffId,
-          transaction_id: transaction.id,
+          transaction_id: transactionId,
         })
         .eq('id', paymentId);
 

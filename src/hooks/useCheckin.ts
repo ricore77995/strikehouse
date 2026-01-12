@@ -26,6 +26,18 @@ export interface CheckinResult {
   };
 }
 
+// Mapeia resultados estendidos para valores válidos no banco de dados
+// NOT_FOUND e AREA_EXCLUSIVE são mapeados para BLOCKED no banco
+// A mensagem correta já é mostrada na UI via CheckinResult.message
+const mapToDatabaseResult = (
+  result: CheckinResult['result']
+): 'ALLOWED' | 'BLOCKED' | 'EXPIRED' | 'NO_CREDITS' => {
+  if (result === 'NOT_FOUND' || result === 'AREA_EXCLUSIVE') {
+    return 'BLOCKED';
+  }
+  return result as 'ALLOWED' | 'BLOCKED' | 'EXPIRED' | 'NO_CREDITS';
+};
+
 export const useCheckin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -202,7 +214,7 @@ export const useCheckin = () => {
       const { error: checkinError } = await supabase.from('check_ins').insert({
         member_id: member.id,
         type: 'MEMBER',
-        result: validation.result,
+        result: mapToDatabaseResult(validation.result),
         checked_in_by: staffId,
       });
 

@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,43 +11,122 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { Settings, Bell, Clock, DollarSign, Save, Building, Mail, MessageSquare } from 'lucide-react';
+import { Settings, Bell, Clock, DollarSign, Save, Building, Mail, MessageSquare, Loader2 } from 'lucide-react';
 
 const SettingsPage = () => {
+  const { staffId } = useAuth();
+  const queryClient = useQueryClient();
+
   const [settings, setSettings] = useState({
-    // Business Info
+    // Business Info (localStorage)
     gymName: 'Strikers House',
     gymEmail: 'info@strikershouse.pt',
     gymPhone: '+351 912 345 678',
     gymAddress: 'Rua da Luta, 123 - Lisboa',
-    
-    // Operating Hours
+
+    // Operating Hours (localStorage)
     openTime: '07:00',
     closeTime: '22:00',
     weekendOpenTime: '09:00',
     weekendCloseTime: '18:00',
-    
-    // Notifications
+
+    // Notifications (localStorage)
     emailReminders: true,
     reminderDaysBefore: 3,
     autoRemindOverdue: true,
     overdueReminderFrequency: 7,
-    
-    // Financial
+
+    // Financial (localStorage)
     defaultPaymentDays: 5,
     gracePeriodDays: 3,
     lateFeePercent: 0,
-    
-    // Rentals
+
+    // Rentals - these are saved to gym_settings table
     minRentalDuration: 60,
     maxAdvanceBookingDays: 30,
     cancellationHours: 24,
+    creditExpiryDays: 90,
+  });
+
+  // Fetch gym_settings from Supabase
+  const { data: dbSettings, isLoading: isLoadingSettings } = useQuery({
+    queryKey: ['gym-settings'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('gym_settings')
+        .select('key, value');
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Apply database settings to local state
+  useEffect(() => {
+    if (dbSettings) {
+      const settingsMap = dbSettings.reduce((acc, s) => {
+        acc[s.key] = s.value;
+        return acc;
+      }, {} as Record<string, string>);
+
+      setSettings(prev => ({
+        ...prev,
+        cancellationHours: parseInt(settingsMap.cancellation_hours_threshold || '24'),
+        creditExpiryDays: parseInt(settingsMap.credit_expiry_days || '90'),
+        minRentalDuration: parseInt(settingsMap.min_rental_duration || '60'),
+        maxAdvanceBookingDays: parseInt(settingsMap.max_advance_booking_days || '30'),
+      }));
+    }
+  }, [dbSettings]);
+
+  // Save settings mutation
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      // Save rental settings to database
+      const updates = [
+        { key: 'cancellation_hours_threshold', value: settings.cancellationHours.toString() },
+        { key: 'credit_expiry_days', value: settings.creditExpiryDays.toString() },
+        { key: 'min_rental_duration', value: settings.minRentalDuration.toString() },
+        { key: 'max_advance_booking_days', value: settings.maxAdvanceBookingDays.toString() },
+      ];
+
+      for (const update of updates) {
+        const { error } = await supabase
+          .from('gym_settings')
+          .update({ value: update.value, updated_by: staffId })
+          .eq('key', update.key);
+        if (error) throw error;
+      }
+
+      // Save other settings to localStorage
+      localStorage.setItem('gym_settings_local', JSON.stringify({
+        gymName: settings.gymName,
+        gymEmail: settings.gymEmail,
+        gymPhone: settings.gymPhone,
+        gymAddress: settings.gymAddress,
+        openTime: settings.openTime,
+        closeTime: settings.closeTime,
+        weekendOpenTime: settings.weekendOpenTime,
+        weekendCloseTime: settings.weekendCloseTime,
+        emailReminders: settings.emailReminders,
+        reminderDaysBefore: settings.reminderDaysBefore,
+        autoRemindOverdue: settings.autoRemindOverdue,
+        overdueReminderFrequency: settings.overdueReminderFrequency,
+        defaultPaymentDays: settings.defaultPaymentDays,
+        gracePeriodDays: settings.gracePeriodDays,
+        lateFeePercent: settings.lateFeePercent,
+      }));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gym-settings'] });
+      toast.success('Configurações guardadas com sucesso!');
+    },
+    onError: (error: any) => {
+      toast.error('Erro ao guardar: ' + error.message);
+    },
   });
 
   const handleSave = () => {
-    // In a real app, this would save to a settings table
-    localStorage.setItem('gym_settings', JSON.stringify(settings));
-    toast.success('Configurações guardadas com sucesso!');
+    saveMutation.mutate();
   };
 
   const handleTestEmail = async () => {
@@ -83,8 +163,8 @@ const SettingsPage = () => {
               <p className="text-muted-foreground text-sm">Configurações gerais do sistema</p>
             </div>
           </div>
-          <Button onClick={handleSave} className="gap-2">
-            <Save className="h-4 w-4" />
+          <Button onClick={handleSave} className="gap-2" disabled={saveMutation.isPending}>
+            {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             Guardar
           </Button>
         </div>
@@ -376,7 +456,7 @@ const SettingsPage = () => {
 
                 <div>
                   <h4 className="text-sm font-medium mb-4">Configurações de Rentals</h4>
-                  <div className="grid gap-4 md:grid-cols-3">
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <div className="space-y-2">
                       <Label htmlFor="minRental">Duração mínima (min)</Label>
                       <Input
@@ -410,6 +490,23 @@ const SettingsPage = () => {
                         value={settings.cancellationHours}
                         onChange={(e) => setSettings({ ...settings, cancellationHours: parseInt(e.target.value) })}
                       />
+                      <p className="text-xs text-muted-foreground">
+                        Antecedência mínima para crédito
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="creditExpiry">Expiração créditos (dias)</Label>
+                      <Input
+                        id="creditExpiry"
+                        type="number"
+                        min={30}
+                        max={365}
+                        value={settings.creditExpiryDays}
+                        onChange={(e) => setSettings({ ...settings, creditExpiryDays: parseInt(e.target.value) })}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Validade dos créditos de cancelamento
+                      </p>
                     </div>
                   </div>
                 </div>

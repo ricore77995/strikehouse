@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
@@ -6,25 +7,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  Search, 
-  CreditCard, 
-  Banknote, 
-  Smartphone, 
-  Building2, 
+import { handleSupabaseError } from '@/lib/supabase-utils';
+import {
+  Search,
+  CreditCard,
+  Banknote,
+  Smartphone,
+  Building2,
   CheckCircle,
   Loader2,
   UserPlus,
-  QrCode
+  QrCode,
+  AlertCircle
 } from 'lucide-react';
 import QuickMemberModal from '@/components/QuickMemberModal';
 import { cn } from '@/lib/utils';
@@ -51,16 +55,17 @@ interface Plan {
   ativo: boolean;
 }
 
-type PaymentMethod = 'CASH' | 'CARD' | 'MBWAY' | 'TRANSFER';
+type PaymentMethod = 'DINHEIRO' | 'CARTAO' | 'MBWAY' | 'TRANSFERENCIA';
 
 const paymentMethods: { value: PaymentMethod; label: string; icon: React.ReactNode; instant: boolean }[] = [
-  { value: 'CASH', label: 'Dinheiro', icon: <Banknote className="h-5 w-5" />, instant: true },
-  { value: 'CARD', label: 'Cartão', icon: <CreditCard className="h-5 w-5" />, instant: true },
+  { value: 'DINHEIRO', label: 'Dinheiro', icon: <Banknote className="h-5 w-5" />, instant: true },
+  { value: 'CARTAO', label: 'Cartão', icon: <CreditCard className="h-5 w-5" />, instant: true },
   { value: 'MBWAY', label: 'MBway', icon: <Smartphone className="h-5 w-5" />, instant: true },
-  { value: 'TRANSFER', label: 'Transferência', icon: <Building2 className="h-5 w-5" />, instant: false },
+  { value: 'TRANSFERENCIA', label: 'Transferência', icon: <Building2 className="h-5 w-5" />, instant: false },
 ];
 
 const StaffPayment = () => {
+  const navigate = useNavigate();
   const { staffId } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -145,7 +150,7 @@ const StaffPayment = () => {
           .from('transactions')
           .insert({
             type: 'RECEITA',
-            category: 'MENSALIDADE',
+            category: selectedPlan.tipo,
             amount_cents: selectedPlan.preco_cents,
             payment_method: selectedMethod,
             member_id: selectedMember.id,
@@ -193,8 +198,8 @@ const StaffPayment = () => {
       }
     },
     onError: (error) => {
-      console.error('Payment error:', error);
-      toast({ title: 'Erro ao processar pagamento', variant: 'destructive' });
+      const message = handleSupabaseError(error, 'processar pagamento');
+      toast({ title: message, variant: 'destructive' });
     },
   });
 
@@ -293,17 +298,64 @@ const StaffPayment = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               {selectedMember ? (
-                <div className="p-4 bg-secondary rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{selectedMember.nome}</p>
-                      <p className="text-sm text-muted-foreground">{selectedMember.telefone}</p>
+                <>
+                  <div className="p-4 bg-secondary rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">{selectedMember.nome}</p>
+                        <p className="text-sm text-muted-foreground">{selectedMember.telefone}</p>
+                      </div>
+                      <Button variant="ghost" size="sm" onClick={() => setSelectedMember(null)}>
+                        Alterar
+                      </Button>
                     </div>
-                    <Button variant="ghost" size="sm" onClick={() => setSelectedMember(null)}>
-                      Alterar
-                    </Button>
                   </div>
-                </div>
+
+                  {selectedMember.status === 'LEAD' && (
+                    <Alert className="mt-3 border-yellow-500/50 bg-yellow-500/10">
+                      <AlertCircle className="h-4 w-4 text-yellow-500" />
+                      <AlertTitle className="text-sm font-medium">Novo Membro</AlertTitle>
+                      <AlertDescription className="text-xs">
+                        Este membro nunca foi ativado. Deseja matriculá-lo?
+                        <Button
+                          variant="link"
+                          className="h-auto p-0 ml-2 text-accent"
+                          onClick={() => navigate('/staff/enrollment', { state: { member: selectedMember } })}
+                        >
+                          Ir para Matrícula →
+                        </Button>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  {selectedMember.status === 'CANCELADO' && (
+                    <Alert className="mt-3 border-blue-500/50 bg-blue-500/10">
+                      <AlertCircle className="h-4 w-4 text-blue-500" />
+                      <AlertTitle className="text-sm font-medium">Membro Cancelado</AlertTitle>
+                      <AlertDescription className="text-xs space-y-3">
+                        <p>Este membro já teve acesso cancelado. Deseja cobrar taxa de matrícula novamente?</p>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1 border-accent text-accent hover:bg-accent/10"
+                            onClick={() => navigate('/staff/enrollment', { state: { member: selectedMember } })}
+                          >
+                            Sim - Com Taxa de Matrícula
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1"
+                            onClick={() => {/* Continue normal flow - user can proceed with plan selection */}}
+                          >
+                            Não - Apenas Plano
+                          </Button>
+                        </div>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </>
               ) : (
                 <>
                   <div className="flex gap-2">

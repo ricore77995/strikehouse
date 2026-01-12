@@ -5,13 +5,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Users, Clock, CheckCircle, XCircle, UserPlus } from 'lucide-react';
+import { Users, Clock, CheckCircle, UserPlus, Search, User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface TodayRental {
   id: string;
+  coach_id: string;
   coach_nome: string;
   area_nome: string;
   modalidade: string | null;
@@ -20,6 +22,13 @@ interface TodayRental {
   guest_count: number;
   status: string;
   area_capacidade: number;
+}
+
+interface CoachGuest {
+  id: string;
+  nome: string;
+  telefone: string | null;
+  email: string | null;
 }
 
 interface GuestCheckin {
@@ -34,15 +43,27 @@ const GuestCheckinPage = () => {
   const [rentals, setRentals] = useState<TodayRental[]>([]);
   const [selectedRental, setSelectedRental] = useState<TodayRental | null>(null);
   const [guestName, setGuestName] = useState('');
+  const [selectedGuestId, setSelectedGuestId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [recentGuests, setRecentGuests] = useState<GuestCheckin[]>([]);
   const [showSuccess, setShowSuccess] = useState(false);
   const [lastGuest, setLastGuest] = useState<{ name: string; rental: TodayRental } | null>(null);
+  const [coachGuests, setCoachGuests] = useState<CoachGuest[]>([]);
+  const [guestSearchQuery, setGuestSearchQuery] = useState('');
 
   useEffect(() => {
     loadTodayRentals();
     loadRecentGuests();
   }, []);
+
+  // Load coach guests when rental is selected
+  useEffect(() => {
+    if (selectedRental?.coach_id) {
+      loadCoachGuests(selectedRental.coach_id);
+    } else {
+      setCoachGuests([]);
+    }
+  }, [selectedRental?.coach_id]);
 
   const loadTodayRentals = async () => {
     const { data, error } = await supabase
@@ -80,6 +101,38 @@ const GuestCheckinPage = () => {
     setRecentGuests((data || []) as GuestCheckin[]);
   };
 
+  const loadCoachGuests = async (coachId: string) => {
+    const { data, error } = await supabase
+      .from('coach_guests')
+      .select('id, nome, telefone, email')
+      .eq('coach_id', coachId)
+      .eq('ativo', true)
+      .order('nome');
+
+    if (error) {
+      console.error('Error loading coach guests:', error);
+      return;
+    }
+
+    setCoachGuests((data || []) as CoachGuest[]);
+  };
+
+  const selectCoachGuest = (guest: CoachGuest) => {
+    setSelectedGuestId(guest.id);
+    setGuestName(guest.nome);
+    setGuestSearchQuery('');
+  };
+
+  const clearGuestSelection = () => {
+    setSelectedGuestId(null);
+    setGuestName('');
+    setGuestSearchQuery('');
+  };
+
+  const filteredCoachGuests = coachGuests.filter(g =>
+    g.nome.toLowerCase().includes(guestSearchQuery.toLowerCase())
+  );
+
   const handleCheckin = async () => {
     if (!selectedRental || !guestName.trim() || !staffId) {
       toast.error('Selecione um rental e digite o nome do guest');
@@ -105,6 +158,7 @@ const GuestCheckinPage = () => {
           type: 'GUEST',
           result: 'ALLOWED',
           guest_name: guestName.trim(),
+          guest_id: selectedGuestId, // Link to registered guest if selected
           rental_id: selectedRental.id,
           checked_in_by: staffId,
         });
@@ -127,20 +181,22 @@ const GuestCheckinPage = () => {
       setLastGuest({ name: guestName.trim(), rental: selectedRental });
       setShowSuccess(true);
       setGuestName('');
-      
+      setSelectedGuestId(null);
+      setGuestSearchQuery('');
+
       // Update local state
-      setRentals(prev => prev.map(r => 
-        r.id === selectedRental.id 
+      setRentals(prev => prev.map(r =>
+        r.id === selectedRental.id
           ? { ...r, guest_count: (r.guest_count || 0) + 1 }
           : r
       ));
       setSelectedRental(prev => prev ? { ...prev, guest_count: (prev.guest_count || 0) + 1 } : null);
-      
+
       loadRecentGuests();
-      
+
       // Auto-dismiss after 3 seconds
       setTimeout(() => setShowSuccess(false), 3000);
-      
+
     } catch (error) {
       console.error('Check-in error:', error);
       toast.error('Erro ao registrar check-in');
@@ -271,18 +327,81 @@ const GuestCheckinPage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="guestName">Nome do Guest</Label>
-                <Input
-                  id="guestName"
-                  placeholder="Digite o nome completo..."
-                  value={guestName}
-                  onChange={(e) => setGuestName(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleCheckin()}
-                  className="bg-secondary border-border text-lg h-12"
-                  autoFocus
-                />
-              </div>
+              {/* Coach Guests List */}
+              {coachGuests.length > 0 && !selectedGuestId && (
+                <div className="space-y-2">
+                  <Label>Alunos do Coach</Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar aluno..."
+                      value={guestSearchQuery}
+                      onChange={(e) => setGuestSearchQuery(e.target.value)}
+                      className="pl-10 bg-secondary"
+                    />
+                  </div>
+                  <ScrollArea className="h-40 border border-border rounded-lg">
+                    <div className="p-2 space-y-1">
+                      {filteredCoachGuests.map((guest) => (
+                        <button
+                          key={guest.id}
+                          onClick={() => selectCoachGuest(guest)}
+                          className="w-full p-2 text-left rounded-md hover:bg-accent/20 transition-colors flex items-center gap-2"
+                        >
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm font-medium">{guest.nome}</p>
+                            {guest.telefone && (
+                              <p className="text-xs text-muted-foreground">{guest.telefone}</p>
+                            )}
+                          </div>
+                        </button>
+                      ))}
+                      {filteredCoachGuests.length === 0 && (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          Nenhum aluno encontrado
+                        </p>
+                      )}
+                    </div>
+                  </ScrollArea>
+                  <div className="text-center">
+                    <span className="text-xs text-muted-foreground">ou digite um nome avulso abaixo</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Selected Guest Display */}
+              {selectedGuestId && (
+                <div className="p-3 bg-accent/20 border border-accent/50 rounded-lg flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <User className="h-5 w-5 text-accent" />
+                    <div>
+                      <p className="font-medium">{guestName}</p>
+                      <p className="text-xs text-muted-foreground">Aluno cadastrado</p>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={clearGuestSelection}>
+                    Alterar
+                  </Button>
+                </div>
+              )}
+
+              {/* Manual Guest Name Input */}
+              {!selectedGuestId && (
+                <div className="space-y-2">
+                  <Label htmlFor="guestName">Nome do Guest</Label>
+                  <Input
+                    id="guestName"
+                    placeholder="Digite o nome completo..."
+                    value={guestName}
+                    onChange={(e) => setGuestName(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleCheckin()}
+                    className="bg-secondary border-border text-lg h-12"
+                    autoFocus={coachGuests.length === 0}
+                  />
+                </div>
+              )}
+
               <Button
                 onClick={handleCheckin}
                 disabled={isLoading || !guestName.trim()}

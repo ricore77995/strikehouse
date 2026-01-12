@@ -31,6 +31,7 @@ const planSchema = z.object({
   nome: z.string().min(1, 'Nome obrigatório').max(100),
   tipo: z.enum(['SUBSCRIPTION', 'CREDITS', 'DAILY_PASS']),
   preco_cents: z.number().min(1, 'Preço deve ser maior que 0'),
+  enrollment_fee_cents: z.number().min(0, 'Taxa não pode ser negativa'),
   duracao_dias: z.number().min(1).nullable(),
   creditos: z.number().min(1).nullable(),
 });
@@ -42,6 +43,7 @@ interface Plan {
   nome: string;
   tipo: 'SUBSCRIPTION' | 'CREDITS' | 'DAILY_PASS';
   preco_cents: number;
+  enrollment_fee_cents: number;
   duracao_dias: number | null;
   creditos: number | null;
   ativo: boolean;
@@ -71,11 +73,13 @@ const Plans = () => {
     nome: '',
     tipo: 'SUBSCRIPTION',
     preco_cents: 0,
+    enrollment_fee_cents: 0,
     duracao_dias: 30,
     creditos: null,
   });
   const [precoInput, setPrecoInput] = useState('');
-  
+  const [enrollmentFeeInput, setEnrollmentFeeInput] = useState('');
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -98,6 +102,7 @@ const Plans = () => {
         nome: data.nome,
         tipo: data.tipo,
         preco_cents: data.preco_cents,
+        enrollment_fee_cents: data.enrollment_fee_cents,
         duracao_dias: data.duracao_dias,
         creditos: data.creditos,
       });
@@ -121,6 +126,7 @@ const Plans = () => {
           nome: data.nome,
           tipo: data.tipo,
           preco_cents: data.preco_cents,
+          enrollment_fee_cents: data.enrollment_fee_cents,
           duracao_dias: data.duracao_dias,
           creditos: data.creditos,
         })
@@ -161,10 +167,12 @@ const Plans = () => {
       nome: '',
       tipo: 'SUBSCRIPTION',
       preco_cents: 0,
+      enrollment_fee_cents: 0,
       duracao_dias: 30,
       creditos: null,
     });
     setPrecoInput('');
+    setEnrollmentFeeInput('');
   };
 
   const handleEdit = (plan: Plan) => {
@@ -173,20 +181,24 @@ const Plans = () => {
       nome: plan.nome,
       tipo: plan.tipo,
       preco_cents: plan.preco_cents,
+      enrollment_fee_cents: plan.enrollment_fee_cents,
       duracao_dias: plan.duracao_dias,
       creditos: plan.creditos,
     });
     setPrecoInput((plan.preco_cents / 100).toFixed(2));
+    setEnrollmentFeeInput((plan.enrollment_fee_cents / 100).toFixed(2));
     setIsDialogOpen(true);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const preco_cents = Math.round(parseFloat(precoInput) * 100);
+    const enrollment_fee_cents = Math.round(parseFloat(enrollmentFeeInput || '0') * 100);
     const dataToValidate = {
       ...formData,
       preco_cents,
+      enrollment_fee_cents,
       duracao_dias: formData.tipo === 'DAILY_PASS' ? 1 : formData.duracao_dias,
       creditos: formData.tipo === 'CREDITS' ? formData.creditos : null,
     };
@@ -282,6 +294,23 @@ const Plans = () => {
                   />
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="enrollment_fee">Taxa de Matrícula (€)</Label>
+                  <Input
+                    id="enrollment_fee"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={enrollmentFeeInput}
+                    onChange={(e) => setEnrollmentFeeInput(e.target.value)}
+                    className="bg-secondary border-border"
+                    placeholder="0.00"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Cobrada uma vez na primeira matrícula
+                  </p>
+                </div>
+
                 {formData.tipo !== 'DAILY_PASS' && (
                   <div className="space-y-2">
                     <Label htmlFor="duracao">Duração (dias)</Label>
@@ -367,7 +396,13 @@ const Plans = () => {
                   <div className="text-2xl font-bold">
                     {formatCurrency(plan.preco_cents)}
                   </div>
-                  
+
+                  {plan.enrollment_fee_cents > 0 && (
+                    <div className="text-sm text-muted-foreground">
+                      + {formatCurrency(plan.enrollment_fee_cents)} matrícula
+                    </div>
+                  )}
+
                   <div className="text-sm text-muted-foreground space-y-1">
                     {plan.duracao_dias && (
                       <p>{plan.duracao_dias} dias de acesso</p>

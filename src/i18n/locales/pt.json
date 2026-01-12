@@ -120,10 +120,9 @@
     }
   },
   "footer": {
-    "description": "MMA Boutique em Cascais. Um espaço de treino privado para quem leva a arte a sério.",
+    "description": "Um espaço de treino privado para quem leva a arte a sério.",
     "location": "Localização",
     "city": "Cascais, Portugal",
-    "byAppointment": "Apenas com marcação",
     "contact": "Contacto",
     "copyright": "© 2026 Striker's House. Todos os direitos reservados.",
     "instagram": "Instagram"

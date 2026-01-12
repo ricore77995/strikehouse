@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/hooks/useAuth';
+import { useCoachAuth } from '@/hooks/useCoachAuth';
+import { getGymSetting } from '@/hooks/useGymSettings';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -13,19 +13,19 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format, startOfMonth, endOfMonth, addDays, differenceInHours } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CalendarDays, Wallet, Clock, Users, MapPin, History, Plus, X, CalendarIcon } from 'lucide-react';
+import { CalendarDays, Wallet, Clock, Users, MapPin, History, Plus, X, CalendarIcon, LogOut, Dumbbell, Pencil, Trash2, Phone, Mail, UserPlus } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
-const PartnerDashboard = () => {
-  const { staff } = useAuth();
+const CoachDashboard = () => {
+  const { coach, coachId, signOut } = useCoachAuth();
   const today = format(new Date(), 'yyyy-MM-dd');
   const monthStart = format(startOfMonth(new Date()), 'yyyy-MM-dd');
   const monthEnd = format(endOfMonth(new Date()), 'yyyy-MM-dd');
-
-  // Get coach_id from staff
-  const coachId = staff?.coach_id;
 
   const queryClient = useQueryClient();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -35,23 +35,14 @@ const PartnerDashboard = () => {
   const [endTime, setEndTime] = useState('');
   const [cancellingRentalId, setCancellingRentalId] = useState<string | null>(null);
 
-  const { data: coachInfo } = useQuery({
-    queryKey: ['partner-coach-info', coachId],
-    queryFn: async () => {
-      if (!coachId) return null;
-      const { data, error } = await supabase
-        .from('external_coaches')
-        .select('*')
-        .eq('id', coachId)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!coachId,
-  });
+  // Guest management state
+  const [isGuestDialogOpen, setIsGuestDialogOpen] = useState(false);
+  const [editingGuest, setEditingGuest] = useState<any>(null);
+  const [guestForm, setGuestForm] = useState({ nome: '', telefone: '', email: '', notas: '' });
+  const [deletingGuestId, setDeletingGuestId] = useState<string | null>(null);
 
   const { data: areas } = useQuery({
-    queryKey: ['partner-areas'],
+    queryKey: ['coach-areas'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('areas')
@@ -64,7 +55,7 @@ const PartnerDashboard = () => {
   });
 
   const { data: upcomingRentals } = useQuery({
-    queryKey: ['partner-upcoming-rentals', coachId],
+    queryKey: ['coach-upcoming-rentals', coachId],
     queryFn: async () => {
       if (!coachId) return [];
       const { data, error } = await supabase
@@ -86,7 +77,7 @@ const PartnerDashboard = () => {
   });
 
   const { data: monthRentals } = useQuery({
-    queryKey: ['partner-month-rentals', coachId, monthStart, monthEnd],
+    queryKey: ['coach-month-rentals', coachId, monthStart, monthEnd],
     queryFn: async () => {
       if (!coachId) return [];
       const { data, error } = await supabase
@@ -106,7 +97,7 @@ const PartnerDashboard = () => {
   });
 
   const { data: creditHistory } = useQuery({
-    queryKey: ['partner-credits', coachId],
+    queryKey: ['coach-credits', coachId],
     queryFn: async () => {
       if (!coachId) return [];
       const { data, error } = await supabase
@@ -121,9 +112,26 @@ const PartnerDashboard = () => {
     enabled: !!coachId,
   });
 
+  // Fetch coach guests
+  const { data: guests = [] } = useQuery({
+    queryKey: ['coach-guests', coachId],
+    queryFn: async () => {
+      if (!coachId) return [];
+      const { data, error } = await supabase
+        .from('coach_guests')
+        .select('*')
+        .eq('coach_id', coachId)
+        .eq('ativo', true)
+        .order('nome');
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!coachId,
+  });
+
   // Fetch occupied slots for selected date and area
   const { data: occupiedSlots } = useQuery({
-    queryKey: ['partner-occupied-slots', selectedAreaId, selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null],
+    queryKey: ['coach-occupied-slots', selectedAreaId, selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null],
     queryFn: async () => {
       if (!selectedAreaId || !selectedDate) return [];
       const { data, error } = await supabase
@@ -139,17 +147,17 @@ const PartnerDashboard = () => {
   });
 
   const nextRental = upcomingRentals?.[0];
-  const totalCredits = coachInfo?.credits_balance || 0;
+  const totalCredits = coach?.credits_balance || 0;
   const completedRentals = monthRentals?.filter(r => r.status === 'COMPLETED').length || 0;
   const scheduledRentals = monthRentals?.filter(r => r.status === 'SCHEDULED').length || 0;
 
   // Calculate fee for rental
   const calculateFee = () => {
-    if (!coachInfo) return 0;
-    if (coachInfo.fee_type === 'FIXED') {
-      return coachInfo.fee_value;
+    if (!coach) return 0;
+    if (coach.fee_type === 'FIXED') {
+      return coach.fee_value;
     }
-    return 0; // Per-student fee will be calculated later
+    return 0;
   };
 
   // Create rental mutation
@@ -160,8 +168,8 @@ const PartnerDashboard = () => {
       }
 
       const rentalDate = format(selectedDate, 'yyyy-MM-dd');
-      
-      // Check for time conflicts in the same area
+
+      // Check for time conflicts
       const { data: conflictingRentals, error: conflictError } = await supabase
         .from('rentals')
         .select('id, start_time, end_time')
@@ -171,18 +179,14 @@ const PartnerDashboard = () => {
 
       if (conflictError) throw conflictError;
 
-      // Check for overlapping times
       const hasConflict = conflictingRentals?.some(rental => {
-        const existingStart = rental.start_time;
-        const existingEnd = rental.end_time;
-        // Overlap: new start < existing end AND new end > existing start
-        return startTime < existingEnd && endTime > existingStart;
+        return startTime < rental.end_time && endTime > rental.start_time;
       });
 
       if (hasConflict) {
-        throw new Error('Já existe um rental agendado nesta área neste horário. Escolha outro horário ou área.');
+        throw new Error('Já existe um rental agendado nesta área neste horário.');
       }
-      
+
       const fee = calculateFee();
       const { error } = await supabase
         .from('rentals')
@@ -195,13 +199,13 @@ const PartnerDashboard = () => {
           fee_charged_cents: fee,
           status: 'SCHEDULED',
         });
-      
+
       if (error) throw error;
     },
     onSuccess: () => {
       toast.success('Rental criado com sucesso!');
-      queryClient.invalidateQueries({ queryKey: ['partner-upcoming-rentals'] });
-      queryClient.invalidateQueries({ queryKey: ['partner-month-rentals'] });
+      queryClient.invalidateQueries({ queryKey: ['coach-upcoming-rentals'] });
+      queryClient.invalidateQueries({ queryKey: ['coach-month-rentals'] });
       setIsCreateOpen(false);
       resetForm();
     },
@@ -216,11 +220,9 @@ const PartnerDashboard = () => {
       const rental = upcomingRentals?.find(r => r.id === rentalId);
       if (!rental) throw new Error('Rental não encontrado');
 
-      // Calculate hours until rental
       const rentalDateTime = new Date(`${rental.rental_date}T${rental.start_time}`);
       const hoursUntil = differenceInHours(rentalDateTime, new Date());
 
-      // Update rental status
       const { error: updateError } = await supabase
         .from('rentals')
         .update({
@@ -231,33 +233,33 @@ const PartnerDashboard = () => {
 
       if (updateError) throw updateError;
 
-      // Generate credit if cancelled with enough notice (24h+)
-      if (hoursUntil >= 24 && rental.fee_charged_cents && rental.fee_charged_cents > 0) {
+      const threshold = await getGymSetting('cancellation_hours_threshold', '24');
+      const creditExpiryDays = await getGymSetting('credit_expiry_days', '90');
+
+      if (hoursUntil >= parseInt(threshold)) {
         const { error: creditError } = await supabase
           .from('coach_credits')
           .insert({
             coach_id: coachId!,
-            amount: rental.fee_charged_cents,
-            reason: `Cancelamento antecipado (${hoursUntil}h antes)`,
+            amount: 1, // 1 unidade de crédito (sessão grátis)
+            reason: 'CANCELLATION',
             rental_id: rentalId,
-            expires_at: format(addDays(new Date(), 90), 'yyyy-MM-dd'),
+            expires_at: format(addDays(new Date(), parseInt(creditExpiryDays)), 'yyyy-MM-dd'),
           });
-        
+
         if (creditError) throw creditError;
 
-        // Update coach balance
         await supabase
           .from('external_coaches')
-          .update({ credits_balance: (coachInfo?.credits_balance || 0) + rental.fee_charged_cents })
+          .update({ credits_balance: (coach?.credits_balance || 0) + 1 })
           .eq('id', coachId!);
       }
     },
     onSuccess: () => {
       toast.success('Rental cancelado com sucesso!');
-      queryClient.invalidateQueries({ queryKey: ['partner-upcoming-rentals'] });
-      queryClient.invalidateQueries({ queryKey: ['partner-month-rentals'] });
-      queryClient.invalidateQueries({ queryKey: ['partner-credits'] });
-      queryClient.invalidateQueries({ queryKey: ['partner-coach-info'] });
+      queryClient.invalidateQueries({ queryKey: ['coach-upcoming-rentals'] });
+      queryClient.invalidateQueries({ queryKey: ['coach-month-rentals'] });
+      queryClient.invalidateQueries({ queryKey: ['coach-credits'] });
       setCancellingRentalId(null);
     },
     onError: (error: any) => {
@@ -265,6 +267,85 @@ const PartnerDashboard = () => {
       setCancellingRentalId(null);
     },
   });
+
+  // Guest CRUD mutations
+  const saveGuestMutation = useMutation({
+    mutationFn: async () => {
+      if (!coachId || !guestForm.nome.trim()) {
+        throw new Error('Nome é obrigatório');
+      }
+
+      const payload = {
+        coach_id: coachId,
+        nome: guestForm.nome.trim(),
+        telefone: guestForm.telefone.trim() || null,
+        email: guestForm.email.trim() || null,
+        notas: guestForm.notas.trim() || null,
+      };
+
+      if (editingGuest) {
+        const { error } = await supabase
+          .from('coach_guests')
+          .update(payload)
+          .eq('id', editingGuest.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('coach_guests')
+          .insert(payload);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      toast.success(editingGuest ? 'Aluno atualizado!' : 'Aluno adicionado!');
+      queryClient.invalidateQueries({ queryKey: ['coach-guests'] });
+      handleCloseGuestDialog();
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Erro ao salvar aluno');
+    },
+  });
+
+  const deleteGuestMutation = useMutation({
+    mutationFn: async (guestId: string) => {
+      const { error } = await supabase
+        .from('coach_guests')
+        .update({ ativo: false })
+        .eq('id', guestId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Aluno removido!');
+      queryClient.invalidateQueries({ queryKey: ['coach-guests'] });
+      setDeletingGuestId(null);
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Erro ao remover aluno');
+      setDeletingGuestId(null);
+    },
+  });
+
+  const handleOpenGuestDialog = (guest?: any) => {
+    if (guest) {
+      setEditingGuest(guest);
+      setGuestForm({
+        nome: guest.nome || '',
+        telefone: guest.telefone || '',
+        email: guest.email || '',
+        notas: guest.notas || '',
+      });
+    } else {
+      setEditingGuest(null);
+      setGuestForm({ nome: '', telefone: '', email: '', notas: '' });
+    }
+    setIsGuestDialogOpen(true);
+  };
+
+  const handleCloseGuestDialog = () => {
+    setIsGuestDialogOpen(false);
+    setEditingGuest(null);
+    setGuestForm({ nome: '', telefone: '', email: '', notas: '' });
+  };
 
   const resetForm = () => {
     setSelectedDate(undefined);
@@ -279,19 +360,16 @@ const PartnerDashboard = () => {
     '19:00', '20:00', '21:00', '22:00'
   ];
 
-  // Check if a time slot is occupied
   const isSlotOccupied = (slot: string) => {
     if (!occupiedSlots || occupiedSlots.length === 0) return false;
     return occupiedSlots.some(rental => slot >= rental.start_time && slot < rental.end_time);
   };
 
-  // Check if a time range would conflict with occupied slots
   const wouldConflict = (start: string, end: string) => {
     if (!occupiedSlots || occupiedSlots.length === 0) return false;
     return occupiedSlots.some(rental => start < rental.end_time && end > rental.start_time);
   };
 
-  // Get available start times (not in the middle of an occupied slot)
   const getAvailableStartTimes = () => {
     return timeSlots.map(slot => ({
       time: slot,
@@ -299,7 +377,6 @@ const PartnerDashboard = () => {
     }));
   };
 
-  // Get available end times (considering start time and conflicts)
   const getAvailableEndTimes = () => {
     if (!startTime) return [];
     return timeSlots
@@ -323,46 +400,48 @@ const PartnerDashboard = () => {
     }
   };
 
-  if (!coachId) {
-    return (
-      <DashboardLayout>
-        <div className="p-6 lg:p-8">
-          <Card className="bg-card border-border">
-            <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground">
-                Sua conta de partner ainda não está vinculada a um coach.
-                <br />
-                Entre em contato com a administração.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
   return (
-    <DashboardLayout>
-      <div className="p-4 lg:p-6 space-y-6">
-        {/* Header */}
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+        <div className="container flex h-16 items-center justify-between px-4">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 bg-orange-500 rounded flex items-center justify-center">
+              <Dumbbell className="h-4 w-4 text-white" />
+            </div>
+            <div>
+              <h1 className="font-semibold">{coach?.nome}</h1>
+              <p className="text-xs text-muted-foreground">{coach?.modalidade || 'Coach'}</p>
+            </div>
+          </div>
+          <Button variant="ghost" size="sm" onClick={signOut}>
+            <LogOut className="h-4 w-4 mr-2" />
+            Sair
+          </Button>
+        </div>
+      </header>
+
+      {/* Content */}
+      <main className="container px-4 py-6 space-y-6">
+        {/* Header Actions */}
         <div className="flex items-start justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-2xl tracking-wider mb-1">PORTAL DO PARTNER</h1>
+            <h2 className="text-xl tracking-wider mb-1">MEUS RENTALS</h2>
             <p className="text-muted-foreground text-sm">
-              {coachInfo?.modalidade ? `Coach de ${coachInfo.modalidade}` : 'Coach'} • {format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR })}
+              {format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR })}
             </p>
           </div>
           <div className="flex items-center gap-2">
-            {coachInfo && (
+            {coach && (
               <Badge variant="outline" className="uppercase">
-                {coachInfo.fee_type === 'FIXED' 
-                  ? `€${(coachInfo.fee_value / 100).toFixed(2)}/sessão` 
-                  : `${coachInfo.fee_value}% por aluno`}
+                {coach.fee_type === 'FIXED'
+                  ? `€${(coach.fee_value / 100).toFixed(2)}/sessão`
+                  : `${coach.fee_value}% por aluno`}
               </Badge>
             )}
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
               <DialogTrigger asChild>
-                <Button className="gap-2">
+                <Button className="gap-2 bg-orange-500 hover:bg-orange-600">
                   <Plus className="h-4 w-4" />
                   Novo Rental
                 </Button>
@@ -425,8 +504,8 @@ const PartnerDashboard = () => {
                         </SelectTrigger>
                         <SelectContent>
                           {getAvailableStartTimes().map(({ time, occupied }) => (
-                            <SelectItem 
-                              key={time} 
+                            <SelectItem
+                              key={time}
                               value={time}
                               disabled={occupied}
                               className={occupied ? 'text-muted-foreground line-through' : ''}
@@ -445,8 +524,8 @@ const PartnerDashboard = () => {
                         </SelectTrigger>
                         <SelectContent>
                           {getAvailableEndTimes().map(({ time, conflict }) => (
-                            <SelectItem 
-                              key={time} 
+                            <SelectItem
+                              key={time}
                               value={time}
                               disabled={conflict}
                               className={conflict ? 'text-muted-foreground line-through' : ''}
@@ -468,22 +547,20 @@ const PartnerDashboard = () => {
                       ))}
                     </div>
                   )}
-                  {coachInfo?.fee_type === 'FIXED' && (
+                  {coach?.fee_type === 'FIXED' && (
                     <p className="text-sm text-muted-foreground">
-                      Taxa: €{(coachInfo.fee_value / 100).toFixed(2)}
+                      Taxa: €{(coach.fee_value / 100).toFixed(2)}
                     </p>
                   )}
                 </div>
                 <DialogFooter>
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsCreateOpen(false)}
-                  >
+                  <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
                     Cancelar
                   </Button>
                   <Button
                     onClick={() => createRentalMutation.mutate()}
                     disabled={!selectedDate || !selectedAreaId || !startTime || !endTime || createRentalMutation.isPending}
+                    className="bg-orange-500 hover:bg-orange-600"
                   >
                     {createRentalMutation.isPending ? 'Agendando...' : 'Agendar'}
                   </Button>
@@ -500,14 +577,14 @@ const PartnerDashboard = () => {
               <CardTitle className="text-sm font-medium uppercase tracking-wider">
                 Créditos Disponíveis
               </CardTitle>
-              <Wallet className="h-4 w-4 text-accent" />
+              <Wallet className="h-4 w-4 text-orange-500" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-500">
-                €{(totalCredits / 100).toFixed(2)}
+                {totalCredits}
               </div>
               <p className="text-xs text-muted-foreground">
-                De cancelamentos
+                sessões disponíveis
               </p>
             </CardContent>
           </Card>
@@ -517,7 +594,7 @@ const PartnerDashboard = () => {
               <CardTitle className="text-sm font-medium uppercase tracking-wider">
                 Próximo Rental
               </CardTitle>
-              <Clock className="h-4 w-4 text-accent" />
+              <Clock className="h-4 w-4 text-orange-500" />
             </CardHeader>
             <CardContent>
               {nextRental ? (
@@ -543,7 +620,7 @@ const PartnerDashboard = () => {
               <CardTitle className="text-sm font-medium uppercase tracking-wider">
                 Rentals Este Mês
               </CardTitle>
-              <CalendarDays className="h-4 w-4 text-accent" />
+              <CalendarDays className="h-4 w-4 text-orange-500" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{completedRentals + scheduledRentals}</div>
@@ -617,13 +694,13 @@ const PartnerDashboard = () => {
                                         if (hoursUntil >= 24) {
                                           return (
                                             <span className="block mt-2 text-green-500">
-                                              ✓ Cancelamento com mais de 24h de antecedência. Você receberá um crédito de €{((rental.fee_charged_cents || 0) / 100).toFixed(2)}.
+                                              Cancelamento com mais de 24h de antecedência. Você receberá 1 crédito de sessão grátis.
                                             </span>
                                           );
                                         }
                                         return (
                                           <span className="block mt-2 text-yellow-500">
-                                            ⚠ Cancelamento com menos de 24h. Não há crédito disponível.
+                                            Cancelamento com menos de 24h. Não há crédito disponível.
                                           </span>
                                         );
                                       })()}
@@ -633,7 +710,7 @@ const PartnerDashboard = () => {
                                     <Button variant="outline" onClick={() => setCancellingRentalId(null)}>
                                       Voltar
                                     </Button>
-                                    <Button 
+                                    <Button
                                       variant="destructive"
                                       onClick={() => cancelRentalMutation.mutate(rental.id)}
                                       disabled={cancelRentalMutation.isPending}
@@ -688,7 +765,7 @@ const PartnerDashboard = () => {
                           )}
                         </div>
                         <span className={`text-sm font-bold ${credit.amount > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                          {credit.amount > 0 ? '+' : ''}€{(credit.amount / 100).toFixed(2)}
+                          {credit.amount > 0 ? '+' : ''}{credit.amount} sessão{Math.abs(credit.amount) !== 1 ? 'ões' : ''}
                         </span>
                       </div>
                     ))}
@@ -755,9 +832,192 @@ const PartnerDashboard = () => {
             </ScrollArea>
           </CardContent>
         </Card>
-      </div>
-    </DashboardLayout>
+
+        {/* Guest Management */}
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="uppercase tracking-wider text-sm flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Meus Alunos
+                </CardTitle>
+                <CardDescription>Gerencie seus alunos para check-in rápido</CardDescription>
+              </div>
+              <Dialog open={isGuestDialogOpen} onOpenChange={setIsGuestDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    size="sm"
+                    onClick={() => handleOpenGuestDialog()}
+                    className="bg-orange-500 hover:bg-orange-600"
+                  >
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Novo Aluno
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>{editingGuest ? 'Editar Aluno' : 'Novo Aluno'}</DialogTitle>
+                    <DialogDescription>
+                      {editingGuest ? 'Atualize os dados do aluno' : 'Adicione um novo aluno à sua lista'}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label>Nome *</Label>
+                      <Input
+                        value={guestForm.nome}
+                        onChange={(e) => setGuestForm({ ...guestForm, nome: e.target.value })}
+                        placeholder="Nome completo"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Telefone</Label>
+                        <Input
+                          value={guestForm.telefone}
+                          onChange={(e) => setGuestForm({ ...guestForm, telefone: e.target.value })}
+                          placeholder="+351 XXX XXX XXX"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Email</Label>
+                        <Input
+                          type="email"
+                          value={guestForm.email}
+                          onChange={(e) => setGuestForm({ ...guestForm, email: e.target.value })}
+                          placeholder="email@exemplo.com"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Notas</Label>
+                      <Textarea
+                        value={guestForm.notas}
+                        onChange={(e) => setGuestForm({ ...guestForm, notas: e.target.value })}
+                        placeholder="Observações sobre o aluno..."
+                        rows={2}
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={handleCloseGuestDialog}>
+                      Cancelar
+                    </Button>
+                    <Button
+                      onClick={() => saveGuestMutation.mutate()}
+                      disabled={!guestForm.nome.trim() || saveGuestMutation.isPending}
+                      className="bg-orange-500 hover:bg-orange-600"
+                    >
+                      {saveGuestMutation.isPending ? 'Salvando...' : 'Salvar'}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {guests.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-border">
+                    <TableHead className="uppercase text-xs tracking-wider">Nome</TableHead>
+                    <TableHead className="uppercase text-xs tracking-wider">Contato</TableHead>
+                    <TableHead className="uppercase text-xs tracking-wider hidden md:table-cell">Notas</TableHead>
+                    <TableHead className="uppercase text-xs tracking-wider text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {guests.map((guest) => (
+                    <TableRow key={guest.id} className="border-border">
+                      <TableCell className="font-medium">{guest.nome}</TableCell>
+                      <TableCell>
+                        <div className="text-sm space-y-1">
+                          {guest.telefone && (
+                            <p className="flex items-center gap-1 text-muted-foreground">
+                              <Phone className="h-3 w-3" />
+                              {guest.telefone}
+                            </p>
+                          )}
+                          {guest.email && (
+                            <p className="flex items-center gap-1 text-muted-foreground text-xs">
+                              <Mail className="h-3 w-3" />
+                              {guest.email}
+                            </p>
+                          )}
+                          {!guest.telefone && !guest.email && (
+                            <span className="text-muted-foreground text-xs">-</span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        <span className="text-xs text-muted-foreground line-clamp-1">
+                          {guest.notas || '-'}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleOpenGuestDialog(guest)}
+                            className="h-8 w-8"
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </Button>
+                          <Dialog open={deletingGuestId === guest.id} onOpenChange={(open) => setDeletingGuestId(open ? guest.id : null)}>
+                            <DialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Remover Aluno</DialogTitle>
+                                <DialogDescription>
+                                  Tem certeza que deseja remover <strong>{guest.nome}</strong> da sua lista?
+                                </DialogDescription>
+                              </DialogHeader>
+                              <DialogFooter>
+                                <Button variant="outline" onClick={() => setDeletingGuestId(null)}>
+                                  Cancelar
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  onClick={() => deleteGuestMutation.mutate(guest.id)}
+                                  disabled={deleteGuestMutation.isPending}
+                                >
+                                  {deleteGuestMutation.isPending ? 'Removendo...' : 'Remover'}
+                                </Button>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="text-center py-8">
+                <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
+                <p className="text-sm text-muted-foreground">
+                  Nenhum aluno cadastrado
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Adicione seus alunos para facilitar o check-in
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </main>
+    </div>
   );
 };
 
-export default PartnerDashboard;
+export default CoachDashboard;
