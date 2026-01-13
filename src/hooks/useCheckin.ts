@@ -269,6 +269,8 @@ export const useCheckin = () => {
       // Extract QR code from URL if needed (e.g., https://site.com/m/MBR-XXXXXXXX)
       let extractedCode = qrCode;
 
+      console.log('[QR] Raw input:', qrCode);
+
       // Check if it's a URL containing /m/
       if (qrCode.includes('/m/')) {
         const match = qrCode.match(/\/m\/(MBR-[A-Z0-9]+)/i);
@@ -281,13 +283,17 @@ export const useCheckin = () => {
         extractedCode = qrCode.toUpperCase();
       }
 
+      console.log('[QR] Extracted code:', extractedCode);
+
       const member = await findMemberByQR(extractedCode);
+
+      console.log('[QR] Member found:', member ? member.nome : 'NOT FOUND');
 
       if (!member) {
         return {
           success: false,
           result: 'NOT_FOUND',
-          message: 'QR code não encontrado. Verifique ou faça busca manual.',
+          message: `QR code não encontrado: ${extractedCode}`,
         };
       }
 
