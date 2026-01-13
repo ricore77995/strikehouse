@@ -39,7 +39,15 @@ interface Member {
   access_type: 'SUBSCRIPTION' | 'CREDITS' | 'DAILY_PASS' | null;
   access_expires_at: string | null;
   credits_remaining: number;
+  current_plan_id: string | null;
   created_at: string;
+  plans?: {
+    id: string;
+    nome: string;
+    tipo: string;
+    preco_cents: number;
+    duracao_dias: number | null;
+  } | null;
 }
 
 interface MemberIban {
@@ -101,14 +109,14 @@ const MemberForm = () => {
 
   const [newIban, setNewIban] = useState({ iban: '', label: '' });
 
-  // Fetch member data if editing
+  // Fetch member data if editing (with plan join)
   const { data: member, isLoading: isLoadingMember } = useQuery({
     queryKey: ['member', id],
     queryFn: async () => {
       if (!isEditing) return null;
       const { data, error } = await supabase
         .from('members')
-        .select('*')
+        .select('*, plans(id, nome, tipo, preco_cents, duracao_dias)')
         .eq('id', id)
         .maybeSingle();
       if (error) throw error;
@@ -495,13 +503,32 @@ const MemberForm = () => {
                     <CardTitle className="uppercase tracking-wider text-base">Acesso</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid gap-4 sm:grid-cols-3">
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                      <div>
+                        <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
+                          Plano Atual
+                        </p>
+                        <p className="font-medium">
+                          {member.plans?.nome || (
+                            <span className="text-muted-foreground">Nenhum plano</span>
+                          )}
+                        </p>
+                        {member.plans && (
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            €{(member.plans.preco_cents / 100).toFixed(2)}
+                            {member.plans.duracao_dias && ` / ${member.plans.duracao_dias} dias`}
+                          </p>
+                        )}
+                      </div>
                       <div>
                         <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
                           Tipo de Acesso
                         </p>
                         <p className="font-medium">
-                          {member.access_type || 'Nenhum'}
+                          {member.access_type === 'SUBSCRIPTION' && 'Mensalidade'}
+                          {member.access_type === 'CREDITS' && 'Créditos'}
+                          {member.access_type === 'DAILY_PASS' && 'Diária'}
+                          {!member.access_type && <span className="text-muted-foreground">—</span>}
                         </p>
                       </div>
                       <div>
@@ -511,7 +538,7 @@ const MemberForm = () => {
                         <p className="font-medium">
                           {member.access_expires_at
                             ? new Date(member.access_expires_at).toLocaleDateString('pt-PT')
-                            : '—'}
+                            : <span className="text-muted-foreground">—</span>}
                         </p>
                       </div>
                       <div>

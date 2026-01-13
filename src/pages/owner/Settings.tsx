@@ -11,11 +11,12 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { Settings, Bell, Clock, DollarSign, Save, Building, Mail, MessageSquare, Loader2 } from 'lucide-react';
+import { Settings, Bell, Clock, DollarSign, Save, Building, Mail, MessageSquare, Loader2, QrCode } from 'lucide-react';
 
 const SettingsPage = () => {
-  const { staffId } = useAuth();
+  const { staffId, staff } = useAuth();
   const queryClient = useQueryClient();
+  const isOwner = staff?.role === 'OWNER';
 
   const [settings, setSettings] = useState({
     // Business Info (localStorage)
@@ -46,6 +47,9 @@ const SettingsPage = () => {
     maxAdvanceBookingDays: 30,
     cancellationHours: 24,
     creditExpiryDays: 90,
+
+    // Kiosk PIN (only OWNER can see/edit)
+    kioskPin: '123456',
   });
 
   // Fetch gym_settings from Supabase
@@ -74,6 +78,8 @@ const SettingsPage = () => {
         creditExpiryDays: parseInt(settingsMap.credit_expiry_days || '90'),
         minRentalDuration: parseInt(settingsMap.min_rental_duration || '60'),
         maxAdvanceBookingDays: parseInt(settingsMap.max_advance_booking_days || '30'),
+        // kiosk_pin only visible to OWNER (RLS enforced)
+        kioskPin: settingsMap.kiosk_pin || '123456',
       }));
     }
   }, [dbSettings]);
@@ -88,6 +94,11 @@ const SettingsPage = () => {
         { key: 'min_rental_duration', value: settings.minRentalDuration.toString() },
         { key: 'max_advance_booking_days', value: settings.maxAdvanceBookingDays.toString() },
       ];
+
+      // Only OWNER can update kiosk_pin (RLS enforced)
+      if (isOwner) {
+        updates.push({ key: 'kiosk_pin', value: settings.kioskPin });
+      }
 
       for (const update of updates) {
         const { error } = await supabase
@@ -170,7 +181,7 @@ const SettingsPage = () => {
         </div>
 
         <Tabs defaultValue="business" className="space-y-4">
-          <TabsList className="grid grid-cols-2 lg:grid-cols-4 w-full">
+          <TabsList className={`grid w-full ${isOwner ? 'grid-cols-2 lg:grid-cols-5' : 'grid-cols-2 lg:grid-cols-4'}`}>
             <TabsTrigger value="business" className="gap-2">
               <Building className="h-4 w-4" />
               <span className="hidden sm:inline">Negócio</span>
@@ -187,6 +198,12 @@ const SettingsPage = () => {
               <DollarSign className="h-4 w-4" />
               <span className="hidden sm:inline">Financeiro</span>
             </TabsTrigger>
+            {isOwner && (
+              <TabsTrigger value="kiosk" className="gap-2">
+                <QrCode className="h-4 w-4" />
+                <span className="hidden sm:inline">Quiosque</span>
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="business">
@@ -513,6 +530,59 @@ const SettingsPage = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {isOwner && (
+            <TabsContent value="kiosk">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="uppercase tracking-wider text-sm flex items-center gap-2">
+                    <QrCode className="h-4 w-4" />
+                    Quiosque de Check-in
+                  </CardTitle>
+                  <CardDescription>
+                    Configure o PIN para acesso ao quiosque de auto-atendimento
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="kioskPin">PIN do Quiosque</Label>
+                    <Input
+                      id="kioskPin"
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={6}
+                      className="w-32 text-center text-2xl tracking-widest font-mono"
+                      value={settings.kioskPin}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                        setSettings({ ...settings, kioskPin: value });
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      PIN de 6 dígitos para desbloquear o quiosque
+                    </p>
+                  </div>
+
+                  <Separator />
+
+                  <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                    <h4 className="text-sm font-medium">Como usar o Quiosque</h4>
+                    <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
+                      <li>Acesse <code className="bg-muted px-1 rounded">/kiosk</code> num tablet</li>
+                      <li>Digite o PIN para desbloquear</li>
+                      <li>Membros escaneiam o QR code para fazer check-in</li>
+                      <li>Adicione à home screen para usar como app</li>
+                    </ol>
+                  </div>
+
+                  <div className="text-xs text-muted-foreground">
+                    <strong>Nota:</strong> Apenas você (OWNER) pode ver e alterar o PIN do quiosque.
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </DashboardLayout>

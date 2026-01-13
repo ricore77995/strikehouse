@@ -97,6 +97,12 @@ const navGroups: NavGroup[] = [
         href: '/staff/enrollment',
         icon: UserPlus,
       },
+      {
+        title: 'Horários',
+        href: '/admin/schedule',
+        icon: CalendarDays,
+        roles: ['OWNER', 'ADMIN'],
+      },
     ],
   },
 

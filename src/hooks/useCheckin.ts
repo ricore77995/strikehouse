@@ -178,7 +178,7 @@ export const useCheckin = () => {
 
   const performCheckin = async (
     member: MemberCheckinInfo,
-    staffId: string
+    staffId: string | null
   ): Promise<CheckinResult> => {
     setIsLoading(true);
 
@@ -261,7 +261,7 @@ export const useCheckin = () => {
 
   const processQRCode = async (
     qrCode: string,
-    staffId: string
+    staffId: string | null
   ): Promise<CheckinResult> => {
     setIsLoading(true);
 

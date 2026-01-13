@@ -81,20 +81,25 @@ const getAccessTypeColor = (accessType: string | null) => {
 const Members = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [accessTypeFilter, setAccessTypeFilter] = useState<string>('all');
   const { toast } = useToast();
 
   const { data: members, isLoading } = useQuery({
-    queryKey: ['members', statusFilter],
+    queryKey: ['members', statusFilter, accessTypeFilter],
     queryFn: async () => {
       let query = supabase
         .from('members')
         .select('*')
         .order('created_at', { ascending: false });
-      
+
       if (statusFilter !== 'all') {
         query = query.eq('status', statusFilter);
       }
-      
+
+      if (accessTypeFilter !== 'all') {
+        query = query.eq('access_type', accessTypeFilter);
+      }
+
       const { data, error } = await query;
       if (error) throw error;
       return data as Member[];
@@ -189,6 +194,17 @@ const Members = () => {
                   <SelectItem value="LEAD">Leads</SelectItem>
                   <SelectItem value="BLOQUEADO">Bloqueados</SelectItem>
                   <SelectItem value="CANCELADO">Cancelados</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={accessTypeFilter} onValueChange={setAccessTypeFilter}>
+                <SelectTrigger className="w-full sm:w-[180px] bg-secondary border-border">
+                  <SelectValue placeholder="Tipo de Acesso" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Tipos</SelectItem>
+                  <SelectItem value="SUBSCRIPTION">Mensalidade</SelectItem>
+                  <SelectItem value="CREDITS">Créditos</SelectItem>
+                  <SelectItem value="DAILY_PASS">Diária</SelectItem>
                 </SelectContent>
               </Select>
             </div>

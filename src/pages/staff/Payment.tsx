@@ -140,6 +140,7 @@ const StaffPayment = () => {
             access_type: newAccessType,
             access_expires_at: newAccessExpires,
             credits_remaining: newCredits,
+            current_plan_id: selectedPlan.id,
           })
           .eq('id', selectedMember.id);
 

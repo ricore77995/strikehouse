@@ -36,6 +36,7 @@ import Products from "./pages/admin/Products";
 import Audit from "./pages/admin/Audit";
 import Finances from "./pages/admin/Finances";
 import JobLogs from "./pages/admin/JobLogs";
+import Schedule from "./pages/admin/Schedule";
 
 // Staff pages
 import StaffCheckin from "./pages/staff/Checkin";
@@ -49,6 +50,10 @@ import StaffMemberNew from "./pages/staff/MemberNew";
 // Coach pages
 import CoachLogin from "./pages/coach/Login";
 import CoachDashboard from "./pages/coach/Dashboard";
+
+// Kiosk pages (self-service check-in)
+import KioskPin from "./pages/kiosk/KioskPin";
+import KioskCheckin from "./pages/kiosk/KioskCheckin";
 
 const queryClient = new QueryClient();
 
@@ -194,6 +199,14 @@ const StaffRoutes = () => (
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/admin/schedule"
+        element={
+          <ProtectedRoute allowedRoles={['OWNER', 'ADMIN']}>
+            <Schedule />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Staff routes */}
       <Route
@@ -276,6 +289,14 @@ const CoachRoutes = () => (
   </CoachAuthProvider>
 );
 
+// Kiosk routes - PIN-based auth, no staff login needed
+const KioskRoutes = () => (
+  <Routes>
+    <Route index element={<KioskPin />} />
+    <Route path="scan" element={<KioskCheckin />} />
+  </Routes>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -285,6 +306,9 @@ const App = () => (
         <Routes>
           {/* Coach routes - completely separate auth context (NOT wrapped by AuthProvider) */}
           <Route path="/coach/*" element={<CoachRoutes />} />
+
+          {/* Kiosk routes - PIN-based auth for self-service check-in */}
+          <Route path="/kiosk/*" element={<KioskRoutes />} />
 
           {/* All other routes wrapped by AuthProvider */}
           <Route path="/*" element={<StaffRoutes />} />

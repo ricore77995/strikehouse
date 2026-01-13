@@ -228,6 +228,7 @@ const Enrollment = () => {
           access_type: selectedPlan.tipo,
           access_expires_at: expirationDate,
           credits_remaining: selectedPlan.tipo === 'CREDITS' ? selectedPlan.creditos : null,
+          current_plan_id: selectedPlan.id,
         })
         .eq('id', selectedMember.id);
 

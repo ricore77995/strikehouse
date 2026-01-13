@@ -144,6 +144,9 @@ const PendingPayments = () => {
       let updateData: Record<string, unknown> = { status: 'ATIVO' };
 
       if (plan) {
+        // Always set current_plan_id when there's a plan
+        updateData.current_plan_id = plan.id;
+
         if (plan.tipo === 'SUBSCRIPTION' || plan.tipo === 'DAILY_PASS') {
           const { data: member } = await supabase
             .from('members')
@@ -154,7 +157,7 @@ const PendingPayments = () => {
           const baseDate = member?.access_expires_at && new Date(member.access_expires_at) > new Date()
             ? new Date(member.access_expires_at)
             : new Date();
-          
+
           updateData.access_type = plan.tipo;
           updateData.access_expires_at = addDays(baseDate, plan.duracao_dias || 30).toISOString();
         } else if (plan.tipo === 'CREDITS') {
