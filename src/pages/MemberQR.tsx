@@ -166,7 +166,7 @@ const MemberQR = () => {
           {/* QR Code Display */}
           <div className="bg-white p-6 rounded-lg mx-auto w-fit shadow-sm">
             <QRCodeSVG
-              value={`https://strikershouse.vercel.app/m/${member.qr_code}`}
+              value={`${window.location.origin}/m/${member.qr_code}`}
               size={192}
               level="H"
               includeMargin={false}
