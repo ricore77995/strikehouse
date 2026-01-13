@@ -266,7 +266,22 @@ export const useCheckin = () => {
     setIsLoading(true);
 
     try {
-      const member = await findMemberByQR(qrCode);
+      // Extract QR code from URL if needed (e.g., https://site.com/m/MBR-XXXXXXXX)
+      let extractedCode = qrCode;
+
+      // Check if it's a URL containing /m/
+      if (qrCode.includes('/m/')) {
+        const match = qrCode.match(/\/m\/(MBR-[A-Z0-9]+)/i);
+        if (match) {
+          extractedCode = match[1].toUpperCase();
+        }
+      }
+      // Also check for just the code pattern
+      else if (qrCode.match(/^MBR-[A-Z0-9]+$/i)) {
+        extractedCode = qrCode.toUpperCase();
+      }
+
+      const member = await findMemberByQR(extractedCode);
 
       if (!member) {
         return {
