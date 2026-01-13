@@ -43,14 +43,15 @@ export const useCheckin = () => {
   const { toast } = useToast();
 
   const findMemberByQR = async (qrCode: string): Promise<MemberCheckinInfo | null> => {
+    // Usa função RPC para bypass RLS (permite acesso do quiosque sem auth)
     const { data, error } = await supabase
-      .from('members')
-      .select('*')
-      .eq('qr_code', qrCode)
-      .single();
+      .rpc('get_member_by_qr', { qr_code_input: qrCode });
 
-    if (error || !data) return null;
-    return data as MemberCheckinInfo;
+    if (error || !data || data.length === 0) {
+      console.log('[QR] RPC error or no data:', error);
+      return null;
+    }
+    return data[0] as MemberCheckinInfo;
   };
 
   const findMemberBySearch = async (query: string): Promise<MemberCheckinInfo[]> => {

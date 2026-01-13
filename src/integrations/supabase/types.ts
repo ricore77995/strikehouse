@@ -1,3 +1,4 @@
+Initialising login role...
 export type Json =
   | string
   | number
@@ -11,6 +12,31 @@ export type Database = {
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.1"
+  }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -173,6 +199,7 @@ export type Database = {
         Row: {
           checked_in_at: string | null
           checked_in_by: string | null
+          class_id: string | null
           guest_name: string | null
           id: string
           member_id: string | null
@@ -183,6 +210,7 @@ export type Database = {
         Insert: {
           checked_in_at?: string | null
           checked_in_by?: string | null
+          class_id?: string | null
           guest_name?: string | null
           id?: string
           member_id?: string | null
@@ -193,6 +221,7 @@ export type Database = {
         Update: {
           checked_in_at?: string | null
           checked_in_by?: string | null
+          class_id?: string | null
           guest_name?: string | null
           id?: string
           member_id?: string | null
@@ -201,6 +230,13 @@ export type Database = {
           type?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "check_ins_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "check_ins_member_id_fkey"
             columns: ["member_id"]
@@ -248,6 +284,66 @@ export type Database = {
             columns: ["checked_in_by"]
             isOneToOne: false
             referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      classes: {
+        Row: {
+          area_id: string | null
+          ativo: boolean | null
+          capacidade: number | null
+          coach_id: string | null
+          created_at: string | null
+          dia_semana: number
+          duracao_min: number
+          hora_inicio: string
+          id: string
+          modalidade: string
+          nome: string
+          updated_at: string | null
+        }
+        Insert: {
+          area_id?: string | null
+          ativo?: boolean | null
+          capacidade?: number | null
+          coach_id?: string | null
+          created_at?: string | null
+          dia_semana: number
+          duracao_min?: number
+          hora_inicio: string
+          id?: string
+          modalidade: string
+          nome: string
+          updated_at?: string | null
+        }
+        Update: {
+          area_id?: string | null
+          ativo?: boolean | null
+          capacidade?: number | null
+          coach_id?: string | null
+          created_at?: string | null
+          dia_semana?: number
+          duracao_min?: number
+          hora_inicio?: string
+          id?: string
+          modalidade?: string
+          nome?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "classes_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "classes_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "external_coaches"
             referencedColumns: ["id"]
           },
         ]
@@ -316,6 +412,7 @@ export type Database = {
           modalidade: string | null
           nome: string
           telefone: string | null
+          user_id: string | null
         }
         Insert: {
           ativo?: boolean | null
@@ -328,6 +425,7 @@ export type Database = {
           modalidade?: string | null
           nome: string
           telefone?: string | null
+          user_id?: string | null
         }
         Update: {
           ativo?: boolean | null
@@ -340,8 +438,44 @@ export type Database = {
           modalidade?: string | null
           nome?: string
           telefone?: string | null
+          user_id?: string | null
         }
         Relationships: []
+      }
+      gym_settings: {
+        Row: {
+          description: string | null
+          id: string
+          key: string
+          updated_at: string | null
+          updated_by: string | null
+          value: string
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value: string
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gym_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       job_logs: {
         Row: {
@@ -438,6 +572,7 @@ export type Database = {
           access_type: string | null
           created_at: string | null
           credits_remaining: number | null
+          current_plan_id: string | null
           email: string | null
           id: string
           nome: string
@@ -451,6 +586,7 @@ export type Database = {
           access_type?: string | null
           created_at?: string | null
           credits_remaining?: number | null
+          current_plan_id?: string | null
           email?: string | null
           id?: string
           nome: string
@@ -464,6 +600,7 @@ export type Database = {
           access_type?: string | null
           created_at?: string | null
           credits_remaining?: number | null
+          current_plan_id?: string | null
           email?: string | null
           id?: string
           nome?: string
@@ -472,7 +609,15 @@ export type Database = {
           telefone?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "members_current_plan_id_fkey"
+            columns: ["current_plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pending_payments: {
         Row: {
@@ -591,6 +736,7 @@ export type Database = {
           created_at: string | null
           creditos: number | null
           duracao_dias: number | null
+          enrollment_fee_cents: number | null
           id: string
           nome: string
           preco_cents: number
@@ -601,6 +747,7 @@ export type Database = {
           created_at?: string | null
           creditos?: number | null
           duracao_dias?: number | null
+          enrollment_fee_cents?: number | null
           id?: string
           nome: string
           preco_cents: number
@@ -611,6 +758,7 @@ export type Database = {
           created_at?: string | null
           creditos?: number | null
           duracao_dias?: number | null
+          enrollment_fee_cents?: number | null
           id?: string
           nome?: string
           preco_cents?: number
@@ -1164,6 +1312,21 @@ export type Database = {
       }
       generate_member_qr: { Args: never; Returns: string }
       generate_payment_reference: { Args: never; Returns: string }
+      get_coach_id_from_auth: { Args: never; Returns: string }
+      get_member_by_qr: {
+        Args: { qr_code_input: string }
+        Returns: {
+          access_expires_at: string
+          access_type: string
+          credits_remaining: number
+          email: string
+          id: string
+          nome: string
+          qr_code: string
+          status: string
+          telefone: string
+        }[]
+      }
       get_staff_coach_id: { Args: { p_user_id: string }; Returns: string }
       get_user_role: { Args: { p_user_id: string }; Returns: string }
       has_staff_role: {
@@ -1172,6 +1335,7 @@ export type Database = {
       }
       invoke_scheduled_jobs: { Args: never; Returns: undefined }
       is_staff_member: { Args: { p_user_id: string }; Returns: boolean }
+      validate_kiosk_pin: { Args: { input_pin: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
@@ -1300,6 +1464,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },

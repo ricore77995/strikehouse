@@ -30,20 +30,18 @@ const MemberQR = () => {
         // Import supabase client dynamically to avoid circular dependency
         const { supabase } = await import('@/integrations/supabase/client');
 
-        // Fetch member data directly via Supabase (uses public RLS policy)
+        // Fetch member data via RPC function (bypass RLS for public access)
         const { data, error: fetchError } = await supabase
-          .from('members')
-          .select('nome, qr_code, status, access_type, access_expires_at')
-          .eq('qr_code', qrCode)
-          .single();
+          .rpc('get_member_by_qr', { qr_code_input: qrCode });
 
-        if (fetchError || !data) {
+        if (fetchError || !data || data.length === 0) {
+          console.error('Error fetching member:', fetchError);
           setError('QR Code não encontrado');
           setLoading(false);
           return;
         }
 
-        setMember(data);
+        setMember(data[0]);
         setLoading(false);
       } catch (err) {
         console.error('Error fetching member:', err);
