@@ -1,4 +1,10 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
+
+// Helper to get all modality cards from the grid
+// Card renders with rounded-lg class, grid has gap-3
+const getModalityCards = (page: Page) => {
+  return page.locator('.grid.gap-3 > div.rounded-lg');
+};
 
 test.describe('Modalities Management', () => {
   test.beforeEach(async ({ page }) => {
@@ -16,9 +22,12 @@ test.describe('Modalities Management', () => {
     // Wait for page header
     await expect(page.locator('h1:has-text("MODALIDADES")')).toBeVisible({ timeout: 10000 });
 
-    // Should display default modalities - look for the code badge which is unique
-    await expect(page.locator('text=boxe').first()).toBeVisible();
-    await expect(page.locator('text=muay_thai')).toBeVisible();
+    // Wait for loading to finish - grid should be visible
+    await expect(page.locator('.grid.gap-3')).toBeVisible({ timeout: 5000 });
+
+    // Should display default modalities - Badge renders a div with rounded-full class
+    await expect(page.locator('div.rounded-full:text-is("boxe")')).toBeVisible();
+    await expect(page.locator('div.rounded-full:text-is("muay_thai")')).toBeVisible();
   });
 
   test('creates a new modality', async ({ page }) => {
@@ -26,6 +35,9 @@ test.describe('Modalities Management', () => {
 
     // Wait for page to load
     await expect(page.locator('h1:has-text("MODALIDADES")')).toBeVisible({ timeout: 10000 });
+
+    // Wait for grid to load
+    await expect(page.locator('.grid.gap-3')).toBeVisible({ timeout: 5000 });
 
     // Generate unique code
     const uniqueCode = `test_${Date.now()}`;
@@ -58,8 +70,14 @@ test.describe('Modalities Management', () => {
     // Wait for page to load
     await expect(page.locator('h1:has-text("MODALIDADES")')).toBeVisible({ timeout: 10000 });
 
-    // Click edit button (Pencil icon) on first card - it's the last button in the card
-    const firstCard = page.locator('[class*="CardContent"]').first();
+    // Wait for grid to load
+    await expect(page.locator('.grid.gap-3')).toBeVisible({ timeout: 5000 });
+
+    // Find the first modality card and click its edit button (last button in the card)
+    const firstCard = getModalityCards(page).first();
+    await expect(firstCard).toBeVisible();
+
+    // The edit button is the last button in the card (Pencil icon)
     await firstCard.locator('button').last().click();
 
     // Wait for dialog
@@ -81,8 +99,12 @@ test.describe('Modalities Management', () => {
     // Wait for page to load
     await expect(page.locator('h1:has-text("MODALIDADES")')).toBeVisible({ timeout: 10000 });
 
-    // Find a modality card and its switch
-    const firstCard = page.locator('[class*="CardContent"]').first();
+    // Wait for grid to load
+    await expect(page.locator('.grid.gap-3')).toBeVisible({ timeout: 5000 });
+
+    // Find the first modality card and its switch
+    const firstCard = getModalityCards(page).first();
+    await expect(firstCard).toBeVisible();
     const switchButton = firstCard.locator('button[role="switch"]');
 
     // Click to toggle
@@ -102,8 +124,12 @@ test.describe('Modalities Management', () => {
     // Wait for page to load
     await expect(page.locator('h1:has-text("MODALIDADES")')).toBeVisible({ timeout: 10000 });
 
+    // Wait for grid to load
+    await expect(page.locator('.grid.gap-3')).toBeVisible({ timeout: 5000 });
+
     // Find the last modality card and disable it if active
-    const lastCard = page.locator('[class*="CardContent"]').last();
+    const lastCard = getModalityCards(page).last();
+    await expect(lastCard).toBeVisible();
     const switchButton = lastCard.locator('button[role="switch"]');
 
     const initialState = await switchButton.getAttribute('data-state');
@@ -129,6 +155,9 @@ test.describe('Modalities Management', () => {
 
     // Wait for page to load
     await expect(page.locator('h1:has-text("MODALIDADES")')).toBeVisible({ timeout: 10000 });
+
+    // Wait for grid to load
+    await expect(page.locator('.grid.gap-3')).toBeVisible({ timeout: 5000 });
 
     // Try to create modality with existing code
     await page.click('button:has-text("Nova Modalidade")');

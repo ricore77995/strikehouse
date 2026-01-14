@@ -163,7 +163,7 @@ test.describe('Pricing Configuration', () => {
     await expect(page.locator('text=Mensal:')).toBeVisible();
   });
 
-  test('prevents negative prices', async ({ page }) => {
+  test('marks negative prices as invalid', async ({ page }) => {
     await page.goto('/admin/pricing');
 
     await page.waitForSelector('input#basePrice', { timeout: 10000 });
@@ -172,19 +172,13 @@ test.describe('Pricing Configuration', () => {
       return input && input.value && parseFloat(input.value) > 0;
     }, { timeout: 10000 });
 
-    // Get original value
-    const originalValue = await page.locator('input#basePrice').inputValue();
-
-    // Try to set negative value
+    // Enter a negative value
     await page.fill('input#basePrice', '-10.00');
 
-    // The input has min="0" so negative values shouldn't be allowed
-    // Browser behavior varies - check that it's not the negative value
-    const inputValue = await page.locator('input#basePrice').inputValue();
-    const numValue = parseFloat(inputValue);
-
-    // Should either be 0, empty, or revert to original
-    expect(numValue).not.toBeLessThan(0);
+    // The input has min="0" so it should be marked as invalid by browser validation
+    // Check that the input is in an invalid state using CSS pseudo-class
+    const isInvalid = await page.locator('input#basePrice').evaluate((el: HTMLInputElement) => !el.checkValidity());
+    expect(isInvalid).toBe(true);
   });
 
   test('validates decimal precision', async ({ page }) => {

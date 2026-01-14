@@ -29,6 +29,18 @@ const goToStep2 = async (page: Page) => {
   await expect(page.locator('text=Configurar Subscricao')).toBeVisible({ timeout: 10000 });
 };
 
+// Helper to navigate to Step 2 and switch to Customizado tab
+const goToStep2Custom = async (page: Page) => {
+  await goToStep2(page);
+
+  // Step 2 has two tabs: "Planos" (default) and "Customizado"
+  // Click on Customizado to see modalities, commitment, promo code, etc.
+  await page.click('button[role="tab"]:has-text("Customizado")');
+
+  // Wait for Customizado content to load - Modalidades label should be visible
+  await expect(page.locator('label:has-text("Modalidades")')).toBeVisible({ timeout: 5000 });
+};
+
 // Helper to select a modality in Step 2
 const selectModality = async (page: Page, modalityName: string) => {
   // The modality cards have the name in a span, click on the card
@@ -81,14 +93,14 @@ test.describe('Enrollment Pricing Flow', () => {
   });
 
   test('shows modality section in step 2', async ({ page }) => {
-    await goToStep2(page);
+    await goToStep2Custom(page);
 
-    // Should show modalities label (use exact match to avoid header)
+    // Should show modalities label (already verified in goToStep2Custom)
     await expect(page.locator('label:has-text("Modalidades")')).toBeVisible();
   });
 
   test('shows commitment period options', async ({ page }) => {
-    await goToStep2(page);
+    await goToStep2Custom(page);
 
     // Should have commitment options
     await expect(page.locator('label:has-text("Periodo de Compromisso")')).toBeVisible();
@@ -101,7 +113,7 @@ test.describe('Enrollment Pricing Flow', () => {
   });
 
   test('shows enrollment fee for LEAD members', async ({ page }) => {
-    await goToStep2(page);
+    await goToStep2Custom(page);
 
     // Should have enrollment fee section
     await expect(page.locator('label:has-text("Taxa de Matricula")')).toBeVisible();
@@ -111,7 +123,7 @@ test.describe('Enrollment Pricing Flow', () => {
   });
 
   test('enrollment fee is editable', async ({ page }) => {
-    await goToStep2(page);
+    await goToStep2Custom(page);
 
     // Wait for enrollment fee input
     const feeInput = page.locator('input#enrollmentFee');
@@ -125,7 +137,7 @@ test.describe('Enrollment Pricing Flow', () => {
   });
 
   test('shows promo code input', async ({ page }) => {
-    await goToStep2(page);
+    await goToStep2Custom(page);
 
     // Should have promo code section
     await expect(page.locator('label:has-text("Codigo Promocional")')).toBeVisible();
@@ -133,7 +145,7 @@ test.describe('Enrollment Pricing Flow', () => {
   });
 
   test('promo code accepts uppercase input', async ({ page }) => {
-    await goToStep2(page);
+    await goToStep2Custom(page);
 
     // Enter a promo code
     const promoInput = page.locator('input#promo');
