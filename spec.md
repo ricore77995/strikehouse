@@ -29,6 +29,7 @@
 19. [Stack Técnica](#19-stack-técnica)
 20. [Roadmap](#20-roadmap)
 21. [Prompt para IA](#21-prompt-para-ia)
+22. [Pricing Engine](#22-pricing-engine)
 
 ---
 
@@ -1997,7 +1998,60 @@ Cálculo:
 5. **Snapshot é imutável** - mudanças em PricingConfig não afetam subscriptions existentes
 6. **Override por plano** - Plan.pricing_override sobrescreve PricingConfig
 
-### 22.8 Interfaces Novas
+### 22.8 Enrollment com Pricing Engine
+
+A página de matrícula (`/staff/enrollment`) integra o Pricing Engine com duas opções:
+
+#### Step 2: Configurar Subscrição (Dual Mode)
+
+| Tab | Descrição | Uso |
+|-----|-----------|-----|
+| **Planos** | Selecionar plano pré-definido | Fluxo rápido para planos padrão |
+| **Customizado** | Pricing Engine completo | Configuração flexível por modalidade |
+
+**Tab Planos:**
+- Lista de planos visíveis (`plans.visible = true`)
+- Preço fixo do plano + taxa de matrícula (se LEAD)
+- Ideal para: "Mensal Boxe €60", "Trimestral MMA €150"
+
+**Tab Customizado:**
+- Seleção múltipla de modalidades (checkboxes)
+- Período de compromisso (Mensal, Trimestral, Semestral, Anual)
+- Campo de código promocional (valida em tempo real)
+- Taxa de matrícula editável (override do padrão)
+- Resumo de preços com breakdown completo:
+  - Base (1ª modalidade)
+  - + Modalidades extras
+  - - Desconto compromisso (%)
+  - - Desconto promo (%)
+  - = Mensal final
+  - + Taxa matrícula (se LEAD)
+  - = **TOTAL HOJE**
+
+#### Dados da Subscription
+
+Independente do modo, cria registro em `subscriptions` com snapshot:
+
+```typescript
+{
+  member_id: string,
+  plan_id: string | null,  // null se custom
+  modalities: UUID[],
+  commitment_months: number,
+  calculated_price_cents: number,  // subtotal
+  commitment_discount_pct: number,
+  promo_discount_pct: number,
+  final_price_cents: number,  // mensal após descontos
+  enrollment_fee_cents: number,
+  commitment_discount_id: string | null,
+  promo_discount_id: string | null,
+  starts_at: date,
+  expires_at: date,
+  status: 'active'
+}
+```
+
+### 22.9 Interfaces Admin
 
 | Rota | Descrição | Acesso |
 |------|-----------|--------|
@@ -2005,7 +2059,7 @@ Cálculo:
 | `/admin/discounts` | Gerenciar descontos e promos | OWNER, ADMIN |
 | `/admin/modalities` | Gerenciar modalidades | OWNER, ADMIN |
 
-### 22.9 Validação de Código Promocional
+### 22.10 Validação de Código Promocional
 
 ```javascript
 function validatePromoCode(code, isNewMember) {
