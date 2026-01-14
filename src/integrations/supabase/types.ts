@@ -400,6 +400,71 @@ export type Database = {
           },
         ]
       }
+      discounts: {
+        Row: {
+          ativo: boolean | null
+          category: string
+          code: string
+          created_at: string | null
+          created_by: string | null
+          current_uses: number | null
+          discount_type: string
+          discount_value: number
+          id: string
+          max_uses: number | null
+          min_commitment_months: number | null
+          new_members_only: boolean | null
+          nome: string
+          referrer_credit_cents: number | null
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          category: string
+          code: string
+          created_at?: string | null
+          created_by?: string | null
+          current_uses?: number | null
+          discount_type: string
+          discount_value: number
+          id?: string
+          max_uses?: number | null
+          min_commitment_months?: number | null
+          new_members_only?: boolean | null
+          nome: string
+          referrer_credit_cents?: number | null
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          category?: string
+          code?: string
+          created_at?: string | null
+          created_by?: string | null
+          current_uses?: number | null
+          discount_type?: string
+          discount_value?: number
+          id?: string
+          max_uses?: number | null
+          min_commitment_months?: number | null
+          new_members_only?: boolean | null
+          nome?: string
+          referrer_credit_cents?: number | null
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discounts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       external_coaches: {
         Row: {
           ativo: boolean | null
@@ -573,6 +638,7 @@ export type Database = {
           created_at: string | null
           credits_remaining: number | null
           current_plan_id: string | null
+          current_subscription_id: string | null
           email: string | null
           id: string
           nome: string
@@ -587,6 +653,7 @@ export type Database = {
           created_at?: string | null
           credits_remaining?: number | null
           current_plan_id?: string | null
+          current_subscription_id?: string | null
           email?: string | null
           id?: string
           nome: string
@@ -601,6 +668,7 @@ export type Database = {
           created_at?: string | null
           credits_remaining?: number | null
           current_plan_id?: string | null
+          current_subscription_id?: string | null
           email?: string | null
           id?: string
           nome?: string
@@ -617,7 +685,44 @@ export type Database = {
             referencedRelation: "plans"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "members_current_subscription_id_fkey"
+            columns: ["current_subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      modalities: {
+        Row: {
+          ativo: boolean | null
+          code: string
+          created_at: string | null
+          description: string | null
+          id: string
+          nome: string
+          sort_order: number | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          code: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          nome: string
+          sort_order?: number | null
+        }
+        Update: {
+          ativo?: boolean | null
+          code?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          nome?: string
+          sort_order?: number | null
+        }
+        Relationships: []
       }
       pending_payments: {
         Row: {
@@ -733,38 +838,94 @@ export type Database = {
       plans: {
         Row: {
           ativo: boolean | null
+          commitment_months: number | null
           created_at: string | null
           creditos: number | null
           duracao_dias: number | null
           enrollment_fee_cents: number | null
           id: string
+          modalities: string[] | null
           nome: string
           preco_cents: number
+          pricing_override: Json | null
           tipo: string
+          visible: boolean | null
         }
         Insert: {
           ativo?: boolean | null
+          commitment_months?: number | null
           created_at?: string | null
           creditos?: number | null
           duracao_dias?: number | null
           enrollment_fee_cents?: number | null
           id?: string
+          modalities?: string[] | null
           nome: string
           preco_cents: number
+          pricing_override?: Json | null
           tipo: string
+          visible?: boolean | null
         }
         Update: {
           ativo?: boolean | null
+          commitment_months?: number | null
           created_at?: string | null
           creditos?: number | null
           duracao_dias?: number | null
           enrollment_fee_cents?: number | null
           id?: string
+          modalities?: string[] | null
           nome?: string
           preco_cents?: number
+          pricing_override?: Json | null
           tipo?: string
+          visible?: boolean | null
         }
         Relationships: []
+      }
+      pricing_config: {
+        Row: {
+          base_price_cents: number
+          currency: string
+          day_pass_price_cents: number
+          enrollment_fee_cents: number
+          extra_modality_price_cents: number
+          id: string
+          single_class_price_cents: number
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          base_price_cents?: number
+          currency?: string
+          day_pass_price_cents?: number
+          enrollment_fee_cents?: number
+          extra_modality_price_cents?: number
+          id?: string
+          single_class_price_cents?: number
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          base_price_cents?: number
+          currency?: string
+          day_pass_price_cents?: number
+          enrollment_fee_cents?: number
+          extra_modality_price_cents?: number
+          id?: string
+          single_class_price_cents?: number
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricing_config_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       products: {
         Row: {
@@ -1037,6 +1198,142 @@ export type Database = {
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "external_coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscriptions: {
+        Row: {
+          calculated_price_cents: number
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          commitment_discount_id: string | null
+          commitment_discount_pct: number
+          commitment_months: number
+          created_at: string | null
+          created_by: string | null
+          credits_remaining: number | null
+          enrollment_fee_cents: number
+          expires_at: string | null
+          final_price_cents: number
+          id: string
+          member_id: string
+          modalities: string[]
+          plan_id: string | null
+          promo_discount_id: string | null
+          promo_discount_pct: number
+          starts_at: string
+          status: string
+        }
+        Insert: {
+          calculated_price_cents: number
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          commitment_discount_id?: string | null
+          commitment_discount_pct?: number
+          commitment_months?: number
+          created_at?: string | null
+          created_by?: string | null
+          credits_remaining?: number | null
+          enrollment_fee_cents?: number
+          expires_at?: string | null
+          final_price_cents: number
+          id?: string
+          member_id: string
+          modalities?: string[]
+          plan_id?: string | null
+          promo_discount_id?: string | null
+          promo_discount_pct?: number
+          starts_at?: string
+          status?: string
+        }
+        Update: {
+          calculated_price_cents?: number
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          commitment_discount_id?: string | null
+          commitment_discount_pct?: number
+          commitment_months?: number
+          created_at?: string | null
+          created_by?: string | null
+          credits_remaining?: number | null
+          enrollment_fee_cents?: number
+          expires_at?: string | null
+          final_price_cents?: number
+          id?: string
+          member_id?: string
+          modalities?: string[]
+          plan_id?: string | null
+          promo_discount_id?: string | null
+          promo_discount_pct?: number
+          starts_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_cancelled_by_fkey"
+            columns: ["cancelled_by"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_commitment_discount_id_fkey"
+            columns: ["commitment_discount_id"]
+            isOneToOne: false
+            referencedRelation: "discounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "v_active_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "v_expiring_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "v_overdue_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_promo_discount_id_fkey"
+            columns: ["promo_discount_id"]
+            isOneToOne: false
+            referencedRelation: "discounts"
             referencedColumns: ["id"]
           },
         ]

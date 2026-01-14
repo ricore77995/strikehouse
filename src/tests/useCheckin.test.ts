@@ -194,10 +194,8 @@ describe('useCheckin - processQRCode', () => {
       qr_code: 'MBR-TEST1234',
     };
 
-    // Mock findMemberByQR
-    const mockSingle = vi.fn().mockResolvedValue({ data: mockMember, error: null });
-    const mockEq = vi.fn().mockReturnValue({ single: mockSingle });
-    const mockSelectMembers = vi.fn().mockReturnValue({ eq: mockEq });
+    // Mock RPC call for get_member_by_qr (returns array)
+    vi.mocked(supabase.rpc).mockResolvedValue({ data: [mockMember], error: null });
 
     // Mock empty rentals (no exclusive area)
     const mockRentalsGte = vi.fn().mockResolvedValue({ data: [], error: null });
@@ -211,9 +209,6 @@ describe('useCheckin - processQRCode', () => {
     const mockCheckinInsert = vi.fn().mockResolvedValue({ error: null });
 
     vi.mocked(supabase.from).mockImplementation((table) => {
-      if (table === 'members') {
-        return { select: mockSelectMembers } as any;
-      }
       if (table === 'rentals') {
         return { select: mockRentalsSelect } as any;
       }
@@ -234,16 +229,8 @@ describe('useCheckin - processQRCode', () => {
   });
 
   it('should return NOT_FOUND for invalid QR code', async () => {
-    const mockSingle = vi.fn().mockResolvedValue({ data: null, error: { code: 'PGRST116' } });
-    const mockEq = vi.fn().mockReturnValue({ single: mockSingle });
-    const mockSelect = vi.fn().mockReturnValue({ eq: mockEq });
-
-    vi.mocked(supabase.from).mockImplementation((table) => {
-      if (table === 'members') {
-        return { select: mockSelect } as any;
-      }
-      return {} as any;
-    });
+    // Mock RPC call returning empty array (member not found)
+    vi.mocked(supabase.rpc).mockResolvedValue({ data: [], error: null });
 
     const { result } = renderHook(() => useCheckin());
     const checkinResult = await act(async () => {

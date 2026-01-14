@@ -37,6 +37,9 @@ import Audit from "./pages/admin/Audit";
 import Finances from "./pages/admin/Finances";
 import JobLogs from "./pages/admin/JobLogs";
 import Schedule from "./pages/admin/Schedule";
+import PricingConfig from "./pages/admin/PricingConfig";
+import Modalities from "./pages/admin/Modalities";
+import Discounts from "./pages/admin/Discounts";
 
 // Staff pages
 import StaffCheckin from "./pages/staff/Checkin";
@@ -204,6 +207,30 @@ const StaffRoutes = () => (
         element={
           <ProtectedRoute allowedRoles={['OWNER', 'ADMIN']}>
             <Schedule />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/pricing"
+        element={
+          <ProtectedRoute allowedRoles={['OWNER', 'ADMIN']}>
+            <PricingConfig />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/modalities"
+        element={
+          <ProtectedRoute allowedRoles={['OWNER', 'ADMIN']}>
+            <Modalities />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/discounts"
+        element={
+          <ProtectedRoute allowedRoles={['OWNER', 'ADMIN']}>
+            <Discounts />
           </ProtectedRoute>
         }
       />

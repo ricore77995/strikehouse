@@ -1823,3 +1823,202 @@ Prioridades:
 4. Auditoria completa
 
 **Mantra:** "Se não registra transação, não aconteceu."
+
+---
+
+## 22. Pricing Engine
+
+### 22.1 Visão Geral
+
+Sistema de precificação dinâmica baseado em modalidades, com descontos automáticos por compromisso e códigos promocionais.
+
+> **Princípio:** O preço final é calculado por uma fórmula clara, não valores fixos por plano.
+
+### 22.2 Fórmula de Preço
+
+```
+P = (B + (M-1) × E) × (1 - Dp) × (1 - Dpromo)
+```
+
+| Variável | Descrição | Fonte |
+|----------|-----------|-------|
+| `P` | Preço final mensal | output |
+| `B` | Preço base (1ª modalidade) | PricingConfig ou Plan.pricing_override |
+| `E` | Preço modalidade extra | PricingConfig ou Plan.pricing_override |
+| `M` | Quantidade de modalidades | input do checkout |
+| `Dp` | Desconto commitment (%) | calculado por meses de compromisso |
+| `Dpromo` | Desconto promocional (%) | código inserido pelo cliente |
+
+### 22.3 Novas Tabelas
+
+#### modalities
+Modalidades de treino disponíveis na academia.
+
+```sql
+CREATE TABLE modalities (
+    id UUID PRIMARY KEY,
+    code VARCHAR(50) UNIQUE NOT NULL,  -- 'boxe', 'muay_thai', etc.
+    nome VARCHAR(100) NOT NULL,
+    sort_order INTEGER DEFAULT 0,
+    ativo BOOLEAN DEFAULT true
+);
+```
+
+**Modalidades padrão:** boxe, muay_thai, jiu_jitsu, mma, kickboxing, wrestling, funcional
+
+#### pricing_config
+Configuração global de preços (singleton - apenas 1 registro).
+
+```sql
+CREATE TABLE pricing_config (
+    id UUID PRIMARY KEY,
+    base_price_cents INTEGER DEFAULT 6000,           -- €60 (1 modalidade)
+    extra_modality_price_cents INTEGER DEFAULT 3000, -- €30 (cada extra)
+    enrollment_fee_cents INTEGER DEFAULT 1500,       -- €15 (matrícula)
+    currency VARCHAR(3) DEFAULT 'EUR'
+);
+```
+
+#### discounts
+Descontos de commitment (automáticos) e promocionais (com código).
+
+```sql
+CREATE TABLE discounts (
+    id UUID PRIMARY KEY,
+    code VARCHAR(50) UNIQUE NOT NULL,
+    nome VARCHAR(100) NOT NULL,
+    category VARCHAR(20) CHECK (category IN ('commitment', 'promo')),
+    discount_type VARCHAR(20) CHECK (discount_type IN ('percentage', 'fixed')),
+    discount_value INTEGER NOT NULL,
+    min_commitment_months INTEGER,  -- Para commitment discounts
+    valid_from DATE,                -- Para promos
+    valid_until DATE,               -- Para promos
+    max_uses INTEGER,               -- Para promos (NULL = ilimitado)
+    current_uses INTEGER DEFAULT 0,
+    new_members_only BOOLEAN DEFAULT false,
+    ativo BOOLEAN DEFAULT true
+);
+```
+
+**Descontos commitment padrão:**
+
+| Código | Meses | Desconto |
+|--------|-------|----------|
+| MENSAL | 1 | 0% |
+| TRIMESTRAL | 3 | 10% |
+| SEMESTRAL | 6 | 15% |
+| ANUAL | 12 | 20% |
+
+#### subscriptions
+Instância do plano para cada membro com snapshot de preços.
+
+```sql
+CREATE TABLE subscriptions (
+    id UUID PRIMARY KEY,
+    member_id UUID REFERENCES members(id),
+    modalities UUID[] NOT NULL,
+    commitment_months INTEGER NOT NULL,
+    -- Snapshot de preços (imutável)
+    calculated_price_cents INTEGER NOT NULL,
+    commitment_discount_pct INTEGER DEFAULT 0,
+    promo_discount_pct INTEGER DEFAULT 0,
+    final_price_cents INTEGER NOT NULL,
+    enrollment_fee_cents INTEGER DEFAULT 0,
+    -- Datas
+    starts_at DATE DEFAULT CURRENT_DATE,
+    expires_at DATE,
+    status VARCHAR(15) DEFAULT 'active'
+);
+```
+
+### 22.4 Alterações em Tabelas Existentes
+
+#### plans
+```sql
+ALTER TABLE plans ADD COLUMN
+    modalities UUID[] DEFAULT '{}',
+    commitment_months INTEGER DEFAULT 1,
+    pricing_override JSONB DEFAULT '{}',
+    visible BOOLEAN DEFAULT true;
+```
+
+#### members
+```sql
+ALTER TABLE members ADD COLUMN
+    current_subscription_id UUID REFERENCES subscriptions(id);
+```
+
+### 22.5 Fluxo de Checkout
+
+```
+1. Membro seleciona modalidades (M)
+2. Membro seleciona período de compromisso (commitment_months)
+3. Sistema busca PricingConfig
+4. Sistema calcula: Subtotal = B + (M-1) × E
+5. Sistema aplica desconto commitment (Dp) baseado em meses
+6. Se código promo inserido:
+   - Valida código (ativo, válido, não expirado, não esgotado)
+   - Aplica desconto promo (Dpromo)
+7. Calcula: Final = Subtotal × (1 - Dp/100) × (1 - Dpromo/100)
+8. Se membro é LEAD: adiciona enrollment_fee
+9. Cria registro em subscriptions com snapshot
+10. Atualiza member.current_subscription_id
+11. Cria transação(ões) financeira(s)
+```
+
+### 22.6 Exemplo de Cálculo
+
+```
+Config: B = €60, E = €30
+
+Input:
+  - 2 modalidades (Muay Thai + Jiu-Jitsu)
+  - 6 meses de compromisso
+  - Código: "UNI15" (15% desconto)
+  - Membro LEAD
+
+Cálculo:
+  Subtotal = 60 + (2-1) × 30 = €90
+  Dp = 15% (SEMESTRAL)
+  Dpromo = 15% (UNI15)
+
+  Final = 90 × 0.85 × 0.85 = €65.03
+  + Matrícula = €15
+
+  Total primeira mensalidade: €80.03
+```
+
+### 22.7 Regras de Negócio
+
+1. **Desconto commitment é automático** - aplica-se baseado nos meses selecionados
+2. **Apenas 1 código promo por checkout** - não acumula entre promos
+3. **Promos + commitment acumulam** - são multiplicativos, não aditivos
+4. **Taxa de matrícula só para LEAD** - nunca para renovações
+5. **Snapshot é imutável** - mudanças em PricingConfig não afetam subscriptions existentes
+6. **Override por plano** - Plan.pricing_override sobrescreve PricingConfig
+
+### 22.8 Interfaces Novas
+
+| Rota | Descrição | Acesso |
+|------|-----------|--------|
+| `/admin/pricing` | Configurar preços base | OWNER, ADMIN |
+| `/admin/discounts` | Gerenciar descontos e promos | OWNER, ADMIN |
+| `/admin/modalities` | Gerenciar modalidades | OWNER, ADMIN |
+
+### 22.9 Validação de Código Promocional
+
+```javascript
+function validatePromoCode(code, isNewMember) {
+  const discount = db.discounts.findByCode(code);
+
+  if (!discount) return { valid: false, error: "Código inválido" };
+  if (!discount.ativo) return { valid: false, error: "Código inativo" };
+  if (discount.category !== 'promo') return { valid: false, error: "Não é código promocional" };
+  if (discount.valid_from && today < discount.valid_from) return { valid: false, error: "Código ainda não válido" };
+  if (discount.valid_until && today > discount.valid_until) return { valid: false, error: "Código expirado" };
+  if (discount.max_uses && discount.current_uses >= discount.max_uses) return { valid: false, error: "Código esgotado" };
+  if (discount.new_members_only && !isNewMember) return { valid: false, error: "Válido apenas para novos membros" };
+
+  return { valid: true, discount };
+}
+```

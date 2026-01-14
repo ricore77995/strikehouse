@@ -30,6 +30,9 @@ import {
   Cog,
   FileCheck,
   Activity,
+  Calculator,
+  Dumbbell,
+  Tag,
 } from 'lucide-react';
 
 interface NavItem {
@@ -123,6 +126,31 @@ const navGroups: NavGroup[] = [
         href: '/admin/plans',
         icon: CreditCard,
         roles: ['OWNER', 'ADMIN'],
+      },
+    ],
+  },
+
+  // Precificação - OWNER & ADMIN
+  {
+    title: 'Precificacao',
+    icon: Calculator,
+    roles: ['OWNER', 'ADMIN'],
+    defaultOpen: false,
+    items: [
+      {
+        title: 'Config. Precos',
+        href: '/admin/pricing',
+        icon: Calculator,
+      },
+      {
+        title: 'Modalidades',
+        href: '/admin/modalities',
+        icon: Dumbbell,
+      },
+      {
+        title: 'Descontos',
+        href: '/admin/discounts',
+        icon: Tag,
       },
     ],
   },

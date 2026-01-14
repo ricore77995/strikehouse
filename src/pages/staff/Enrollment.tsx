@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { usePricing } from '@/hooks/usePricing';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -23,14 +25,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowLeft, UserPlus, Loader2, CheckCircle, AlertCircle, Search } from 'lucide-react';
+import {
+  ArrowLeft,
+  UserPlus,
+  Loader2,
+  CheckCircle,
+  AlertCircle,
+  Search,
+  Tag,
+  Percent,
+  Dumbbell,
+} from 'lucide-react';
 import { addDays, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const memberSchema = z.object({
   nome: z.string().trim().min(2, 'Nome deve ter pelo menos 2 caracteres').max(100, 'Nome muito longo'),
-  telefone: z.string().trim().min(9, 'Telefone inválido').max(20, 'Telefone muito longo'),
-  email: z.string().trim().email('Email inválido').max(255, 'Email muito longo').optional().or(z.literal('')),
+  telefone: z.string().trim().min(9, 'Telefone invalido').max(20, 'Telefone muito longo'),
+  email: z.string().trim().email('Email invalido').max(255, 'Email muito longo').optional().or(z.literal('')),
 });
 
 type MemberFormData = z.infer<typeof memberSchema>;
@@ -44,34 +56,7 @@ interface Member {
   status: 'LEAD' | 'ATIVO' | 'BLOQUEADO' | 'CANCELADO';
 }
 
-interface Plan {
-  id: string;
-  nome: string;
-  tipo: 'SUBSCRIPTION' | 'CREDITS' | 'DAILY_PASS';
-  preco_cents: number;
-  enrollment_fee_cents: number;
-  duracao_dias: number | null;
-  creditos: number | null;
-  ativo: boolean;
-}
-
 type PaymentMethod = 'DINHEIRO' | 'CARTAO' | 'MBWAY' | 'TRANSFERENCIA';
-
-const formatCurrency = (cents: number) => {
-  return new Intl.NumberFormat('pt-PT', {
-    style: 'currency',
-    currency: 'EUR',
-  }).format(cents / 100);
-};
-
-const getTipoLabel = (tipo: string) => {
-  switch (tipo) {
-    case 'SUBSCRIPTION': return 'Mensalidade';
-    case 'CREDITS': return 'Créditos';
-    case 'DAILY_PASS': return 'Diária';
-    default: return tipo;
-  }
-};
 
 const Enrollment = () => {
   const navigate = useNavigate();
@@ -80,7 +65,7 @@ const Enrollment = () => {
   const { staffId } = useAuth();
   const queryClient = useQueryClient();
 
-  // Pre-selected member from navigation state (e.g., from Payment page alert)
+  // Pre-selected member from navigation state
   const preSelectedMember = location.state?.member as Member | undefined;
 
   // Step state
@@ -88,62 +73,45 @@ const Enrollment = () => {
   const [memberMode, setMemberMode] = useState<'search' | 'create'>('search');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMember, setSelectedMember] = useState<Member | null>(preSelectedMember || null);
-  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
-  const [enrollmentFeeInput, setEnrollmentFeeInput] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | ''>('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [enrollmentFeeOverride, setEnrollmentFeeOverride] = useState<string>('');
+
+  // Pricing engine hook
+  const pricing = usePricing({
+    memberStatus: selectedMember?.status || 'LEAD',
+  });
 
   // Create member form
   const memberForm = useForm<MemberFormData>({
     resolver: zodResolver(memberSchema),
-    defaultValues: {
-      nome: '',
-      telefone: '',
-      email: '',
-    },
+    defaultValues: { nome: '', telefone: '', email: '' },
   });
 
-  // Search for LEAD and CANCELADO members (enrollment or reactivation)
+  // Search for LEAD and CANCELADO members
   const { data: searchResults, isLoading: isSearching } = useQuery({
     queryKey: ['enrollment-members', searchQuery],
     queryFn: async () => {
       if (searchQuery.length < 2) return [];
-
       const { data, error } = await supabase
         .from('members')
         .select('id, nome, telefone, email, qr_code, status')
-        .in('status', ['LEAD', 'CANCELADO']) // Accept LEAD (new) and CANCELADO (returning)
+        .in('status', ['LEAD', 'CANCELADO'])
         .or(`nome.ilike.%${searchQuery}%,telefone.ilike.%${searchQuery}%`)
         .limit(10);
-
       if (error) throw error;
       return data as Member[];
     },
     enabled: searchQuery.length >= 2,
   });
 
-  // Fetch active plans
-  const { data: plans, isLoading: isLoadingPlans } = useQuery({
-    queryKey: ['active-plans'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('plans')
-        .select('*')
-        .eq('ativo', true)
-        .order('preco_cents', { ascending: true });
-
-      if (error) throw error;
-      return data as Plan[];
-    },
-  });
-
-  // Auto-populate enrollment fee when plan is selected
+  // Initialize enrollment fee when breakdown is ready
   useEffect(() => {
-    if (selectedPlan) {
-      setEnrollmentFeeInput((selectedPlan.enrollment_fee_cents / 100).toFixed(2));
+    if (pricing.breakdown && enrollmentFeeOverride === '') {
+      setEnrollmentFeeOverride((pricing.breakdown.enrollment_fee_cents / 100).toFixed(2));
     }
-  }, [selectedPlan]);
+  }, [pricing.breakdown, enrollmentFeeOverride]);
 
   // If member was pre-selected, start at step 2
   useEffect(() => {
@@ -152,9 +120,11 @@ const Enrollment = () => {
     }
   }, [preSelectedMember]);
 
-  // Calculate totals
-  const enrollmentFeeCents = Math.round(parseFloat(enrollmentFeeInput || '0') * 100);
-  const totalCents = selectedPlan ? selectedPlan.preco_cents + enrollmentFeeCents : 0;
+  // Calculate final enrollment fee (allows override)
+  const enrollmentFeeCents = Math.round(parseFloat(enrollmentFeeOverride || '0') * 100);
+  const totalCents = pricing.breakdown
+    ? pricing.breakdown.monthly_price_cents + enrollmentFeeCents
+    : 0;
 
   // Create member mutation
   const createMemberMutation = useMutation({
@@ -166,90 +136,98 @@ const Enrollment = () => {
           telefone: data.telefone,
           email: data.email || null,
           status: 'LEAD',
-          qr_code: '', // Will be auto-generated by trigger
+          qr_code: '',
         })
         .select('id, nome, telefone, email, qr_code, status')
         .single();
-
       if (error) throw error;
       return newMember as Member;
     },
     onSuccess: (newMember) => {
       queryClient.invalidateQueries({ queryKey: ['enrollment-members'] });
-      toast({
-        title: 'Membro criado!',
-        description: `${newMember.nome} foi cadastrado como LEAD.`,
-      });
-      // Auto-select the new member and move to step 2
+      toast({ title: 'Membro criado!', description: `${newMember.nome} foi cadastrado como LEAD.` });
       setSelectedMember(newMember);
       memberForm.reset();
       setCurrentStep(2);
     },
-    onError: (error) => {
-      console.error('Create member error:', error);
-      toast({
-        title: 'Erro ao criar membro',
-        description: 'Não foi possível cadastrar o membro. Tente novamente.',
-        variant: 'destructive',
-      });
+    onError: () => {
+      toast({ title: 'Erro ao criar membro', variant: 'destructive' });
     },
   });
-
-  // Calculate expiration date
-  const calculateExpirationDate = (plan: Plan) => {
-    if (plan.tipo === 'DAILY_PASS') {
-      // Daily pass expires at end of day
-      const today = new Date();
-      today.setHours(23, 59, 59, 999);
-      return today.toISOString();
-    } else if (plan.tipo === 'SUBSCRIPTION' && plan.duracao_dias) {
-      return addDays(new Date(), plan.duracao_dias).toISOString();
-    } else if (plan.tipo === 'CREDITS' && plan.duracao_dias) {
-      // Credits expire after duracao_dias
-      return addDays(new Date(), plan.duracao_dias).toISOString();
-    }
-    return null;
-  };
 
   // Enrollment mutation (instant payment)
   const enrollMutation = useMutation({
     mutationFn: async () => {
-      if (!selectedMember || !selectedPlan || !paymentMethod || !staffId) {
+      if (!selectedMember || !pricing.breakdown || !paymentMethod || !staffId) {
         throw new Error('Missing required data');
       }
 
-      const expirationDate = calculateExpirationDate(selectedPlan);
+      const subscriptionData = pricing.getSubscriptionData();
+      if (!subscriptionData) throw new Error('Invalid pricing data');
 
-      // 1. Update member to ATIVO
+      // Override enrollment fee if changed
+      subscriptionData.enrollment_fee_cents = enrollmentFeeCents;
+
+      const expiresAt = subscriptionData.expires_at;
+
+      // 1. Create subscription record
+      const { data: subscription, error: subError } = await supabase
+        .from('subscriptions')
+        .insert({
+          member_id: selectedMember.id,
+          modalities: subscriptionData.modalities,
+          commitment_months: subscriptionData.commitment_months,
+          calculated_price_cents: subscriptionData.calculated_price_cents,
+          commitment_discount_pct: subscriptionData.commitment_discount_pct,
+          promo_discount_pct: subscriptionData.promo_discount_pct,
+          final_price_cents: subscriptionData.final_price_cents,
+          enrollment_fee_cents: enrollmentFeeCents,
+          starts_at: subscriptionData.starts_at,
+          expires_at: expiresAt,
+          commitment_discount_id: subscriptionData.commitment_discount_id,
+          promo_discount_id: subscriptionData.promo_discount_id,
+          status: 'active',
+          created_by: staffId,
+        })
+        .select()
+        .single();
+
+      if (subError) throw subError;
+
+      // 2. Update member to ATIVO
       const { error: memberError } = await supabase
         .from('members')
         .update({
           status: 'ATIVO',
-          access_type: selectedPlan.tipo,
-          access_expires_at: expirationDate,
-          credits_remaining: selectedPlan.tipo === 'CREDITS' ? selectedPlan.creditos : null,
-          current_plan_id: selectedPlan.id,
+          access_type: 'SUBSCRIPTION',
+          access_expires_at: expiresAt,
+          current_subscription_id: subscription.id,
         })
         .eq('id', selectedMember.id);
 
       if (memberError) throw memberError;
 
-      // 2. Create plan transaction
+      // 3. Increment promo code uses if applicable
+      if (subscriptionData.promo_discount_id) {
+        await pricing.confirmPromoCode();
+      }
+
+      // 4. Create plan transaction
       const { error: planTxError } = await supabase
         .from('transactions')
         .insert({
           type: 'RECEITA',
-          category: selectedPlan.tipo,
-          amount_cents: selectedPlan.preco_cents,
+          category: 'SUBSCRIPTION',
+          amount_cents: subscriptionData.final_price_cents,
           payment_method: paymentMethod,
           member_id: selectedMember.id,
-          description: `Plano: ${selectedPlan.nome}`,
+          description: `Subscricao: ${pricing.selectedModalities.length} modalidade(s), ${subscriptionData.commitment_months} mes(es)`,
           created_by: staffId,
         });
 
       if (planTxError) throw planTxError;
 
-      // 3. Create enrollment fee transaction (if > 0)
+      // 5. Create enrollment fee transaction (if > 0)
       if (enrollmentFeeCents > 0) {
         const { error: feeTxError } = await supabase
           .from('transactions')
@@ -259,37 +237,27 @@ const Enrollment = () => {
             amount_cents: enrollmentFeeCents,
             payment_method: paymentMethod,
             member_id: selectedMember.id,
-            description: `Taxa de Matrícula - ${selectedPlan.nome}`,
+            description: 'Taxa de Matricula',
             created_by: staffId,
           });
-
         if (feeTxError) throw feeTxError;
       }
 
-      // 4. Update cash session if DINHEIRO
+      // 6. Update cash session if DINHEIRO
       if (paymentMethod === 'DINHEIRO') {
         const today = new Date().toISOString().split('T')[0];
-
-        const { data: session, error: sessionFetchError } = await supabase
+        const { data: session } = await supabase
           .from('cash_sessions')
           .select('*')
           .eq('session_date', today)
           .eq('status', 'OPEN')
           .single();
 
-        if (sessionFetchError && sessionFetchError.code !== 'PGRST116') {
-          throw sessionFetchError;
-        }
-
         if (session) {
-          const { error: sessionUpdateError } = await supabase
+          await supabase
             .from('cash_sessions')
-            .update({
-              total_cash_in_cents: session.total_cash_in_cents + totalCents,
-            })
+            .update({ total_cash_in_cents: session.total_cash_in_cents + totalCents })
             .eq('id', session.id);
-
-          if (sessionUpdateError) throw sessionUpdateError;
         }
       }
     },
@@ -297,58 +265,48 @@ const Enrollment = () => {
       queryClient.invalidateQueries({ queryKey: ['enrollment-members'] });
       queryClient.invalidateQueries({ queryKey: ['members'] });
       setIsSuccess(true);
-      toast({
-        title: 'Matrícula concluída!',
-        description: `${selectedMember?.nome} foi matriculado com sucesso.`,
-      });
+      toast({ title: 'Matricula concluida!', description: `${selectedMember?.nome} foi matriculado.` });
     },
     onError: (error) => {
       console.error('Enrollment error:', error);
-      toast({
-        title: 'Erro na matrícula',
-        description: 'Não foi possível completar a matrícula. Tente novamente.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Erro na matricula', variant: 'destructive' });
     },
   });
 
   // Pending payment mutation (TRANSFERENCIA)
   const pendingPaymentMutation = useMutation({
     mutationFn: async () => {
-      if (!selectedMember || !selectedPlan || !staffId) {
+      if (!selectedMember || !pricing.breakdown || !staffId) {
         throw new Error('Missing required data');
       }
 
+      const subscriptionData = pricing.getSubscriptionData();
+      if (!subscriptionData) throw new Error('Invalid pricing data');
+
+      // Store subscription data in metadata for later activation
       const { error } = await supabase
         .from('pending_payments')
         .insert({
           member_id: selectedMember.id,
-          plan_id: selectedPlan.id,
           amount_cents: totalCents,
           payment_method: 'TRANSFERENCIA',
-          reference: selectedMember.status === 'LEAD'
-            ? `ENR-${Date.now()}` // ENR = Enrollment (first-time)
-            : `REA-${Date.now()}`, // REA = Reactivation (returning CANCELADO)
+          reference: selectedMember.status === 'LEAD' ? `ENR-${Date.now()}` : `REA-${Date.now()}`,
           expires_at: addDays(new Date(), 7).toISOString(),
           created_by: staffId,
+          metadata: {
+            subscription_data: subscriptionData,
+            enrollment_fee_cents: enrollmentFeeCents,
+          },
         });
 
       if (error) throw error;
     },
     onSuccess: () => {
       setIsSuccess(true);
-      toast({
-        title: 'Pagamento pendente criado',
-        description: 'Instruções de transferência foram geradas.',
-      });
+      toast({ title: 'Pagamento pendente criado' });
     },
-    onError: (error) => {
-      console.error('Pending payment error:', error);
-      toast({
-        title: 'Erro ao criar pagamento pendente',
-        description: 'Tente novamente.',
-        variant: 'destructive',
-      });
+    onError: () => {
+      toast({ title: 'Erro ao criar pagamento pendente', variant: 'destructive' });
     },
   });
 
@@ -358,26 +316,24 @@ const Enrollment = () => {
     setCurrentStep(2);
   };
 
-  const handlePlanSelect = (plan: Plan) => {
-    setSelectedPlan(plan);
+  const handlePricingConfirm = () => {
+    if (pricing.selectedModalities.length === 0) {
+      toast({ title: 'Selecione pelo menos uma modalidade', variant: 'destructive' });
+      return;
+    }
+    if (!pricing.result.success) {
+      toast({ title: pricing.result.error || 'Erro no calculo', variant: 'destructive' });
+      return;
+    }
     setCurrentStep(3);
-  };
-
-  const handleEnrollmentFeeConfirm = () => {
-    setCurrentStep(4);
   };
 
   const handlePaymentConfirm = async () => {
     if (!paymentMethod) {
-      toast({
-        title: 'Selecione um método de pagamento',
-        variant: 'destructive',
-      });
+      toast({ title: 'Selecione um metodo de pagamento', variant: 'destructive' });
       return;
     }
-
     setIsProcessing(true);
-
     try {
       if (paymentMethod === 'TRANSFERENCIA') {
         await pendingPaymentMutation.mutateAsync();
@@ -393,16 +349,22 @@ const Enrollment = () => {
     setCurrentStep(1);
     setMemberMode('search');
     setSelectedMember(null);
-    setSelectedPlan(null);
-    setEnrollmentFeeInput('');
     setPaymentMethod('');
     setIsSuccess(false);
     setSearchQuery('');
+    setEnrollmentFeeOverride('');
+    pricing.setSelectedModalities([]);
+    pricing.setSelectedCommitmentMonths(1);
+    pricing.setPromoCode('');
     memberForm.reset();
   };
 
-  const handleCreateMember = (data: MemberFormData) => {
-    createMemberMutation.mutate(data);
+  // Get modality names for display
+  const getModalityNames = () => {
+    return pricing.modalities
+      .filter((m) => pricing.selectedModalities.includes(m.id))
+      .map((m) => m.nome)
+      .join(', ');
   };
 
   if (isSuccess) {
@@ -414,79 +376,40 @@ const Enrollment = () => {
               <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-green-500/20 flex items-center justify-center">
                 <CheckCircle className="h-10 w-10 text-green-600" />
               </div>
-              <CardTitle className="text-2xl">Matrícula Concluída!</CardTitle>
+              <CardTitle className="text-2xl">Matricula Concluida!</CardTitle>
               <CardDescription>
                 {paymentMethod === 'TRANSFERENCIA'
-                  ? 'Pagamento pendente criado. O membro será ativado após confirmação da transferência.'
-                  : `${selectedMember?.nome} agora tem acesso ao ginásio.`}
+                  ? 'Pagamento pendente criado. O membro sera ativado apos confirmacao.'
+                  : `${selectedMember?.nome} agora tem acesso ao ginasio.`}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {paymentMethod === 'TRANSFERENCIA' ? (
-                <div className="bg-secondary/50 p-4 rounded-lg space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Valor Total:</span>
-                    <span className="font-semibold">{formatCurrency(totalCents)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Referência:</span>
-                    <span className="font-mono text-xs">
-                      {selectedMember?.status === 'LEAD' ? 'ENR' : 'REA'}-{Date.now()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Validade:</span>
-                    <span>{format(addDays(new Date(), 7), 'dd/MM/yyyy', { locale: ptBR })}</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground pt-2 border-t border-border">
-                    Aguarde a confirmação da transferência pelo administrador.
-                  </p>
+              <div className="bg-secondary/50 p-4 rounded-lg space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Membro:</span>
+                  <span className="font-semibold">{selectedMember?.nome}</span>
                 </div>
-              ) : (
-                <div className="bg-secondary/50 p-4 rounded-lg space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Membro:</span>
-                    <span className="font-semibold">{selectedMember?.nome}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Plano:</span>
-                    <span>{selectedPlan?.nome}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Total Pago:</span>
-                    <span className="font-semibold">{formatCurrency(totalCents)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Método:</span>
-                    <span>{paymentMethod}</span>
-                  </div>
-                  {selectedPlan?.tipo === 'SUBSCRIPTION' && selectedPlan.duracao_dias && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Válido até:</span>
-                      <span>
-                        {format(addDays(new Date(), selectedPlan.duracao_dias), 'dd/MM/yyyy', {
-                          locale: ptBR,
-                        })}
-                      </span>
-                    </div>
-                  )}
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Modalidades:</span>
+                  <span>{getModalityNames()}</span>
                 </div>
-              )}
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Compromisso:</span>
+                  <span>{pricing.selectedCommitmentMonths} mes(es)</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Total:</span>
+                  <span className="font-semibold">{pricing.formatPrice(totalCents)}</span>
+                </div>
+              </div>
 
               <div className="flex gap-2 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => navigate('/staff/checkin')}
-                  className="flex-1"
-                >
+                <Button variant="outline" onClick={() => navigate('/staff/checkin')} className="flex-1">
                   Ir para Check-in
                 </Button>
-                <Button
-                  onClick={handleReset}
-                  className="flex-1 bg-accent hover:bg-accent/90"
-                >
+                <Button onClick={handleReset} className="flex-1 bg-accent hover:bg-accent/90">
                   <UserPlus className="h-4 w-4 mr-2" />
-                  Nova Matrícula
+                  Nova Matricula
                 </Button>
               </div>
             </CardContent>
@@ -505,35 +428,25 @@ const Enrollment = () => {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-2xl tracking-wider mb-1">MATRÍCULA</h1>
+            <h1 className="text-2xl tracking-wider mb-1">MATRICULA</h1>
             <p className="text-muted-foreground text-sm">
-              Matricular novo membro (primeira assinatura)
+              Matricular novo membro com selecao de modalidades
             </p>
           </div>
         </div>
 
         {/* Progress Steps */}
         <div className="flex items-center justify-center gap-2 py-4">
-          {[1, 2, 3, 4].map((step) => (
+          {[1, 2, 3].map((step) => (
             <div key={step} className="flex items-center">
               <div
                 className={`h-8 w-8 rounded-full flex items-center justify-center text-sm font-semibold
-                  ${
-                    step === currentStep
-                      ? 'bg-accent text-white'
-                      : step < currentStep
-                      ? 'bg-green-600 text-white'
-                      : 'bg-secondary text-muted-foreground'
-                  }`}
+                  ${step === currentStep ? 'bg-accent text-white' : step < currentStep ? 'bg-green-600 text-white' : 'bg-secondary text-muted-foreground'}`}
               >
                 {step < currentStep ? '✓' : step}
               </div>
-              {step < 4 && (
-                <div
-                  className={`h-0.5 w-12 ${
-                    step < currentStep ? 'bg-green-600' : 'bg-secondary'
-                  }`}
-                />
+              {step < 3 && (
+                <div className={`h-0.5 w-16 ${step < currentStep ? 'bg-green-600' : 'bg-secondary'}`} />
               )}
             </div>
           ))}
@@ -544,9 +457,7 @@ const Enrollment = () => {
           <Card>
             <CardHeader>
               <CardTitle>1. Selecionar ou Criar Membro</CardTitle>
-              <CardDescription>
-                Busque um membro novo (LEAD) ou retornando (CANCELADO), ou crie um novo cadastro
-              </CardDescription>
+              <CardDescription>Busque um membro novo (LEAD) ou retornando (CANCELADO)</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Tabs value={memberMode} onValueChange={(v) => setMemberMode(v as 'search' | 'create')}>
@@ -561,7 +472,6 @@ const Enrollment = () => {
                   </TabsTrigger>
                 </TabsList>
 
-                {/* Search Tab */}
                 <TabsContent value="search" className="space-y-4 mt-4">
                   <div className="space-y-2">
                     <Label htmlFor="search">Buscar por nome ou telefone</Label>
@@ -593,16 +503,12 @@ const Enrollment = () => {
                               <p className="font-semibold">{member.nome}</p>
                               <p className="text-sm text-muted-foreground">{member.telefone}</p>
                             </div>
-                            {member.status === 'CANCELADO' && (
-                              <Badge variant="outline" className="text-xs bg-blue-500/10 text-blue-500 border-blue-500/30">
-                                Retornando
-                              </Badge>
-                            )}
-                            {member.status === 'LEAD' && (
-                              <Badge variant="outline" className="text-xs bg-yellow-500/10 text-yellow-500 border-yellow-500/30">
-                                Novo
-                              </Badge>
-                            )}
+                            <Badge
+                              variant="outline"
+                              className={`text-xs ${member.status === 'CANCELADO' ? 'bg-blue-500/10 text-blue-500 border-blue-500/30' : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/30'}`}
+                            >
+                              {member.status === 'CANCELADO' ? 'Retornando' : 'Novo'}
+                            </Badge>
                           </div>
                         </div>
                       ))}
@@ -613,17 +519,13 @@ const Enrollment = () => {
                     <div className="text-center py-8 text-muted-foreground">
                       <AlertCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
                       <p>Nenhum membro LEAD encontrado</p>
-                      <p className="text-sm">
-                        Apenas membros que nunca foram ativados aparecem aqui
-                      </p>
                     </div>
                   )}
                 </TabsContent>
 
-                {/* Create Tab */}
                 <TabsContent value="create" className="mt-4">
                   <Form {...memberForm}>
-                    <form onSubmit={memberForm.handleSubmit(handleCreateMember)} className="space-y-4">
+                    <form onSubmit={memberForm.handleSubmit((d) => createMemberMutation.mutate(d))} className="space-y-4">
                       <FormField
                         control={memberForm.control}
                         name="nome"
@@ -631,17 +533,12 @@ const Enrollment = () => {
                           <FormItem>
                             <FormLabel>Nome *</FormLabel>
                             <FormControl>
-                              <Input
-                                placeholder="Nome completo"
-                                autoFocus={memberMode === 'create'}
-                                {...field}
-                              />
+                              <Input placeholder="Nome completo" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-
                       <FormField
                         control={memberForm.control}
                         name="telefone"
@@ -649,17 +546,12 @@ const Enrollment = () => {
                           <FormItem>
                             <FormLabel>Telefone *</FormLabel>
                             <FormControl>
-                              <Input
-                                placeholder="912345678"
-                                type="tel"
-                                {...field}
-                              />
+                              <Input placeholder="912345678" type="tel" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-
                       <FormField
                         control={memberForm.control}
                         name="email"
@@ -667,33 +559,15 @@ const Enrollment = () => {
                           <FormItem>
                             <FormLabel>Email (opcional)</FormLabel>
                             <FormControl>
-                              <Input
-                                placeholder="email@exemplo.com"
-                                type="email"
-                                {...field}
-                              />
+                              <Input placeholder="email@exemplo.com" type="email" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-
-                      <Button
-                        type="submit"
-                        className="w-full bg-accent hover:bg-accent/90"
-                        disabled={createMemberMutation.isPending}
-                      >
-                        {createMemberMutation.isPending ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Criando...
-                          </>
-                        ) : (
-                          <>
-                            <UserPlus className="h-4 w-4 mr-2" />
-                            Criar e Continuar
-                          </>
-                        )}
+                      <Button type="submit" className="w-full bg-accent hover:bg-accent/90" disabled={createMemberMutation.isPending}>
+                        {createMemberMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <UserPlus className="h-4 w-4 mr-2" />}
+                        Criar e Continuar
                       </Button>
                     </form>
                   </Form>
@@ -703,153 +577,215 @@ const Enrollment = () => {
           </Card>
         )}
 
-        {/* Step 2: Select Plan */}
+        {/* Step 2: Select Modalities + Commitment + Promo */}
         {currentStep === 2 && selectedMember && (
           <Card>
             <CardHeader>
-              <CardTitle>2. Selecionar Plano</CardTitle>
+              <CardTitle>2. Configurar Subscricao</CardTitle>
               <CardDescription>
                 Membro: <strong>{selectedMember.nome}</strong>
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {isLoadingPlans && (
+            <CardContent className="space-y-6">
+              {pricing.isLoading ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
-              )}
-
-              <div className="grid gap-3 md:grid-cols-2">
-                {plans?.map((plan) => (
-                  <div
-                    key={plan.id}
-                    onClick={() => handlePlanSelect(plan)}
-                    className="p-4 border border-border rounded-lg hover:bg-accent/5 cursor-pointer transition-colors"
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <p className="font-semibold">{plan.nome}</p>
-                        <Badge variant="outline" className="text-xs mt-1">
-                          {getTipoLabel(plan.tipo)}
-                        </Badge>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xl font-bold">{formatCurrency(plan.preco_cents)}</p>
-                        {plan.enrollment_fee_cents > 0 && (
-                          <p className="text-sm text-muted-foreground">
-                            + {formatCurrency(plan.enrollment_fee_cents)} taxa
-                          </p>
-                        )}
-                      </div>
+              ) : (
+                <>
+                  {/* Modalities Selection */}
+                  <div className="space-y-3">
+                    <Label className="flex items-center gap-2">
+                      <Dumbbell className="h-4 w-4" />
+                      Modalidades
+                    </Label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {pricing.modalities.map((modality) => (
+                        <div
+                          key={modality.id}
+                          onClick={() => pricing.toggleModality(modality.id)}
+                          className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                            pricing.selectedModalities.includes(modality.id)
+                              ? 'border-accent bg-accent/10'
+                              : 'border-border hover:border-accent/50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Checkbox checked={pricing.selectedModalities.includes(modality.id)} />
+                            <span className="text-sm font-medium">{modality.nome}</span>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <div className="text-sm text-muted-foreground space-y-1">
-                      {plan.duracao_dias && <p>{plan.duracao_dias} dias de acesso</p>}
-                      {plan.creditos && <p>{plan.creditos} créditos</p>}
+                    {pricing.selectedModalities.length > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        {pricing.selectedModalities.length} modalidade(s) selecionada(s)
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Commitment Period */}
+                  <div className="space-y-3">
+                    <Label className="flex items-center gap-2">
+                      <Percent className="h-4 w-4" />
+                      Periodo de Compromisso
+                    </Label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      {pricing.commitmentPeriods.map((period) => (
+                        <div
+                          key={period.months}
+                          onClick={() => pricing.setSelectedCommitmentMonths(period.months)}
+                          className={`p-3 border rounded-lg cursor-pointer transition-all text-center ${
+                            pricing.selectedCommitmentMonths === period.months
+                              ? 'border-accent bg-accent/10'
+                              : 'border-border hover:border-accent/50'
+                          }`}
+                        >
+                          <p className="font-semibold">{period.label}</p>
+                          {pricing.commitmentDiscount.percentage > 0 && period.months === pricing.selectedCommitmentMonths && (
+                            <Badge variant="secondary" className="text-xs mt-1 bg-green-500/20 text-green-600">
+                              -{pricing.commitmentDiscount.percentage}%
+                            </Badge>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   </div>
-                ))}
-              </div>
 
-              <Button
-                variant="outline"
-                onClick={() => setCurrentStep(1)}
-                className="w-full"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Voltar
-              </Button>
+                  {/* Promo Code */}
+                  <div className="space-y-2">
+                    <Label htmlFor="promo" className="flex items-center gap-2">
+                      <Tag className="h-4 w-4" />
+                      Codigo Promocional (opcional)
+                    </Label>
+                    <Input
+                      id="promo"
+                      placeholder="Ex: UNI15"
+                      value={pricing.promoCode}
+                      onChange={(e) => pricing.setPromoCode(e.target.value.toUpperCase())}
+                      className="uppercase"
+                    />
+                    {pricing.promoCode && !pricing.result.success && pricing.result.error && (
+                      <p className="text-xs text-red-500">{pricing.result.error}</p>
+                    )}
+                    {pricing.breakdown && pricing.breakdown.promo_discount_pct > 0 && (
+                      <p className="text-xs text-green-600">
+                        Desconto promocional aplicado: -{pricing.breakdown.promo_discount_pct}%
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Enrollment Fee Override */}
+                  <div className="space-y-2">
+                    <Label htmlFor="enrollmentFee">Taxa de Matricula (€)</Label>
+                    <Input
+                      id="enrollmentFee"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={enrollmentFeeOverride}
+                      onChange={(e) => setEnrollmentFeeOverride(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Valor padrao: {pricing.formatPrice(pricing.config.enrollment_fee_cents)}. Pode ajustar ou zerar.
+                    </p>
+                  </div>
+
+                  {/* Price Breakdown */}
+                  {pricing.breakdown && (
+                    <div className="bg-secondary/50 p-4 rounded-lg space-y-2 border border-border">
+                      <p className="font-semibold text-sm uppercase tracking-wider text-muted-foreground mb-3">
+                        Resumo de Precos
+                      </p>
+                      <div className="text-sm space-y-1">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Base (1a modalidade):</span>
+                          <span>{pricing.formatPrice(pricing.breakdown.base_price_cents)}</span>
+                        </div>
+                        {pricing.breakdown.extra_modalities_count > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">
+                              + {pricing.breakdown.extra_modalities_count} modalidade(s) extra:
+                            </span>
+                            <span>{pricing.formatPrice(pricing.breakdown.extra_modalities_cents)}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between text-muted-foreground">
+                          <span>Subtotal:</span>
+                          <span>{pricing.formatPrice(pricing.breakdown.subtotal_cents)}</span>
+                        </div>
+                        {pricing.breakdown.commitment_discount_cents > 0 && (
+                          <div className="flex justify-between text-green-600">
+                            <span>Desconto Compromisso (-{pricing.breakdown.commitment_discount_pct}%):</span>
+                            <span>-{pricing.formatPrice(pricing.breakdown.commitment_discount_cents)}</span>
+                          </div>
+                        )}
+                        {pricing.breakdown.promo_discount_cents > 0 && (
+                          <div className="flex justify-between text-green-600">
+                            <span>Desconto Promo (-{pricing.breakdown.promo_discount_pct}%):</span>
+                            <span>-{pricing.formatPrice(pricing.breakdown.promo_discount_cents)}</span>
+                          </div>
+                        )}
+                        <Separator className="my-2" />
+                        <div className="flex justify-between font-semibold">
+                          <span>Mensal:</span>
+                          <span>{pricing.formatPrice(pricing.breakdown.monthly_price_cents)}</span>
+                        </div>
+                        {enrollmentFeeCents > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Taxa Matricula:</span>
+                            <span>{pricing.formatPrice(enrollmentFeeCents)}</span>
+                          </div>
+                        )}
+                        <Separator className="my-2" />
+                        <div className="flex justify-between text-lg font-bold">
+                          <span>TOTAL HOJE:</span>
+                          <span className="text-accent">{pricing.formatPrice(totalCents)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={() => setCurrentStep(1)} className="flex-1">
+                      <ArrowLeft className="h-4 w-4 mr-2" />
+                      Voltar
+                    </Button>
+                    <Button
+                      onClick={handlePricingConfirm}
+                      className="flex-1 bg-accent hover:bg-accent/90"
+                      disabled={pricing.selectedModalities.length === 0 || !pricing.result.success}
+                    >
+                      Continuar
+                    </Button>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         )}
 
-        {/* Step 3: Adjust Enrollment Fee */}
-        {currentStep === 3 && selectedPlan && selectedMember && (
+        {/* Step 3: Payment Method */}
+        {currentStep === 3 && selectedMember && pricing.breakdown && (
           <Card>
             <CardHeader>
-              <CardTitle>3. Ajustar Taxa de Matrícula</CardTitle>
+              <CardTitle>3. Metodo de Pagamento</CardTitle>
               <CardDescription>
-                {selectedMember?.status === 'LEAD'
-                  ? 'Ajuste a taxa de matrícula (cobrada na primeira matrícula)'
-                  : 'Ajuste a taxa de matrícula (opcional para membros retornando)'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="bg-secondary/50 p-4 rounded-lg space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Plano ({selectedPlan.nome})</span>
-                  <span className="font-semibold">{formatCurrency(selectedPlan.preco_cents)}</span>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2">
-                  <Label htmlFor="enrollment_fee">
-                    Taxa de Matrícula (€)
-                  </Label>
-                  <Input
-                    id="enrollment_fee"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={enrollmentFeeInput}
-                    onChange={(e) => setEnrollmentFeeInput(e.target.value)}
-                    className="text-lg font-semibold"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Valor padrão: {formatCurrency(selectedPlan.enrollment_fee_cents)}. Você pode
-                    ajustar (inclusive zerar para isenção).
-                  </p>
-                </div>
-
-                <Separator />
-
-                <div className="flex justify-between text-lg font-bold">
-                  <span>TOTAL A PAGAR</span>
-                  <span className="text-accent">{formatCurrency(totalCents)}</span>
-                </div>
-              </div>
-
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentStep(2)}
-                  className="flex-1"
-                >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Voltar
-                </Button>
-                <Button
-                  onClick={handleEnrollmentFeeConfirm}
-                  className="flex-1 bg-accent hover:bg-accent/90"
-                >
-                  Continuar
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Step 4: Payment Method */}
-        {currentStep === 4 && selectedPlan && selectedMember && (
-          <Card>
-            <CardHeader>
-              <CardTitle>4. Método de Pagamento</CardTitle>
-              <CardDescription>
-                Total: <strong>{formatCurrency(totalCents)}</strong>
+                Total: <strong>{pricing.formatPrice(totalCents)}</strong>
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="payment_method">Selecione o método</Label>
+                <Label>Selecione o metodo</Label>
                 <Select value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as PaymentMethod)}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Escolha o método de pagamento" />
+                    <SelectValue placeholder="Escolha o metodo de pagamento" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="DINHEIRO">Dinheiro</SelectItem>
-                    <SelectItem value="CARTAO">Cartão (TPA)</SelectItem>
+                    <SelectItem value="CARTAO">Cartao (TPA)</SelectItem>
                     <SelectItem value="MBWAY">MBWay</SelectItem>
-                    <SelectItem value="TRANSFERENCIA">Transferência Bancária</SelectItem>
+                    <SelectItem value="TRANSFERENCIA">Transferencia Bancaria</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -861,8 +797,7 @@ const Enrollment = () => {
                     <div className="text-sm">
                       <p className="font-semibold text-yellow-600 mb-1">Pagamento Pendente</p>
                       <p className="text-muted-foreground">
-                        Será criado um pagamento pendente. O membro será ativado apenas após o
-                        administrador confirmar a transferência.
+                        O membro sera ativado apenas apos o admin confirmar a transferencia.
                       </p>
                     </div>
                   </div>
@@ -871,39 +806,40 @@ const Enrollment = () => {
 
               {/* Summary */}
               <div className="bg-secondary/50 p-4 rounded-lg space-y-2 border border-border">
-                <p className="font-semibold mb-2">Resumo da Matrícula</p>
+                <p className="font-semibold mb-2">Resumo da Matricula</p>
                 <div className="text-sm space-y-1">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Membro:</span>
                     <span>{selectedMember.nome}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Plano:</span>
-                    <span>{selectedPlan.nome}</span>
+                    <span className="text-muted-foreground">Modalidades:</span>
+                    <span className="text-right max-w-[60%]">{getModalityNames()}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Valor do Plano:</span>
-                    <span>{formatCurrency(selectedPlan.preco_cents)}</span>
+                    <span className="text-muted-foreground">Compromisso:</span>
+                    <span>{pricing.selectedCommitmentMonths} mes(es)</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Taxa de Matrícula:</span>
-                    <span>{formatCurrency(enrollmentFeeCents)}</span>
+                    <span className="text-muted-foreground">Mensal:</span>
+                    <span>{pricing.formatPrice(pricing.breakdown.monthly_price_cents)}</span>
                   </div>
+                  {enrollmentFeeCents > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Taxa Matricula:</span>
+                      <span>{pricing.formatPrice(enrollmentFeeCents)}</span>
+                    </div>
+                  )}
                   <Separator className="my-2" />
                   <div className="flex justify-between font-bold">
                     <span>Total:</span>
-                    <span className="text-accent">{formatCurrency(totalCents)}</span>
+                    <span className="text-accent">{pricing.formatPrice(totalCents)}</span>
                   </div>
                 </div>
               </div>
 
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentStep(3)}
-                  className="flex-1"
-                  disabled={isProcessing}
-                >
+                <Button variant="outline" onClick={() => setCurrentStep(2)} className="flex-1" disabled={isProcessing}>
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Voltar
                 </Button>
@@ -913,7 +849,7 @@ const Enrollment = () => {
                   disabled={!paymentMethod || isProcessing}
                 >
                   {isProcessing && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  {paymentMethod === 'TRANSFERENCIA' ? 'Registrar Pendente' : 'Confirmar Matrícula'}
+                  {paymentMethod === 'TRANSFERENCIA' ? 'Registrar Pendente' : 'Confirmar Matricula'}
                 </Button>
               </div>
             </CardContent>
