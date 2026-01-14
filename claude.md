@@ -23,22 +23,37 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Commands
 
+**⚠️ IMPORTANTE: SEMPRE usar Makefile para comandos comuns.**
+
 ```bash
-# Start dev server (runs on http://localhost:8080)
-npm run dev
+# Ver todos os comandos disponíveis
+make help
 
-# Build for production
-npm run build
+# Desenvolvimento
+make dev              # Servidor de desenvolvimento (localhost:8080)
+make build            # Build de produção
+make lint             # Verificar linting
+make lint-fix         # Corrigir linting automaticamente
 
-# Build for development mode
-npm run build:dev
+# Testes
+make test             # Testes unitários
+make test-watch       # Testes em modo watch
+make test-coverage    # Relatório de cobertura
 
-# Lint
-npm run lint
+# Base de dados (Supabase)
+make db-push          # Aplicar migrações
+make db-types         # Regenerar tipos TypeScript
+make db-reset         # Reset completo da base de dados
 
-# Preview production build
-npm preview
+# Deploy
+make deploy           # Build + commit + push
+make push-ci          # Push com token CI (para workflows GitHub)
+
+# Limpeza
+make clean            # Limpar cache e builds
 ```
+
+**Não usar `npm run` diretamente** - o Makefile já encapsula tudo.
 
 ## Architecture
 
