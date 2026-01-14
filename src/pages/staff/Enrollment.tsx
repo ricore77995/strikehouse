@@ -8,6 +8,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { usePricing } from '@/hooks/usePricing';
+import { usePlans } from '@/hooks/usePlans';
+import PlanSelector from '@/components/PlanSelector';
+import type { Plan } from '@/types/pricing';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,6 +38,8 @@ import {
   Tag,
   Percent,
   Dumbbell,
+  Package,
+  Settings,
 } from 'lucide-react';
 import { addDays, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -78,6 +83,13 @@ const Enrollment = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [enrollmentFeeOverride, setEnrollmentFeeOverride] = useState<string>('');
 
+  // Pricing mode: plan (template) or custom (pricing engine)
+  const [pricingMode, setPricingMode] = useState<'plan' | 'custom'>('plan');
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+
+  // Fetch visible plans
+  const { plans: visiblePlans, isLoading: isLoadingPlans } = usePlans();
+
   // Pricing engine hook
   const pricing = usePricing({
     memberStatus: selectedMember?.status || 'LEAD',
@@ -120,11 +132,16 @@ const Enrollment = () => {
     }
   }, [preSelectedMember]);
 
-  // Calculate final enrollment fee (allows override)
-  const enrollmentFeeCents = Math.round(parseFloat(enrollmentFeeOverride || '0') * 100);
-  const totalCents = pricing.breakdown
-    ? pricing.breakdown.monthly_price_cents + enrollmentFeeCents
-    : 0;
+  // Calculate final enrollment fee and price based on mode
+  const enrollmentFeeCents = pricingMode === 'plan'
+    ? selectedPlan?.enrollment_fee_cents ?? 0
+    : Math.round(parseFloat(enrollmentFeeOverride || '0') * 100);
+
+  const finalPriceCents = pricingMode === 'plan'
+    ? selectedPlan?.preco_cents ?? 0
+    : pricing.breakdown?.monthly_price_cents ?? 0;
+
+  const totalCents = finalPriceCents + enrollmentFeeCents;
 
   // Create member mutation
   const createMemberMutation = useMutation({
@@ -158,23 +175,73 @@ const Enrollment = () => {
   // Enrollment mutation (instant payment)
   const enrollMutation = useMutation({
     mutationFn: async () => {
-      if (!selectedMember || !pricing.breakdown || !paymentMethod || !staffId) {
+      if (!selectedMember || !paymentMethod || !staffId) {
         throw new Error('Missing required data');
       }
 
-      const subscriptionData = pricing.getSubscriptionData();
-      if (!subscriptionData) throw new Error('Invalid pricing data');
+      // Build subscription data based on pricing mode
+      let subscriptionData: {
+        plan_id: string | null;
+        modalities: string[];
+        commitment_months: number;
+        calculated_price_cents: number;
+        commitment_discount_pct: number;
+        promo_discount_pct: number;
+        final_price_cents: number;
+        commitment_discount_id: string | null;
+        promo_discount_id: string | null;
+        expires_at: string;
+        description: string;
+      };
 
-      // Override enrollment fee if changed
-      subscriptionData.enrollment_fee_cents = enrollmentFeeCents;
+      const today = new Date().toISOString().split('T')[0];
 
-      const expiresAt = subscriptionData.expires_at;
+      if (pricingMode === 'plan') {
+        if (!selectedPlan) throw new Error('No plan selected');
+
+        const durationDays = selectedPlan.duracao_dias ?? 30;
+        const expiresAt = addDays(new Date(), durationDays).toISOString().split('T')[0];
+
+        subscriptionData = {
+          plan_id: selectedPlan.id,
+          modalities: selectedPlan.modalities || [],
+          commitment_months: selectedPlan.commitment_months || 1,
+          calculated_price_cents: selectedPlan.preco_cents,
+          commitment_discount_pct: 0,
+          promo_discount_pct: 0,
+          final_price_cents: selectedPlan.preco_cents,
+          commitment_discount_id: null,
+          promo_discount_id: null,
+          expires_at: expiresAt,
+          description: `Plano: ${selectedPlan.nome}`,
+        };
+      } else {
+        if (!pricing.breakdown) throw new Error('Invalid pricing data');
+
+        const customData = pricing.getSubscriptionData();
+        if (!customData) throw new Error('Invalid subscription data');
+
+        subscriptionData = {
+          plan_id: null,
+          modalities: customData.modalities,
+          commitment_months: customData.commitment_months,
+          calculated_price_cents: customData.calculated_price_cents,
+          commitment_discount_pct: customData.commitment_discount_pct,
+          promo_discount_pct: customData.promo_discount_pct,
+          final_price_cents: customData.final_price_cents,
+          commitment_discount_id: customData.commitment_discount_id,
+          promo_discount_id: customData.promo_discount_id,
+          expires_at: customData.expires_at,
+          description: `Subscricao: ${pricing.selectedModalities.length} modalidade(s), ${customData.commitment_months} mes(es)`,
+        };
+      }
 
       // 1. Create subscription record
       const { data: subscription, error: subError } = await supabase
         .from('subscriptions')
         .insert({
           member_id: selectedMember.id,
+          plan_id: subscriptionData.plan_id,
           modalities: subscriptionData.modalities,
           commitment_months: subscriptionData.commitment_months,
           calculated_price_cents: subscriptionData.calculated_price_cents,
@@ -182,8 +249,8 @@ const Enrollment = () => {
           promo_discount_pct: subscriptionData.promo_discount_pct,
           final_price_cents: subscriptionData.final_price_cents,
           enrollment_fee_cents: enrollmentFeeCents,
-          starts_at: subscriptionData.starts_at,
-          expires_at: expiresAt,
+          starts_at: today,
+          expires_at: subscriptionData.expires_at,
           commitment_discount_id: subscriptionData.commitment_discount_id,
           promo_discount_id: subscriptionData.promo_discount_id,
           status: 'active',
@@ -200,15 +267,15 @@ const Enrollment = () => {
         .update({
           status: 'ATIVO',
           access_type: 'SUBSCRIPTION',
-          access_expires_at: expiresAt,
+          access_expires_at: subscriptionData.expires_at,
           current_subscription_id: subscription.id,
         })
         .eq('id', selectedMember.id);
 
       if (memberError) throw memberError;
 
-      // 3. Increment promo code uses if applicable
-      if (subscriptionData.promo_discount_id) {
+      // 3. Increment promo code uses if applicable (custom mode only)
+      if (pricingMode === 'custom' && subscriptionData.promo_discount_id) {
         await pricing.confirmPromoCode();
       }
 
@@ -221,7 +288,7 @@ const Enrollment = () => {
           amount_cents: subscriptionData.final_price_cents,
           payment_method: paymentMethod,
           member_id: selectedMember.id,
-          description: `Subscricao: ${pricing.selectedModalities.length} modalidade(s), ${subscriptionData.commitment_months} mes(es)`,
+          description: subscriptionData.description,
           created_by: staffId,
         });
 
@@ -276,12 +343,31 @@ const Enrollment = () => {
   // Pending payment mutation (TRANSFERENCIA)
   const pendingPaymentMutation = useMutation({
     mutationFn: async () => {
-      if (!selectedMember || !pricing.breakdown || !staffId) {
+      if (!selectedMember || !staffId) {
         throw new Error('Missing required data');
       }
 
-      const subscriptionData = pricing.getSubscriptionData();
-      if (!subscriptionData) throw new Error('Invalid pricing data');
+      // Build metadata based on pricing mode
+      let metadata: Record<string, unknown>;
+
+      if (pricingMode === 'plan') {
+        if (!selectedPlan) throw new Error('No plan selected');
+        metadata = {
+          pricing_mode: 'plan',
+          plan_id: selectedPlan.id,
+          plan_nome: selectedPlan.nome,
+          enrollment_fee_cents: enrollmentFeeCents,
+        };
+      } else {
+        if (!pricing.breakdown) throw new Error('Invalid pricing data');
+        const subscriptionData = pricing.getSubscriptionData();
+        if (!subscriptionData) throw new Error('Invalid subscription data');
+        metadata = {
+          pricing_mode: 'custom',
+          subscription_data: subscriptionData,
+          enrollment_fee_cents: enrollmentFeeCents,
+        };
+      }
 
       // Store subscription data in metadata for later activation
       const { error } = await supabase
@@ -293,10 +379,7 @@ const Enrollment = () => {
           reference: selectedMember.status === 'LEAD' ? `ENR-${Date.now()}` : `REA-${Date.now()}`,
           expires_at: addDays(new Date(), 7).toISOString(),
           created_by: staffId,
-          metadata: {
-            subscription_data: subscriptionData,
-            enrollment_fee_cents: enrollmentFeeCents,
-          },
+          metadata,
         });
 
       if (error) throw error;
@@ -317,13 +400,20 @@ const Enrollment = () => {
   };
 
   const handlePricingConfirm = () => {
-    if (pricing.selectedModalities.length === 0) {
-      toast({ title: 'Selecione pelo menos uma modalidade', variant: 'destructive' });
-      return;
-    }
-    if (!pricing.result.success) {
-      toast({ title: pricing.result.error || 'Erro no calculo', variant: 'destructive' });
-      return;
+    if (pricingMode === 'plan') {
+      if (!selectedPlan) {
+        toast({ title: 'Selecione um plano', variant: 'destructive' });
+        return;
+      }
+    } else {
+      if (pricing.selectedModalities.length === 0) {
+        toast({ title: 'Selecione pelo menos uma modalidade', variant: 'destructive' });
+        return;
+      }
+      if (!pricing.result.success) {
+        toast({ title: pricing.result.error || 'Erro no calculo', variant: 'destructive' });
+        return;
+      }
     }
     setCurrentStep(3);
   };
@@ -353,19 +443,29 @@ const Enrollment = () => {
     setIsSuccess(false);
     setSearchQuery('');
     setEnrollmentFeeOverride('');
+    setPricingMode('plan');
+    setSelectedPlan(null);
     pricing.setSelectedModalities([]);
     pricing.setSelectedCommitmentMonths(1);
     pricing.setPromoCode('');
     memberForm.reset();
   };
 
-  // Get modality names for display
+  // Get modality/plan names for display
   const getModalityNames = () => {
+    if (pricingMode === 'plan' && selectedPlan) {
+      return selectedPlan.nome;
+    }
     return pricing.modalities
       .filter((m) => pricing.selectedModalities.includes(m.id))
       .map((m) => m.nome)
       .join(', ');
   };
+
+  // Check if can proceed based on pricing mode
+  const canProceed = pricingMode === 'plan'
+    ? selectedPlan !== null
+    : pricing.selectedModalities.length > 0 && pricing.result.success;
 
   if (isSuccess) {
     return (
@@ -577,7 +677,7 @@ const Enrollment = () => {
           </Card>
         )}
 
-        {/* Step 2: Select Modalities + Commitment + Promo */}
+        {/* Step 2: Select Plan or Custom Pricing */}
         {currentStep === 2 && selectedMember && (
           <Card>
             <CardHeader>
@@ -587,154 +687,47 @@ const Enrollment = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {pricing.isLoading ? (
-                <div className="flex justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                </div>
-              ) : (
-                <>
-                  {/* Modalities Selection */}
-                  <div className="space-y-3">
-                    <Label className="flex items-center gap-2">
-                      <Dumbbell className="h-4 w-4" />
-                      Modalidades
-                    </Label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      {pricing.modalities.map((modality) => (
-                        <div
-                          key={modality.id}
-                          onClick={() => pricing.toggleModality(modality.id)}
-                          className={`p-3 border rounded-lg cursor-pointer transition-all ${
-                            pricing.selectedModalities.includes(modality.id)
-                              ? 'border-accent bg-accent/10'
-                              : 'border-border hover:border-accent/50'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <Checkbox checked={pricing.selectedModalities.includes(modality.id)} />
-                            <span className="text-sm font-medium">{modality.nome}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    {pricing.selectedModalities.length > 0 && (
-                      <p className="text-xs text-muted-foreground">
-                        {pricing.selectedModalities.length} modalidade(s) selecionada(s)
-                      </p>
-                    )}
-                  </div>
+              {/* Pricing Mode Tabs */}
+              <Tabs value={pricingMode} onValueChange={(v) => setPricingMode(v as 'plan' | 'custom')}>
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="plan" className="flex items-center gap-2">
+                    <Package className="h-4 w-4" />
+                    Planos
+                  </TabsTrigger>
+                  <TabsTrigger value="custom" className="flex items-center gap-2">
+                    <Settings className="h-4 w-4" />
+                    Customizado
+                  </TabsTrigger>
+                </TabsList>
 
-                  {/* Commitment Period */}
-                  <div className="space-y-3">
-                    <Label className="flex items-center gap-2">
-                      <Percent className="h-4 w-4" />
-                      Periodo de Compromisso
-                    </Label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      {pricing.commitmentPeriods.map((period) => (
-                        <div
-                          key={period.months}
-                          onClick={() => pricing.setSelectedCommitmentMonths(period.months)}
-                          className={`p-3 border rounded-lg cursor-pointer transition-all text-center ${
-                            pricing.selectedCommitmentMonths === period.months
-                              ? 'border-accent bg-accent/10'
-                              : 'border-border hover:border-accent/50'
-                          }`}
-                        >
-                          <p className="font-semibold">{period.label}</p>
-                          {pricing.commitmentDiscount.percentage > 0 && period.months === pricing.selectedCommitmentMonths && (
-                            <Badge variant="secondary" className="text-xs mt-1 bg-green-500/20 text-green-600">
-                              -{pricing.commitmentDiscount.percentage}%
-                            </Badge>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                {/* Plan Selection Tab */}
+                <TabsContent value="plan" className="mt-4 space-y-4">
+                  <PlanSelector
+                    plans={visiblePlans}
+                    selectedPlan={selectedPlan}
+                    onSelect={setSelectedPlan}
+                    isLoading={isLoadingPlans}
+                  />
 
-                  {/* Promo Code */}
-                  <div className="space-y-2">
-                    <Label htmlFor="promo" className="flex items-center gap-2">
-                      <Tag className="h-4 w-4" />
-                      Codigo Promocional (opcional)
-                    </Label>
-                    <Input
-                      id="promo"
-                      placeholder="Ex: UNI15"
-                      value={pricing.promoCode}
-                      onChange={(e) => pricing.setPromoCode(e.target.value.toUpperCase())}
-                      className="uppercase"
-                    />
-                    {pricing.promoCode && !pricing.result.success && pricing.result.error && (
-                      <p className="text-xs text-red-500">{pricing.result.error}</p>
-                    )}
-                    {pricing.breakdown && pricing.breakdown.promo_discount_pct > 0 && (
-                      <p className="text-xs text-green-600">
-                        Desconto promocional aplicado: -{pricing.breakdown.promo_discount_pct}%
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Enrollment Fee Override */}
-                  <div className="space-y-2">
-                    <Label htmlFor="enrollmentFee">Taxa de Matricula (€)</Label>
-                    <Input
-                      id="enrollmentFee"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={enrollmentFeeOverride}
-                      onChange={(e) => setEnrollmentFeeOverride(e.target.value)}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Valor padrao: {pricing.formatPrice(pricing.config.enrollment_fee_cents)}. Pode ajustar ou zerar.
-                    </p>
-                  </div>
-
-                  {/* Price Breakdown */}
-                  {pricing.breakdown && (
+                  {/* Plan Summary */}
+                  {selectedPlan && (
                     <div className="bg-secondary/50 p-4 rounded-lg space-y-2 border border-border">
                       <p className="font-semibold text-sm uppercase tracking-wider text-muted-foreground mb-3">
-                        Resumo de Precos
+                        Resumo
                       </p>
                       <div className="text-sm space-y-1">
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Base (1a modalidade):</span>
-                          <span>{pricing.formatPrice(pricing.breakdown.base_price_cents)}</span>
+                          <span className="text-muted-foreground">Plano:</span>
+                          <span>{selectedPlan.nome}</span>
                         </div>
-                        {pricing.breakdown.extra_modalities_count > 0 && (
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">
-                              + {pricing.breakdown.extra_modalities_count} modalidade(s) extra:
-                            </span>
-                            <span>{pricing.formatPrice(pricing.breakdown.extra_modalities_cents)}</span>
-                          </div>
-                        )}
-                        <div className="flex justify-between text-muted-foreground">
-                          <span>Subtotal:</span>
-                          <span>{pricing.formatPrice(pricing.breakdown.subtotal_cents)}</span>
-                        </div>
-                        {pricing.breakdown.commitment_discount_cents > 0 && (
-                          <div className="flex justify-between text-green-600">
-                            <span>Desconto Compromisso (-{pricing.breakdown.commitment_discount_pct}%):</span>
-                            <span>-{pricing.formatPrice(pricing.breakdown.commitment_discount_cents)}</span>
-                          </div>
-                        )}
-                        {pricing.breakdown.promo_discount_cents > 0 && (
-                          <div className="flex justify-between text-green-600">
-                            <span>Desconto Promo (-{pricing.breakdown.promo_discount_pct}%):</span>
-                            <span>-{pricing.formatPrice(pricing.breakdown.promo_discount_cents)}</span>
-                          </div>
-                        )}
-                        <Separator className="my-2" />
                         <div className="flex justify-between font-semibold">
                           <span>Mensal:</span>
-                          <span>{pricing.formatPrice(pricing.breakdown.monthly_price_cents)}</span>
+                          <span>{pricing.formatPrice(selectedPlan.preco_cents)}</span>
                         </div>
-                        {enrollmentFeeCents > 0 && (
+                        {selectedPlan.enrollment_fee_cents > 0 && (
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Taxa Matricula:</span>
-                            <span>{pricing.formatPrice(enrollmentFeeCents)}</span>
+                            <span>{pricing.formatPrice(selectedPlan.enrollment_fee_cents)}</span>
                           </div>
                         )}
                         <Separator className="my-2" />
@@ -745,28 +738,192 @@ const Enrollment = () => {
                       </div>
                     </div>
                   )}
+                </TabsContent>
 
-                  <div className="flex gap-2">
-                    <Button variant="outline" onClick={() => setCurrentStep(1)} className="flex-1">
-                      <ArrowLeft className="h-4 w-4 mr-2" />
-                      Voltar
-                    </Button>
-                    <Button
-                      onClick={handlePricingConfirm}
-                      className="flex-1 bg-accent hover:bg-accent/90"
-                      disabled={pricing.selectedModalities.length === 0 || !pricing.result.success}
-                    >
-                      Continuar
-                    </Button>
-                  </div>
-                </>
-              )}
+                {/* Custom Pricing Tab */}
+                <TabsContent value="custom" className="mt-4 space-y-6">
+                  {pricing.isLoading ? (
+                    <div className="flex justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : (
+                    <>
+                      {/* Modalities Selection */}
+                      <div className="space-y-3">
+                        <Label className="flex items-center gap-2">
+                          <Dumbbell className="h-4 w-4" />
+                          Modalidades
+                        </Label>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                          {pricing.modalities.map((modality) => (
+                            <div
+                              key={modality.id}
+                              onClick={() => pricing.toggleModality(modality.id)}
+                              className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                                pricing.selectedModalities.includes(modality.id)
+                                  ? 'border-accent bg-accent/10'
+                                  : 'border-border hover:border-accent/50'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2">
+                                <Checkbox checked={pricing.selectedModalities.includes(modality.id)} />
+                                <span className="text-sm font-medium">{modality.nome}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        {pricing.selectedModalities.length > 0 && (
+                          <p className="text-xs text-muted-foreground">
+                            {pricing.selectedModalities.length} modalidade(s) selecionada(s)
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Commitment Period */}
+                      <div className="space-y-3">
+                        <Label className="flex items-center gap-2">
+                          <Percent className="h-4 w-4" />
+                          Periodo de Compromisso
+                        </Label>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                          {pricing.commitmentPeriods.map((period) => (
+                            <div
+                              key={period.months}
+                              onClick={() => pricing.setSelectedCommitmentMonths(period.months)}
+                              className={`p-3 border rounded-lg cursor-pointer transition-all text-center ${
+                                pricing.selectedCommitmentMonths === period.months
+                                  ? 'border-accent bg-accent/10'
+                                  : 'border-border hover:border-accent/50'
+                              }`}
+                            >
+                              <p className="font-semibold">{period.label}</p>
+                              {pricing.commitmentDiscount.percentage > 0 && period.months === pricing.selectedCommitmentMonths && (
+                                <Badge variant="secondary" className="text-xs mt-1 bg-green-500/20 text-green-600">
+                                  -{pricing.commitmentDiscount.percentage}%
+                                </Badge>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Promo Code */}
+                      <div className="space-y-2">
+                        <Label htmlFor="promo" className="flex items-center gap-2">
+                          <Tag className="h-4 w-4" />
+                          Codigo Promocional (opcional)
+                        </Label>
+                        <Input
+                          id="promo"
+                          placeholder="Ex: UNI15"
+                          value={pricing.promoCode}
+                          onChange={(e) => pricing.setPromoCode(e.target.value.toUpperCase())}
+                          className="uppercase"
+                        />
+                        {pricing.promoCode && !pricing.result.success && pricing.result.error && (
+                          <p className="text-xs text-red-500">{pricing.result.error}</p>
+                        )}
+                        {pricing.breakdown && pricing.breakdown.promo_discount_pct > 0 && (
+                          <p className="text-xs text-green-600">
+                            Desconto promocional aplicado: -{pricing.breakdown.promo_discount_pct}%
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Enrollment Fee Override */}
+                      <div className="space-y-2">
+                        <Label htmlFor="enrollmentFee">Taxa de Matricula (EUR)</Label>
+                        <Input
+                          id="enrollmentFee"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={enrollmentFeeOverride}
+                          onChange={(e) => setEnrollmentFeeOverride(e.target.value)}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Valor padrao: {pricing.formatPrice(pricing.config.enrollment_fee_cents)}. Pode ajustar ou zerar.
+                        </p>
+                      </div>
+
+                      {/* Price Breakdown */}
+                      {pricing.breakdown && (
+                        <div className="bg-secondary/50 p-4 rounded-lg space-y-2 border border-border">
+                          <p className="font-semibold text-sm uppercase tracking-wider text-muted-foreground mb-3">
+                            Resumo de Precos
+                          </p>
+                          <div className="text-sm space-y-1">
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Base (1a modalidade):</span>
+                              <span>{pricing.formatPrice(pricing.breakdown.base_price_cents)}</span>
+                            </div>
+                            {pricing.breakdown.extra_modalities_count > 0 && (
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">
+                                  + {pricing.breakdown.extra_modalities_count} modalidade(s) extra:
+                                </span>
+                                <span>{pricing.formatPrice(pricing.breakdown.extra_modalities_cents)}</span>
+                              </div>
+                            )}
+                            <div className="flex justify-between text-muted-foreground">
+                              <span>Subtotal:</span>
+                              <span>{pricing.formatPrice(pricing.breakdown.subtotal_cents)}</span>
+                            </div>
+                            {pricing.breakdown.commitment_discount_cents > 0 && (
+                              <div className="flex justify-between text-green-600">
+                                <span>Desconto Compromisso (-{pricing.breakdown.commitment_discount_pct}%):</span>
+                                <span>-{pricing.formatPrice(pricing.breakdown.commitment_discount_cents)}</span>
+                              </div>
+                            )}
+                            {pricing.breakdown.promo_discount_cents > 0 && (
+                              <div className="flex justify-between text-green-600">
+                                <span>Desconto Promo (-{pricing.breakdown.promo_discount_pct}%):</span>
+                                <span>-{pricing.formatPrice(pricing.breakdown.promo_discount_cents)}</span>
+                              </div>
+                            )}
+                            <Separator className="my-2" />
+                            <div className="flex justify-between font-semibold">
+                              <span>Mensal:</span>
+                              <span>{pricing.formatPrice(pricing.breakdown.monthly_price_cents)}</span>
+                            </div>
+                            {enrollmentFeeCents > 0 && (
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Taxa Matricula:</span>
+                                <span>{pricing.formatPrice(enrollmentFeeCents)}</span>
+                              </div>
+                            )}
+                            <Separator className="my-2" />
+                            <div className="flex justify-between text-lg font-bold">
+                              <span>TOTAL HOJE:</span>
+                              <span className="text-accent">{pricing.formatPrice(totalCents)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </TabsContent>
+              </Tabs>
+
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setCurrentStep(1)} className="flex-1">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Voltar
+                </Button>
+                <Button
+                  onClick={handlePricingConfirm}
+                  className="flex-1 bg-accent hover:bg-accent/90"
+                  disabled={!canProceed}
+                >
+                  Continuar
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}
 
         {/* Step 3: Payment Method */}
-        {currentStep === 3 && selectedMember && pricing.breakdown && (
+        {currentStep === 3 && selectedMember && (pricingMode === 'plan' ? selectedPlan : pricing.breakdown) && (
           <Card>
             <CardHeader>
               <CardTitle>3. Metodo de Pagamento</CardTitle>
@@ -818,11 +975,15 @@ const Enrollment = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Compromisso:</span>
-                    <span>{pricing.selectedCommitmentMonths} mes(es)</span>
+                    <span>
+                      {pricingMode === 'plan'
+                        ? (selectedPlan?.commitment_months || 1)
+                        : pricing.selectedCommitmentMonths} mes(es)
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Mensal:</span>
-                    <span>{pricing.formatPrice(pricing.breakdown.monthly_price_cents)}</span>
+                    <span>{pricing.formatPrice(finalPriceCents)}</span>
                   </div>
                   {enrollmentFeeCents > 0 && (
                     <div className="flex justify-between">

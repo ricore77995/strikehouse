@@ -1998,11 +1998,78 @@ Cálculo:
 5. **Snapshot é imutável** - mudanças em PricingConfig não afetam subscriptions existentes
 6. **Override por plano** - Plan.pricing_override sobrescreve PricingConfig
 
-### 22.8 Enrollment com Pricing Engine
+### 22.8 Plans como Snapshots de Pricing
 
-A página de matrícula (`/staff/enrollment`) integra o Pricing Engine com duas opções:
+#### Conceito
 
-#### Step 2: Configurar Subscrição (Dual Mode)
+Plans funcionam como **templates reutilizáveis** com preço fixo. Staff pode escolher entre usar um plano pré-definido ou configurar preços customizados via Pricing Engine.
+
+```
+┌─────────────────────────────────────────────┐
+│         MODOS DE PRECIFICAÇÃO               │
+├─────────────────┬───────────────────────────┤
+│    PLANOS       │     CUSTOMIZADO           │
+│  (templates)    │   (pricing engine)        │
+├─────────────────┼───────────────────────────┤
+│ • Preço fixo    │ • Fórmula dinâmica        │
+│ • preco_cents   │ • B + (M-1) × E           │
+│ • plan_id set   │ • plan_id = null          │
+└─────────────────┴───────────────────────────┘
+```
+
+#### Plan como Template
+
+```typescript
+interface Plan {
+  // Identificação
+  id: string;
+  nome: string;
+  tipo: 'SUBSCRIPTION' | 'CREDITS' | 'DAILY_PASS';
+
+  // Pricing snapshot (preço fixo)
+  preco_cents: number;           // Preço final mensal
+  enrollment_fee_cents: number;  // Taxa de matrícula
+  duracao_dias: number | null;   // Duração em dias
+  creditos: number | null;       // Para tipo CREDITS
+
+  // Conteúdo do plano
+  modalities: string[];          // Quais modalidades inclui
+  commitment_months: number;     // Meses de compromisso
+
+  // Controle
+  visible: boolean;              // Mostrar no seletor
+  ativo: boolean;                // Aceita novas subscrições
+}
+```
+
+### 22.9 Enrollment/Payment com Dual Mode
+
+As páginas de matrícula (`/staff/enrollment`) e pagamento (`/staff/payment`) integram ambos os modos:
+
+#### Step 2: Configurar Subscrição (Tabs)
+
+```tsx
+<Tabs defaultValue="plans">
+  <TabsList>
+    <TabsTrigger value="plans">
+      <Package /> Planos
+    </TabsTrigger>
+    <TabsTrigger value="custom">
+      <Settings /> Customizado
+    </TabsTrigger>
+  </TabsList>
+
+  <TabsContent value="plans">
+    <PlanSelector plans={visiblePlans} ... />
+  </TabsContent>
+
+  <TabsContent value="custom">
+    <ModalitySelector ... />
+    <CommitmentSelector ... />
+    <PromoCodeInput ... />
+  </TabsContent>
+</Tabs>
+```
 
 | Tab | Descrição | Uso |
 |-----|-----------|-----|
@@ -2010,8 +2077,10 @@ A página de matrícula (`/staff/enrollment`) integra o Pricing Engine com duas 
 | **Customizado** | Pricing Engine completo | Configuração flexível por modalidade |
 
 **Tab Planos:**
-- Lista de planos visíveis (`plans.visible = true`)
-- Preço fixo do plano + taxa de matrícula (se LEAD)
+- Lista de planos visíveis (`plans.visible = true` e `plans.ativo = true`)
+- Preço fixo do plano (`plan.preco_cents`)
+- Taxa de matrícula do plano (se LEAD)
+- Mostra: tipo (badge), modalidades, commitment, preço
 - Ideal para: "Mensal Boxe €60", "Trimestral MMA €150"
 
 **Tab Customizado:**
@@ -2028,38 +2097,128 @@ A página de matrícula (`/staff/enrollment`) integra o Pricing Engine com duas 
   - + Taxa matrícula (se LEAD)
   - = **TOTAL HOJE**
 
+#### Fluxo de Dados
+
+```
+[Staff Enrollment/Payment]
+       │
+       ▼
+┌──────┴──────┐
+│             │
+▼             ▼
+PLANO       CUSTOM
+(preco_cents) (pricing engine)
+│             │
+└──────┬──────┘
+       │
+       ▼
+   Subscription
+   (snapshot)
+```
+
 #### Dados da Subscription
 
 Independente do modo, cria registro em `subscriptions` com snapshot:
 
+**Quando seleciona PLANO:**
 ```typescript
 {
   member_id: string,
-  plan_id: string | null,  // null se custom
-  modalities: UUID[],
-  commitment_months: number,
-  calculated_price_cents: number,  // subtotal
-  commitment_discount_pct: number,
-  promo_discount_pct: number,
-  final_price_cents: number,  // mensal após descontos
-  enrollment_fee_cents: number,
-  commitment_discount_id: string | null,
-  promo_discount_id: string | null,
-  starts_at: date,
-  expires_at: date,
+  plan_id: selectedPlan.id,      // REFERÊNCIA ao template
+  modalities: selectedPlan.modalities,
+  commitment_months: selectedPlan.commitment_months,
+  calculated_price_cents: selectedPlan.preco_cents,
+  commitment_discount_pct: 0,    // Já incluso no preço
+  promo_discount_pct: 0,
+  final_price_cents: selectedPlan.preco_cents,
+  enrollment_fee_cents: selectedPlan.enrollment_fee_cents,
+  starts_at: today,
+  expires_at: addDays(today, selectedPlan.duracao_dias ?? 30),
   status: 'active'
 }
 ```
 
-### 22.9 Interfaces Admin
+**Quando seleciona CUSTOMIZADO:**
+```typescript
+{
+  member_id: string,
+  plan_id: null,                 // SEM template
+  modalities: pricing.selectedModalities,
+  commitment_months: pricing.selectedCommitmentMonths,
+  calculated_price_cents: pricing.breakdown.subtotal_cents,
+  commitment_discount_pct: pricing.breakdown.commitment_discount_pct,
+  promo_discount_pct: pricing.breakdown.promo_discount_pct,
+  final_price_cents: pricing.breakdown.monthly_price_cents,
+  enrollment_fee_cents: enrollmentFeeCents,
+  commitment_discount_id: pricing.discountIds.commitment,
+  promo_discount_id: pricing.discountIds.promo,
+  starts_at: today,
+  expires_at: calculateExpiresAt(today, pricing.selectedCommitmentMonths),
+  status: 'active'
+}
+```
+
+### 22.10 Componentes de UI
+
+#### PlanSelector Component
+
+Componente reutilizável para seleção de planos:
+
+```tsx
+interface PlanSelectorProps {
+  plans: Plan[];
+  selectedPlan: Plan | null;
+  onSelect: (plan: Plan) => void;
+  isLoading?: boolean;
+}
+```
+
+**Localização:** `src/components/PlanSelector.tsx`
+
+**Características:**
+- Loading state com skeleton
+- Empty state: "Nenhum plano disponível"
+- Visual de seleção (border accent quando selecionado)
+- Mostra: nome, badge tipo, modalidades, commitment, preço, taxa
+
+#### usePlans Hook
+
+Hook para buscar planos visíveis:
+
+```typescript
+// src/hooks/usePlans.ts
+export const usePlans = () => {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['plans', 'visible'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('plans')
+        .select('*')
+        .eq('ativo', true)
+        .eq('visible', true)
+        .order('preco_cents', { ascending: true });
+      if (error) throw error;
+      return data as Plan[];
+    },
+    staleTime: 5 * 60 * 1000, // Cache 5 min
+  });
+
+  return { plans: data || [], isLoading, error };
+};
+```
+
+**Também disponível:** `useAllPlans()` para admin (todos os planos, sem filtro)
+
+### 22.11 Interfaces Admin
 
 | Rota | Descrição | Acesso |
 |------|-----------|--------|
 | `/admin/pricing` | Configurar preços base | OWNER, ADMIN |
 | `/admin/discounts` | Gerenciar descontos e promos | OWNER, ADMIN |
 | `/admin/modalities` | Gerenciar modalidades | OWNER, ADMIN |
+| `/admin/plans` | Gerenciar planos (com visible toggle) | OWNER, ADMIN |
 
-### 22.10 Validação de Código Promocional
+### 22.12 Validação de Código Promocional
 
 ```javascript
 function validatePromoCode(code, isNewMember) {
