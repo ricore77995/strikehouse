@@ -102,6 +102,7 @@ const Modalities = () => {
       }
       handleCloseDialog();
     } catch (error) {
+      console.error('Modality save error:', error);
       toast({
         title: editingModality ? 'Erro ao atualizar' : 'Erro ao criar',
         description: 'Verifique se o codigo ja existe',
@@ -118,6 +119,7 @@ const Modalities = () => {
       });
       toast({ title: 'Status atualizado' });
     } catch (error) {
+      console.error('Modality toggle error:', error);
       toast({ title: 'Erro ao atualizar status', variant: 'destructive' });
     }
   };

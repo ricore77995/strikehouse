@@ -159,6 +159,7 @@ const Discounts = () => {
       }
       handleCloseDialog();
     } catch (error) {
+      console.error('Discount save error:', error);
       toast({
         title: editingDiscount ? 'Erro ao atualizar' : 'Erro ao criar',
         description: 'Verifique se o codigo ja existe',
@@ -175,6 +176,7 @@ const Discounts = () => {
       });
       toast({ title: 'Status atualizado' });
     } catch (error) {
+      console.error('Discount toggle error:', error);
       toast({ title: 'Erro ao atualizar status', variant: 'destructive' });
     }
   };

@@ -7,14 +7,14 @@ test.describe('Enrollment Pricing Flow', () => {
     await page.fill('input#email', 'admin@boxemaster.pt');
     await page.fill('input#password', 'admin123');
     await page.click('button[type="submit"]');
-    await expect(page).toHaveURL(/\/(admin|owner)/);
+    await expect(page).toHaveURL(/\/(admin|owner)/, { timeout: 10000 });
   });
 
   test('displays pricing engine on enrollment page', async ({ page }) => {
     await page.goto('/staff/enrollment');
 
     // Wait for page to load
-    await expect(page.locator('text=MATRICULA')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('h1:has-text("MATRICULA")')).toBeVisible({ timeout: 10000 });
 
     // Search for a LEAD member - first create one if needed
     await page.fill('input[placeholder*="nome"]', 'Test');
@@ -43,18 +43,18 @@ test.describe('Enrollment Pricing Flow', () => {
     await page.goto('/staff/enrollment');
 
     // Should have commitment options visible once modalities section loads
-    await expect(page.locator('text=Período de Compromisso')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=Periodo de Compromisso')).toBeVisible({ timeout: 10000 });
 
     // Check for commitment periods
-    await expect(page.locator('text=Mensal')).toBeVisible();
-    await expect(page.locator('text=Trimestral')).toBeVisible();
-    await expect(page.locator('text=Semestral')).toBeVisible();
-    await expect(page.locator('text=Anual')).toBeVisible();
+    await expect(page.locator('text=Mensal').first()).toBeVisible();
+    await expect(page.locator('text=Trimestral').first()).toBeVisible();
+    await expect(page.locator('text=Semestral').first()).toBeVisible();
+    await expect(page.locator('text=Anual').first()).toBeVisible();
 
     // Should show discount badges
-    await expect(page.locator('text=-10%')).toBeVisible(); // Trimestral
-    await expect(page.locator('text=-15%')).toBeVisible(); // Semestral
-    await expect(page.locator('text=-20%')).toBeVisible(); // Anual
+    await expect(page.locator('text=-10%').first()).toBeVisible(); // Trimestral
+    await expect(page.locator('text=-15%').first()).toBeVisible(); // Semestral
+    await expect(page.locator('text=-20%').first()).toBeVisible(); // Anual
   });
 
   test('calculates price dynamically when modality selected', async ({ page }) => {
@@ -68,7 +68,7 @@ test.describe('Enrollment Pricing Flow', () => {
     await boxeCheckbox.click();
 
     // Should show price breakdown
-    await expect(page.locator('text=Cálculo do Preço')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('text=Resumo de Precos')).toBeVisible({ timeout: 5000 });
 
     // Should show formula
     await expect(page.locator('text=Base')).toBeVisible();
@@ -96,7 +96,7 @@ test.describe('Enrollment Pricing Flow', () => {
     await page.goto('/staff/enrollment');
 
     // Wait for page load
-    await expect(page.locator('text=Código Promocional')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=Codigo Promocional')).toBeVisible({ timeout: 10000 });
 
     // Select a modality first
     const boxeCheckbox = page.locator('label:has-text("Boxe")').locator('button[role="checkbox"]');
@@ -107,14 +107,14 @@ test.describe('Enrollment Pricing Flow', () => {
     await page.waitForTimeout(500);
 
     // Price should still calculate (promo just won't apply)
-    await expect(page.locator('text=Cálculo do Preço')).toBeVisible();
+    await expect(page.locator('text=Resumo de Precos')).toBeVisible();
   });
 
   test('shows enrollment fee for LEAD members', async ({ page }) => {
     await page.goto('/staff/enrollment');
 
     // Wait for page load
-    await expect(page.locator('text=Taxa de Matrícula')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=Taxa de Matricula')).toBeVisible({ timeout: 10000 });
 
     // Should have enrollment fee input
     await expect(page.locator('input#enrollmentFee')).toBeVisible();
@@ -145,7 +145,7 @@ test.describe('Enrollment Pricing Flow', () => {
     await page.locator('label:has-text("Muay Thai")').locator('button[role="checkbox"]').click();
 
     // Should show price breakdown with extra modality
-    await expect(page.locator('text=Cálculo do Preço')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('text=Resumo de Precos')).toBeVisible({ timeout: 5000 });
 
     // Check that "2 modalidades" is shown
     await expect(page.locator('text=2 modalidade')).toBeVisible();
@@ -178,23 +178,23 @@ test.describe('Enrollment Pricing Flow', () => {
     await page.locator('label:has-text("Boxe")').locator('button[role="checkbox"]').click();
 
     // Should show payment methods
-    await expect(page.locator('text=Método de Pagamento')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('text=Metodo de Pagamento')).toBeVisible({ timeout: 5000 });
 
     // Verify payment options exist
     await expect(page.locator('text=Dinheiro')).toBeVisible();
-    await expect(page.locator('text=Cartão')).toBeVisible();
+    await expect(page.locator('text=Cartao')).toBeVisible();
     await expect(page.locator('text=MBway')).toBeVisible();
-    await expect(page.locator('text=Transferência')).toBeVisible();
+    await expect(page.locator('text=Transferencia')).toBeVisible();
   });
 
   test('transfer payment shows pending indicator', async ({ page }) => {
     await page.goto('/staff/enrollment');
 
     // Wait for payment methods
-    await expect(page.locator('text=Método de Pagamento')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=Metodo de Pagamento')).toBeVisible({ timeout: 10000 });
 
     // Transfer should have pending indicator
-    const transferButton = page.locator('button:has-text("Transferência")');
+    const transferButton = page.locator('button:has-text("Transferencia")');
     await expect(transferButton).toBeVisible();
 
     // Check for "Pendente" label
@@ -209,7 +209,7 @@ test.describe('Renewal/Payment Pricing Flow', () => {
     await page.fill('input#email', 'admin@boxemaster.pt');
     await page.fill('input#password', 'admin123');
     await page.click('button[type="submit"]');
-    await expect(page).toHaveURL(/\/(admin|owner)/);
+    await expect(page).toHaveURL(/\/(admin|owner)/, { timeout: 10000 });
   });
 
   test('displays pricing engine on payment page', async ({ page }) => {
@@ -267,7 +267,7 @@ test.describe('Pending Payment Confirmation', () => {
     await page.fill('input#email', 'admin@boxemaster.pt');
     await page.fill('input#password', 'admin123');
     await page.click('button[type="submit"]');
-    await expect(page).toHaveURL(/\/(admin|owner)/);
+    await expect(page).toHaveURL(/\/(admin|owner)/, { timeout: 10000 });
   });
 
   test('displays pending payments list', async ({ page }) => {

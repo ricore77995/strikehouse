@@ -37,6 +37,7 @@ const PricingConfig = () => {
 
     try {
       await updateConfig.mutateAsync({
+        id: config.id,
         base_price_cents: Math.round(parseFloat(basePrice) * 100),
         extra_modality_price_cents: Math.round(parseFloat(extraModalityPrice) * 100),
         single_class_price_cents: Math.round(parseFloat(singleClassPrice) * 100),
@@ -45,6 +46,7 @@ const PricingConfig = () => {
       });
       toast({ title: 'Configuracao atualizada com sucesso' });
     } catch (error) {
+      console.error('PricingConfig update error:', error);
       toast({ title: 'Erro ao atualizar configuracao', variant: 'destructive' });
     }
   };

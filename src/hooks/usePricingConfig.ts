@@ -40,13 +40,16 @@ export const useUpdatePricingConfig = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (updates: Partial<Omit<PricingConfig, 'id' | 'updated_at'>>) => {
+    mutationFn: async (updates: Partial<Omit<PricingConfig, 'id' | 'updated_at'>> & { id: string }) => {
+      const { id, ...updateData } = updates;
+
       const { data, error } = await supabase
         .from('pricing_config')
         .update({
-          ...updates,
+          ...updateData,
           updated_at: new Date().toISOString(),
         })
+        .eq('id', id)
         .select()
         .single();
 

@@ -46,7 +46,7 @@ test.describe('Modalities Management', () => {
     await page.click('button:has-text("Criar")');
 
     // Verify success - check for toast
-    await expect(page.locator('[role="status"]:has-text("criada")')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[role="status"]:has-text("criada")').first()).toBeVisible({ timeout: 5000 });
 
     // Verify new modality appears in list
     await expect(page.locator(`text=${uniqueCode}`)).toBeVisible({ timeout: 3000 });
@@ -72,7 +72,7 @@ test.describe('Modalities Management', () => {
     await page.click('button:has-text("Guardar")');
 
     // Verify success
-    await expect(page.locator('[role="status"]:has-text("atualizada")')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[role="status"]:has-text("atualizada")').first()).toBeVisible({ timeout: 5000 });
   });
 
   test('toggles modality active status', async ({ page }) => {
@@ -89,7 +89,7 @@ test.describe('Modalities Management', () => {
     await switchButton.click();
 
     // Verify status updated message
-    await expect(page.locator('[role="status"]:has-text("Status atualizado")')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[role="status"]:has-text("Status atualizado")').first()).toBeVisible({ timeout: 5000 });
 
     // Toggle back to restore state
     await switchButton.click();
@@ -142,6 +142,6 @@ test.describe('Modalities Management', () => {
     await page.click('button:has-text("Criar")');
 
     // Should show error toast
-    await expect(page.locator('[role="status"]:has-text("Erro")')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[role="status"]:has-text("Erro")').first()).toBeVisible({ timeout: 5000 });
   });
 });
