@@ -48,7 +48,7 @@ const Footer = () => {
               </p>
               <div className="text-sm font-light leading-relaxed">
                 <a
-                  href="https://maps.app.goo.gl/CMJzJHm7u2ipaRQr6"
+                  href="https://maps.app.goo.gl/DSA4ELchDnkmHdRB6"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-accent transition-colors"
