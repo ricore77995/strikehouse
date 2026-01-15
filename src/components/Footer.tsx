@@ -17,7 +17,7 @@ const Footer = () => {
       {/* Map Section */}
       <div className="w-full h-[300px] md:h-[400px]">
         <iframe
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3114.5849836111884!2d-9.332986523984074!3d38.68140495941958!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd1ec8dc68f3aec3%3A0x68d155a2569dea0d!2sR.%20It%C3%A1lia%2C%20Praia%20de%20Carcavelos%2C%202775-604%20Carcavelos!5e0!3m2!1sen!2spt!4v1768251280235!5m2!1sen!2spt"
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3114.5735200358586!2d-9.332699823984026!3d38.68166835940425!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd1ec8dc6b8f548f%3A0x5f750a9b57923b01!2sR.%20It%C3%A1lia%202a%201%20andar%20sala%20G%2C%202775-604%20Carcavelos!5e0!3m2!1sen!2spt!4v1768486945464!5m2!1sen!2spt"
           width="100%"
           height="100%"
           style={{ border: 0 }}
