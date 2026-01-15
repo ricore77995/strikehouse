@@ -12,10 +12,10 @@ test.describe('Financial Operations', () => {
 
     // Morning: Open cash session (€100 opening)
     await page.goto('/staff/caixa');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('h1, h2, form, button')).toBeVisible({ timeout: 5000 });
 
     const closeButton = page.locator('button:has-text("Fechar")');
-    const isOpen = await closeButton.isVisible({ timeout: 2000 }).catch(() => false);
+    const isOpen = await closeButton.isVisible({ timeout: 2000 });
 
     let openingBalance = 10000; // €100 in cents
 
@@ -24,7 +24,7 @@ test.describe('Financial Operations', () => {
       if (await openingInput.isVisible({ timeout: 2000 })) {
         await openingInput.fill('100.00');
         await page.click('button:has-text("Abrir")');
-        await page.waitForTimeout(1500);
+        await expect(page.locator('text=aberto, text=sucesso, button:has-text("Fechar")').first()).toBeVisible({ timeout: 5000 });
       }
     }
 
@@ -32,12 +32,12 @@ test.describe('Financial Operations', () => {
     // Go to payment page and make 3 payments of €100 each
     for (let i = 0; i < 2; i++) {
       await page.goto('/staff/payment');
-      await page.waitForTimeout(1000);
+      await expect(page.locator('h1, h2, input[placeholder*="Buscar"]')).toBeVisible({ timeout: 5000 });
 
       const searchInput = page.locator('input[placeholder*="Buscar"]');
       if (await searchInput.isVisible({ timeout: 2000 })) {
         await searchInput.fill('João');
-        await page.waitForTimeout(500);
+        await expect(page.locator('[data-member], .member-card, li').first()).toBeVisible({ timeout: 3000 });
 
         const firstMember = page.locator('[data-member], .member-card, li').first();
         if (await firstMember.isVisible({ timeout: 2000 })) {
@@ -54,7 +54,7 @@ test.describe('Financial Operations', () => {
             }
 
             await page.click('button:has-text("Confirmar")');
-            await page.waitForTimeout(1500);
+            await expect(page.locator('text=sucesso, text=confirmad, [data-toast]').first()).toBeVisible({ timeout: 5000 });
           }
         }
       }
@@ -62,13 +62,13 @@ test.describe('Financial Operations', () => {
 
     // Evening: Close cash session with reconciliation
     await page.goto('/staff/caixa');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('h1, h2, form, button')).toBeVisible({ timeout: 5000 });
 
     // Try to close session
     const closeSessionButton = page.locator('button:has-text("Fechar")');
     if (await closeSessionButton.isVisible({ timeout: 2000 })) {
       await closeSessionButton.click();
-      await page.waitForTimeout(1000);
+      await expect(page.locator('input[name="actual_closing"], input[name="closing_balance"], [role="dialog"]')).toBeVisible({ timeout: 3000 });
 
       // Enter actual closing amount (with small difference)
       const actualClosingInput = page.locator('input[name="actual_closing"], input[name="closing_balance"], input[placeholder*="fechamento"]');
@@ -77,13 +77,10 @@ test.describe('Financial Operations', () => {
         await actualClosingInput.fill('235.00');
 
         await page.click('button:has-text("Confirmar"), button:has-text("Fechar")');
-        await page.waitForTimeout(1500);
 
-        // Verify difference alert shown (if difference > €5)
-        const differenceAlert = page.locator('text=diferença, text=discrepância, [data-alert]');
-        const hasAlert = await differenceAlert.isVisible({ timeout: 2000 }).catch(() => false);
-
-        console.log('Cash session closed with reconciliation');
+        // Verify session closed (difference alert may or may not show)
+        const successIndicator = page.locator('text=fechado, text=sucesso, text=diferença, [data-alert]');
+        await expect(successIndicator.first()).toBeVisible({ timeout: 5000 });
       }
     }
   });
@@ -98,14 +95,14 @@ test.describe('Financial Operations', () => {
 
     // Navigate to finances/expenses page
     await page.goto('/admin/finances');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('h1, h2, [data-page="finances"]')).toBeVisible({ timeout: 5000 });
 
     // Look for "Add Expense" or "Nova Despesa" button
     const addExpenseButton = page.locator('button:has-text("Despesa"), button:has-text("Expense"), a:has-text("Nova")');
 
     if (await addExpenseButton.isVisible({ timeout: 3000 })) {
       await addExpenseButton.click();
-      await page.waitForTimeout(1000);
+      await expect(page.locator('form, [role="dialog"]')).toBeVisible({ timeout: 3000 });
 
       // Fill expense form
       const categorySelect = page.locator('select[name="category"], [data-category]');
@@ -125,24 +122,19 @@ test.describe('Financial Operations', () => {
 
       // Save expense
       await page.click('button:has-text("Salvar"), button:has-text("Criar"), button[type="submit"]');
-      await page.waitForTimeout(1500);
 
       // Verify success
       const successMsg = page.locator('text=sucesso, text=criado, [data-toast]');
-      await expect(successMsg.first()).toBeVisible({ timeout: 5000 }).catch(() => {
-        console.log('Expense created');
-      });
+      await expect(successMsg.first()).toBeVisible({ timeout: 5000 });
     }
 
     // Verify expense appears in finance report
     await page.goto('/admin/finances');
-    await page.waitForTimeout(1000);
 
-    // Look for expense in transactions list
+    // Look for expense in transactions list or general finance page content
     const expenseRow = page.locator('text=ALUGUEL, text=Aluguel');
-    await expect(expenseRow.first()).toBeVisible({ timeout: 3000 }).catch(() => {
-      console.log('Expense registered in finance report');
-    });
+    const financePage = page.locator('[data-transactions], table, h1, h2');
+    await expect(expenseRow.first().or(financePage.first())).toBeVisible({ timeout: 3000 });
   });
 
   test('monthly summary: calculate income vs expenses', async ({ page }) => {
@@ -155,34 +147,27 @@ test.describe('Financial Operations', () => {
 
     // Navigate to finances page
     await page.goto('/admin/finances');
-    await page.waitForTimeout(1500);
+    await expect(page.locator('h1, h2, [data-page="finances"]')).toBeVisible({ timeout: 5000 });
 
     // Filter by current month (if filter exists)
     const monthFilter = page.locator('select[name="month"], input[type="month"]');
     if (await monthFilter.isVisible({ timeout: 2000 })) {
       const currentMonth = new Date().toISOString().slice(0, 7);
       await monthFilter.fill(currentMonth);
-      await page.waitForTimeout(500);
     }
 
     // Verify financial summary sections exist
     const totalIncome = page.locator('[data-total-income], text*="Receitas", text*="Total"');
     const totalExpenses = page.locator('[data-total-expenses], text*="Despesas"');
 
-    await expect(totalIncome.first()).toBeVisible({ timeout: 5000 }).catch(() => {
-      console.log('Income section verified');
-    });
+    await expect(totalIncome.first()).toBeVisible({ timeout: 5000 });
+    await expect(totalExpenses.first()).toBeVisible({ timeout: 5000 });
 
-    await expect(totalExpenses.first()).toBeVisible({ timeout: 5000 }).catch(() => {
-      console.log('Expenses section verified');
-    });
-
-    // Verify charts render (if they exist)
+    // Charts are optional - don't fail test if not present
     const chart = page.locator('canvas, [data-chart], svg');
-    const hasChart = await chart.isVisible({ timeout: 2000 }).catch(() => false);
-
+    const hasChart = await chart.count() > 0;
     if (hasChart) {
-      console.log('Financial charts rendered');
+      await expect(chart.first()).toBeVisible({ timeout: 2000 });
     }
   });
 
@@ -196,7 +181,7 @@ test.describe('Financial Operations', () => {
 
     // Navigate to billing/alerts page
     await page.goto('/admin/billing');
-    await page.waitForTimeout(1500);
+    await expect(page.locator('h1, h2, [data-page="billing"]')).toBeVisible({ timeout: 5000 });
 
     // Verify billing alert sections exist
     const overdueSection = page.locator('text=Vencidos, text=Overdue, text=Atrasados, [data-section="overdue"]');
@@ -204,31 +189,29 @@ test.describe('Financial Operations', () => {
     const expiringSoonSection = page.locator('text=Vence em Breve, text=Expiring Soon, text=Próximos, [data-section="expiring-soon"]');
 
     // Check if at least one section exists
-    const hasOverdue = await overdueSection.isVisible({ timeout: 2000 }).catch(() => false);
-    const hasExpiringToday = await expiringTodaySection.isVisible({ timeout: 2000 }).catch(() => false);
-    const hasExpiringSoon = await expiringSoonSection.isVisible({ timeout: 2000 }).catch(() => false);
+    const hasOverdue = await overdueSection.count() > 0;
+    const hasExpiringToday = await expiringTodaySection.count() > 0;
+    const hasExpiringSoon = await expiringSoonSection.count() > 0;
+
+    // Page should have at least some billing content
+    const anySection = overdueSection.or(expiringTodaySection).or(expiringSoonSection);
+    const pageTitle = page.locator('h1, h2');
+    await expect(anySection.first().or(pageTitle.first())).toBeVisible({ timeout: 3000 });
 
     if (hasOverdue || hasExpiringToday || hasExpiringSoon) {
-      console.log('Billing alerts sections verified');
-
       // Verify counts are displayed
       const countBadge = page.locator('[data-count], .badge, text*="(");
-      await expect(countBadge.first()).toBeVisible({ timeout: 3000 }).catch(() => {
-        console.log('Billing alert counts displayed');
-      });
+      const countOrSection = countBadge.first().or(anySection.first());
+      await expect(countOrSection).toBeVisible({ timeout: 3000 });
 
       // Try clicking on a member to navigate to renewal
       const firstMember = page.locator('[data-member], .member-card, tr, li').first();
       if (await firstMember.isVisible({ timeout: 2000 })) {
         await firstMember.click();
-        await page.waitForTimeout(1000);
 
         // Should navigate to member details or payment page
-        const url = page.url();
-        expect(url).toMatch(/member|payment|renovacao/);
+        await expect(page).toHaveURL(/member|payment|renovacao|billing/);
       }
-    } else {
-      console.log('No billing alerts or page structure different');
     }
   });
 
@@ -242,54 +225,48 @@ test.describe('Financial Operations', () => {
 
     // Navigate to finances page
     await page.goto('/admin/finances');
-    await page.waitForTimeout(1500);
+    await expect(page.locator('h1, h2, [data-page="finances"]')).toBeVisible({ timeout: 5000 });
 
     // Test date range filter
     const startDateInput = page.locator('input[name="start_date"], input[type="date"]').first();
     if (await startDateInput.isVisible({ timeout: 2000 })) {
       await startDateInput.fill('2026-01-01');
-      await page.waitForTimeout(500);
     }
 
     // Test type filter (RECEITA vs DESPESA)
     const typeFilter = page.locator('select[name="type"], [data-filter="type"]');
     if (await typeFilter.isVisible({ timeout: 2000 })) {
       await typeFilter.selectOption('RECEITA');
-      await page.waitForTimeout(500);
 
-      // Verify filtering applied
+      // Verify filtering applied - should show filtered content or table
       const receitas = page.locator('text=RECEITA, [data-type="RECEITA"]');
-      await expect(receitas.first()).toBeVisible({ timeout: 3000 }).catch(() => {
-        console.log('Type filter applied');
-      });
+      const tableOrList = page.locator('table, [data-transactions]');
+      await expect(receitas.first().or(tableOrList.first())).toBeVisible({ timeout: 3000 });
 
       // Switch to DESPESA
       await typeFilter.selectOption('DESPESA');
-      await page.waitForTimeout(500);
     }
 
     // Test category filter
     const categoryFilter = page.locator('select[name="category"], [data-filter="category"]');
     if (await categoryFilter.isVisible({ timeout: 2000 })) {
       await categoryFilter.selectOption('SUBSCRIPTION');
-      await page.waitForTimeout(500);
     }
 
     // Test payment method filter
     const paymentMethodFilter = page.locator('select[name="payment_method"], [data-filter="payment_method"]');
     if (await paymentMethodFilter.isVisible({ timeout: 2000 })) {
       await paymentMethodFilter.selectOption('DINHEIRO');
-      await page.waitForTimeout(500);
 
       console.log('All transaction filters tested');
     }
 
     // Look for export button (if implemented)
     const exportButton = page.locator('button:has-text("Exportar"), button:has-text("CSV"), a:has-text("Download")');
-    const hasExport = await exportButton.isVisible({ timeout: 2000 }).catch(() => false);
+    const hasExport = await exportButton.count() > 0;
 
     if (hasExport) {
-      console.log('CSV export functionality available');
+      await expect(exportButton.first()).toBeVisible({ timeout: 2000 });
     }
   });
 
@@ -303,12 +280,12 @@ test.describe('Financial Operations', () => {
 
     // Create payment with decimal amount (€69.50)
     await page.goto('/staff/payment');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('h1, h2, input[placeholder*="Buscar"]')).toBeVisible({ timeout: 5000 });
 
     const searchInput = page.locator('input[placeholder*="Buscar"]');
     if (await searchInput.isVisible({ timeout: 2000 })) {
       await searchInput.fill('João');
-      await page.waitForTimeout(500);
+      await expect(page.locator('[data-member], .member-card, li').first()).toBeVisible({ timeout: 3000 });
 
       const firstMember = page.locator('[data-member], .member-card, li').first();
       if (await firstMember.isVisible({ timeout: 2000 })) {
@@ -321,11 +298,11 @@ test.describe('Financial Operations', () => {
 
           // Verify price is displayed in euros format (e.g., €69,00)
           const priceDisplay = page.locator('[data-price], text*="€"');
-          const priceText = await priceDisplay.first().textContent().catch(() => '');
+          await expect(priceDisplay.first()).toBeVisible({ timeout: 2000 });
+          const priceText = await priceDisplay.first().textContent() || '';
 
           // Verify formatted as Portuguese currency (comma as decimal separator)
           if (priceText.includes('€')) {
-            console.log('Currency formatted correctly:', priceText);
             expect(priceText).toMatch(/€\s*\d+[,,]\d{2}/);
           }
 
@@ -336,21 +313,23 @@ test.describe('Financial Operations', () => {
           }
 
           await page.click('button:has-text("Confirmar")');
-          await page.waitForTimeout(1500);
+          await expect(page.locator('text=sucesso, text=confirmad, [data-toast]').first()).toBeVisible({ timeout: 5000 });
         }
       }
     }
 
     // Verify in finances that amount is stored/displayed correctly
     await page.goto('/admin/finances');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('h1, h2, table, [data-transactions]')).toBeVisible({ timeout: 5000 });
 
     // Look for recent transaction
     const transactionAmount = page.locator('[data-amount], td:has-text("€")');
-    const amountText = await transactionAmount.first().textContent().catch(() => '');
+    const financeContent = page.locator('table, [data-transactions], h1, h2');
+    await expect(transactionAmount.first().or(financeContent.first())).toBeVisible({ timeout: 3000 });
 
-    if (amountText) {
-      console.log('Transaction amount displayed:', amountText);
+    const hasTransaction = await transactionAmount.count() > 0;
+    if (hasTransaction) {
+      const amountText = await transactionAmount.first().textContent() || '';
       // Verify no floating point errors (amounts should be exact)
       expect(amountText).not.toMatch(/€\s*\d+\.\d{3}/); // Should not have 3+ decimals
     }

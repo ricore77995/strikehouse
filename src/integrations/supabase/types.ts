@@ -1,4 +1,3 @@
-Initialising login role...
 export type Json =
   | string
   | number
@@ -642,6 +641,7 @@ export type Database = {
           email: string | null
           id: string
           nome: string
+          preferred_payment_method: string | null
           qr_code: string
           status: string | null
           telefone: string
@@ -657,6 +657,7 @@ export type Database = {
           email?: string | null
           id?: string
           nome: string
+          preferred_payment_method?: string | null
           qr_code: string
           status?: string | null
           telefone: string
@@ -672,6 +673,7 @@ export type Database = {
           email?: string | null
           id?: string
           nome?: string
+          preferred_payment_method?: string | null
           qr_code?: string
           status?: string | null
           telefone?: string
@@ -1204,6 +1206,7 @@ export type Database = {
       }
       subscriptions: {
         Row: {
+          auto_renew: boolean
           calculated_price_cents: number
           cancellation_reason: string | null
           cancelled_at: string | null
@@ -1217,16 +1220,22 @@ export type Database = {
           enrollment_fee_cents: number
           expires_at: string | null
           final_price_cents: number
+          freeze_reason: string | null
+          frozen_at: string | null
+          frozen_until: string | null
           id: string
           member_id: string
           modalities: string[]
+          original_expires_at: string | null
           plan_id: string | null
           promo_discount_id: string | null
           promo_discount_pct: number
+          renewal_reminder_sent_at: string | null
           starts_at: string
           status: string
         }
         Insert: {
+          auto_renew?: boolean
           calculated_price_cents: number
           cancellation_reason?: string | null
           cancelled_at?: string | null
@@ -1240,16 +1249,22 @@ export type Database = {
           enrollment_fee_cents?: number
           expires_at?: string | null
           final_price_cents: number
+          freeze_reason?: string | null
+          frozen_at?: string | null
+          frozen_until?: string | null
           id?: string
           member_id: string
           modalities?: string[]
+          original_expires_at?: string | null
           plan_id?: string | null
           promo_discount_id?: string | null
           promo_discount_pct?: number
+          renewal_reminder_sent_at?: string | null
           starts_at?: string
           status?: string
         }
         Update: {
+          auto_renew?: boolean
           calculated_price_cents?: number
           cancellation_reason?: string | null
           cancelled_at?: string | null
@@ -1263,12 +1278,17 @@ export type Database = {
           enrollment_fee_cents?: number
           expires_at?: string | null
           final_price_cents?: number
+          freeze_reason?: string | null
+          frozen_at?: string | null
+          frozen_until?: string | null
           id?: string
           member_id?: string
           modalities?: string[]
+          original_expires_at?: string | null
           plan_id?: string | null
           promo_discount_id?: string | null
           promo_discount_pct?: number
+          renewal_reminder_sent_at?: string | null
           starts_at?: string
           status?: string
         }

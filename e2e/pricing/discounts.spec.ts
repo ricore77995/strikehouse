@@ -235,7 +235,7 @@ test.describe('Discounts Management', () => {
     await switchBtn.click();
 
     // Wait for state to change
-    await page.waitForTimeout(500);
+    await expect(switchBtn).not.toHaveAttribute('data-state', initialState, { timeout: 3000 });
     const newState = await switchBtn.getAttribute('data-state');
     expect(newState).not.toBe(initialState);
   });
@@ -269,9 +269,8 @@ test.describe('Discounts Management', () => {
     await page.fill('input#discount_value', '20');
     await page.click('button:has-text("Criar")');
 
-    // Dialog should stay open (indicates error)
-    await page.waitForTimeout(1000);
-    await expect(page.locator('[role="dialog"]')).toBeVisible();
+    // Dialog should stay open (indicates error) or show error toast
+    await expect(page.locator('[role="dialog"]').or(page.locator('[role="status"]:has-text("Erro")'))).toBeVisible({ timeout: 5000 });
   });
 
   test('creates fixed amount discount', async ({ page }) => {

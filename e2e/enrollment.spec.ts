@@ -23,7 +23,7 @@ test.describe('First-Time Enrollment (LEAD Member)', () => {
     // 3. Navigate to enrollment page (not payment page)
     await page.goto('/staff/enrollment');
     await page.fill('input[placeholder*="Buscar"]', 'Maria Primeira Vez E2E');
-    await page.waitForTimeout(500); // Wait for search results
+    await expect(page.locator('text=Maria Primeira Vez E2E')).toBeVisible({ timeout: 3000 });
     await page.click('text=Maria Primeira Vez E2E');
 
     // 4. Select plan (should show enrollment fee)
@@ -47,7 +47,6 @@ test.describe('First-Time Enrollment (LEAD Member)', () => {
     // 6. Verify member status changed to ATIVO
     await page.goto('/admin/members');
     await page.fill('input[placeholder*="Buscar"]', 'Maria Primeira Vez E2E');
-    await page.waitForTimeout(500);
     await expect(page.locator('[data-status="ATIVO"]')).toBeVisible({ timeout: 5000 });
   });
 
@@ -70,7 +69,7 @@ test.describe('First-Time Enrollment (LEAD Member)', () => {
     // Go to enrollment
     await page.goto('/staff/enrollment');
     await page.fill('input[placeholder*="Buscar"]', 'Pedro Transferência E2E');
-    await page.waitForTimeout(500);
+    await expect(page.locator('text=Pedro Transferência E2E')).toBeVisible({ timeout: 3000 });
     await page.click('text=Pedro Transferência E2E');
 
     await page.waitForSelector('[data-plan-type="SUBSCRIPTION"]', { timeout: 10000 });
@@ -103,7 +102,7 @@ test.describe('First-Time Enrollment (LEAD Member)', () => {
     // Enroll with zero fee
     await page.goto('/staff/enrollment');
     await page.fill('input[placeholder*="Buscar"]', 'Ana Sem Taxa E2E');
-    await page.waitForTimeout(500);
+    await expect(page.locator('text=Ana Sem Taxa E2E')).toBeVisible({ timeout: 3000 });
     await page.click('text=Ana Sem Taxa E2E');
 
     await page.waitForSelector('[data-plan-type="SUBSCRIPTION"]', { timeout: 10000 });
@@ -137,7 +136,7 @@ test.describe('Member Renewal (No Enrollment Fee)', () => {
     // Search for any existing member (should be ATIVO)
     const searchInput = page.locator('input[placeholder*="Buscar"]');
     await searchInput.fill('João');
-    await page.waitForTimeout(500);
+    await expect(page.locator('[data-status="ATIVO"]').first()).toBeVisible({ timeout: 3000 });
 
     // Click first result if available
     const firstResult = page.locator('[data-status="ATIVO"]').first();

@@ -50,6 +50,8 @@ serve(async (req: Request) => {
       reminders1DayAfter: 0,
       reminders3DaysAfter: 0,
       rentalReminders: 0,
+      autoRenewalReminders: 0,
+      autoRenewalsCreated: 0,
     };
 
     const today = now.toISOString().split("T")[0];
@@ -370,7 +372,246 @@ serve(async (req: Request) => {
 
     console.log(`Reminders sent: 3d before=${results.reminders3DaysBefore}, day of=${results.remindersDayOf}, 1d after=${results.reminders1DayAfter}, 3d after=${results.reminders3DaysAfter}`);
 
-    // 6. CANCEL MEMBERS BLOCKED FOR 30+ DAYS
+    // 6. AUTO-RENEWAL - Send reminders 7 days before expiry
+    const sevenDaysFromNow = new Date(now);
+    sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+    const sevenDaysDate = sevenDaysFromNow.toISOString().split("T")[0];
+
+    const { data: autoRenewReminders, error: renewRemindersError } = await supabase
+      .from("subscriptions")
+      .select(`
+        id,
+        member_id,
+        expires_at,
+        final_price_cents,
+        members(nome, email, telefone, preferred_payment_method)
+      `)
+      .eq("status", "active")
+      .eq("auto_renew", true)
+      .is("renewal_reminder_sent_at", null)
+      .eq("expires_at", sevenDaysDate);
+
+    if (renewRemindersError) {
+      console.error("Error fetching auto-renewal reminders:", renewRemindersError);
+    } else if (autoRenewReminders && autoRenewReminders.length > 0) {
+      for (const sub of autoRenewReminders) {
+        const member = sub.members as any;
+
+        // Mark reminder as sent
+        await supabase
+          .from("subscriptions")
+          .update({ renewal_reminder_sent_at: now.toISOString() })
+          .eq("id", sub.id);
+
+        // Send email if available
+        if (member?.email && resend) {
+          try {
+            await resend.emails.send({
+              from: "BoxeMaster <onboarding@resend.dev>",
+              to: [member.email],
+              subject: "🔄 Renovação automática em 7 dias",
+              html: `
+                <h1>Olá ${member.nome}!</h1>
+                <p>Sua subscrição será renovada automaticamente em <strong>7 dias</strong> (${sub.expires_at}).</p>
+                <p><strong>Valor:</strong> €${(sub.final_price_cents / 100).toFixed(2)}</p>
+                <p>Se preferir não renovar, entre em contato conosco antes da data de renovação.</p>
+                <p>Obrigado por continuar treinando conosco! 💪</p>
+                <p>- Equipe BoxeMaster</p>
+              `,
+            });
+            results.emailsSent++;
+          } catch (emailError) {
+            console.error(`Error sending renewal reminder to ${member.email}:`, emailError);
+          }
+        }
+        results.autoRenewalReminders++;
+      }
+      console.log(`Sent ${results.autoRenewalReminders} auto-renewal reminders`);
+    }
+
+    // 7. AUTO-RENEWAL - Create renewals for expired subscriptions
+    const { data: expiredAutoRenew, error: expiredRenewError } = await supabase
+      .from("subscriptions")
+      .select(`
+        id,
+        member_id,
+        plan_id,
+        modalities,
+        commitment_months,
+        commitment_discount_id,
+        promo_discount_id,
+        calculated_price_cents,
+        commitment_discount_pct,
+        promo_discount_pct,
+        final_price_cents,
+        enrollment_fee_cents,
+        members(nome, email, telefone, preferred_payment_method)
+      `)
+      .eq("status", "active")
+      .eq("auto_renew", true)
+      .eq("expires_at", today);
+
+    if (expiredRenewError) {
+      console.error("Error fetching expired auto-renewal subscriptions:", expiredRenewError);
+    } else if (expiredAutoRenew && expiredAutoRenew.length > 0) {
+      for (const oldSub of expiredAutoRenew) {
+        const member = oldSub.members as any;
+
+        // Calculate new expiry date based on commitment months
+        const newExpiry = new Date(now);
+        newExpiry.setMonth(newExpiry.getMonth() + oldSub.commitment_months);
+        const newExpiryDate = newExpiry.toISOString().split("T")[0];
+
+        // Create new subscription (copy from old one)
+        const { data: newSub, error: newSubError } = await supabase
+          .from("subscriptions")
+          .insert({
+            member_id: oldSub.member_id,
+            plan_id: oldSub.plan_id,
+            modalities: oldSub.modalities,
+            commitment_months: oldSub.commitment_months,
+            commitment_discount_id: oldSub.commitment_discount_id,
+            // Don't carry over promo discount - it's one-time
+            promo_discount_id: null,
+            calculated_price_cents: oldSub.calculated_price_cents,
+            commitment_discount_pct: oldSub.commitment_discount_pct,
+            promo_discount_pct: 0, // No promo on renewal
+            final_price_cents: Math.round(oldSub.calculated_price_cents * (1 - oldSub.commitment_discount_pct / 100)),
+            enrollment_fee_cents: 0, // No enrollment fee on renewal
+            starts_at: today,
+            expires_at: newExpiryDate,
+            status: "active",
+            auto_renew: true, // Keep auto-renewal enabled
+          })
+          .select("id")
+          .single();
+
+        if (newSubError) {
+          console.error(`Error creating renewal subscription for member ${oldSub.member_id}:`, newSubError);
+          continue;
+        }
+
+        // Mark old subscription as expired
+        await supabase
+          .from("subscriptions")
+          .update({ status: "expired" })
+          .eq("id", oldSub.id);
+
+        // Update member's current subscription
+        await supabase
+          .from("members")
+          .update({
+            current_subscription_id: newSub?.id,
+            access_expires_at: newExpiryDate,
+          })
+          .eq("id", oldSub.member_id);
+
+        // Create pending payment for the renewal
+        const renewalPrice = Math.round(oldSub.calculated_price_cents * (1 - oldSub.commitment_discount_pct / 100));
+        const paymentMethod = member?.preferred_payment_method || "TRANSFERENCIA";
+
+        await supabase
+          .from("pending_payments")
+          .insert({
+            member_id: oldSub.member_id,
+            plan_id: oldSub.plan_id,
+            amount_cents: renewalPrice,
+            payment_method: paymentMethod,
+            reference: `REN-${Date.now()}`,
+            expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
+            subscription_id: newSub?.id,
+          });
+
+        // Send confirmation email
+        if (member?.email && resend) {
+          try {
+            await resend.emails.send({
+              from: "BoxeMaster <onboarding@resend.dev>",
+              to: [member.email],
+              subject: "✅ Subscrição renovada automaticamente",
+              html: `
+                <h1>Olá ${member.nome}!</h1>
+                <p>Sua subscrição foi renovada automaticamente com sucesso!</p>
+                <p><strong>Nova data de expiração:</strong> ${newExpiryDate}</p>
+                <p><strong>Valor:</strong> €${(renewalPrice / 100).toFixed(2)}</p>
+                <p>Um pagamento pendente foi criado. Por favor, efetue o pagamento o mais breve possível.</p>
+                <p>Continue treinando forte! 💪</p>
+                <p>- Equipe BoxeMaster</p>
+              `,
+            });
+            results.emailsSent++;
+          } catch (emailError) {
+            console.error(`Error sending renewal confirmation to ${member.email}:`, emailError);
+          }
+        }
+
+        results.autoRenewalsCreated++;
+      }
+      console.log(`Created ${results.autoRenewalsCreated} auto-renewals`);
+    }
+
+    // 8. AUTO-UNFREEZE - Unfreeze subscriptions where frozen_until has passed
+    const { data: frozenToUnfreeze, error: unfreezeError } = await supabase
+      .from("subscriptions")
+      .select(`
+        id,
+        member_id,
+        frozen_at,
+        frozen_until,
+        members(nome, email)
+      `)
+      .eq("status", "active")
+      .not("frozen_at", "is", null)
+      .lte("frozen_until", today);
+
+    if (unfreezeError) {
+      console.error("Error fetching frozen subscriptions to unfreeze:", unfreezeError);
+    } else if (frozenToUnfreeze && frozenToUnfreeze.length > 0) {
+      for (const sub of frozenToUnfreeze) {
+        const member = sub.members as any;
+
+        // Clear freeze columns
+        await supabase
+          .from("subscriptions")
+          .update({
+            frozen_at: null,
+            frozen_until: null,
+            freeze_reason: null,
+            // Keep original_expires_at for audit purposes
+          })
+          .eq("id", sub.id);
+
+        // Update member status back to ATIVO
+        await supabase
+          .from("members")
+          .update({ status: "ATIVO" })
+          .eq("id", sub.member_id);
+
+        // Send notification email
+        if (member?.email && resend) {
+          try {
+            await resend.emails.send({
+              from: "BoxeMaster <onboarding@resend.dev>",
+              to: [member.email],
+              subject: "✅ Sua subscricao foi reativada",
+              html: `
+                <h1>Ola ${member.nome}!</h1>
+                <p>O periodo de pausa da sua subscricao terminou e seu acesso foi <strong>reativado automaticamente</strong>.</p>
+                <p>Voce ja pode voltar a treinar conosco!</p>
+                <p>Bons treinos! 💪</p>
+                <p>- Equipe BoxeMaster</p>
+              `,
+            });
+            results.emailsSent++;
+          } catch (emailError) {
+            console.error(`Error sending unfreeze notification to ${member.email}:`, emailError);
+          }
+        }
+      }
+      console.log(`Unfroze ${frozenToUnfreeze.length} subscriptions`);
+    }
+
+    // 9. CANCEL MEMBERS BLOCKED FOR 30+ DAYS
     const thirtyDaysAgo = new Date(now);
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const thirtyDaysAgoDate = thirtyDaysAgo.toISOString();

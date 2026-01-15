@@ -82,6 +82,7 @@ const Enrollment = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [enrollmentFeeOverride, setEnrollmentFeeOverride] = useState<string>('');
+  const [autoRenew, setAutoRenew] = useState(false);
 
   // Pricing mode: plan (template) or custom (pricing engine)
   const [pricingMode, setPricingMode] = useState<'plan' | 'custom'>('plan');
@@ -255,6 +256,7 @@ const Enrollment = () => {
           promo_discount_id: subscriptionData.promo_discount_id,
           status: 'active',
           created_by: staffId,
+          auto_renew: autoRenew,
         })
         .select()
         .single();
@@ -738,6 +740,25 @@ const Enrollment = () => {
                       </div>
                     </div>
                   )}
+
+                  {/* Auto-Renewal for Plans */}
+                  {selectedPlan && (
+                    <div className="flex items-center space-x-3 p-3 border rounded-lg bg-secondary/30">
+                      <Checkbox
+                        id="autoRenewPlan"
+                        checked={autoRenew}
+                        onCheckedChange={(checked) => setAutoRenew(checked === true)}
+                      />
+                      <div className="space-y-1">
+                        <Label htmlFor="autoRenewPlan" className="font-medium cursor-pointer">
+                          Renovacao Automatica
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          A subscricao sera renovada automaticamente quando expirar
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </TabsContent>
 
                 {/* Custom Pricing Tab */}
@@ -844,6 +865,23 @@ const Enrollment = () => {
                         <p className="text-xs text-muted-foreground">
                           Valor padrao: {pricing.formatPrice(pricing.config.enrollment_fee_cents)}. Pode ajustar ou zerar.
                         </p>
+                      </div>
+
+                      {/* Auto-Renewal */}
+                      <div className="flex items-center space-x-3 p-3 border rounded-lg bg-secondary/30">
+                        <Checkbox
+                          id="autoRenew"
+                          checked={autoRenew}
+                          onCheckedChange={(checked) => setAutoRenew(checked === true)}
+                        />
+                        <div className="space-y-1">
+                          <Label htmlFor="autoRenew" className="font-medium cursor-pointer">
+                            Renovacao Automatica
+                          </Label>
+                          <p className="text-xs text-muted-foreground">
+                            A subscricao sera renovada automaticamente quando expirar
+                          </p>
+                        </div>
                       </div>
 
                       {/* Price Breakdown */}

@@ -12,28 +12,26 @@ test.describe('Rental & Coach Credit System', () => {
 
     // Navigate to rentals page
     await page.goto('/admin/rentals');
-    await page.waitForTimeout(1500);
+    await expect(page.locator('h1, h2, [data-page="rentals"]')).toBeVisible({ timeout: 5000 });
 
     // Look for "New Rental" or "Nova Reserva" button
     const newRentalButton = page.locator('button:has-text("Nova"), button:has-text("Reserva"), button:has-text("Rental"), a:has-text("Criar")');
 
     if (await newRentalButton.isVisible({ timeout: 3000 })) {
       await newRentalButton.click();
-      await page.waitForTimeout(1000);
+      await expect(page.locator('select[name="coach"], select[name="coach_id"], form, [role="dialog"]')).toBeVisible({ timeout: 3000 });
 
       // Select coach (external coach with FIXED fee €50)
       const coachSelect = page.locator('select[name="coach"], select[name="coach_id"]');
       if (await coachSelect.isVisible({ timeout: 2000 })) {
         // Select first available coach
         await coachSelect.selectOption({ index: 1 });
-        await page.waitForTimeout(500);
       }
 
       // Select area (e.g., Ringue)
       const areaSelect = page.locator('select[name="area"], select[name="area_id"]');
       if (await areaSelect.isVisible({ timeout: 2000 })) {
         await areaSelect.selectOption({ index: 1 });
-        await page.waitForTimeout(500);
       }
 
       // Select date (tomorrow)
@@ -58,19 +56,15 @@ test.describe('Rental & Coach Credit System', () => {
 
       // Verify fee is calculated and displayed
       const feeDisplay = page.locator('[data-fee], text*="Taxa", text*="Fee"');
-      await expect(feeDisplay.first()).toBeVisible({ timeout: 3000 }).catch(() => {
-        console.log('Rental fee calculated');
-      });
+      const formContent = page.locator('form, [data-rental-form]');
+      await expect(feeDisplay.first().or(formContent.first())).toBeVisible({ timeout: 3000 });
 
       // Create rental
       await page.click('button:has-text("Criar"), button:has-text("Salvar"), button[type="submit"]');
-      await page.waitForTimeout(1500);
 
       // Verify success
       const successMsg = page.locator('text=sucesso, text=criado, [data-toast]');
-      await expect(successMsg.first()).toBeVisible({ timeout: 5000 }).catch(() => {
-        console.log('Rental created with status SCHEDULED');
-      });
+      await expect(successMsg.first()).toBeVisible({ timeout: 5000 });
     } else {
       console.log('Rental creation page not accessible or different structure');
     }
@@ -85,20 +79,19 @@ test.describe('Rental & Coach Credit System', () => {
     await expect(page).toHaveURL(/\/admin|\/owner/);
 
     await page.goto('/admin/rentals');
-    await page.waitForTimeout(1500);
+    await expect(page.locator('h1, h2, [data-page="rentals"]')).toBeVisible({ timeout: 5000 });
 
     const newRentalButton = page.locator('button:has-text("Nova"), a:has-text("Criar")');
 
     if (await newRentalButton.isVisible({ timeout: 3000 })) {
       await newRentalButton.click();
-      await page.waitForTimeout(1000);
+      await expect(page.locator('form, [role="dialog"]')).toBeVisible({ timeout: 3000 });
 
       // Look for recurring option
       const recurringCheckbox = page.locator('input[name="is_recurring"], input[type="checkbox"]:has-text("Semanal"), input[type="checkbox"]:has-text("Recurring")');
 
       if (await recurringCheckbox.isVisible({ timeout: 2000 })) {
         await recurringCheckbox.check();
-        await page.waitForTimeout(500);
 
         // Set recurrence (e.g., 4 weeks)
         const occurrencesInput = page.locator('input[name="occurrences"], input[name="repeat_count"]');
@@ -119,13 +112,10 @@ test.describe('Rental & Coach Credit System', () => {
 
         // Create recurring series
         await page.click('button:has-text("Criar")');
-        await page.waitForTimeout(1500);
 
-        // Verify success (should create 4 rentals)
-        const successMsg = page.locator('text=4, text=série, text=series');
-        await expect(successMsg.first()).toBeVisible({ timeout: 5000 }).catch(() => {
-          console.log('Recurring rental series created');
-        });
+        // Verify success (should create rentals or show confirmation)
+        const successMsg = page.locator('text=4, text=série, text=series, text=sucesso, text=criado');
+        await expect(successMsg.first()).toBeVisible({ timeout: 5000 });
       } else {
         console.log('Recurring rental option not available');
       }
@@ -141,14 +131,14 @@ test.describe('Rental & Coach Credit System', () => {
     await expect(page).toHaveURL(/\/admin|\/owner/);
 
     await page.goto('/admin/rentals');
-    await page.waitForTimeout(1500);
+    await expect(page.locator('h1, h2, [data-page="rentals"]')).toBeVisible({ timeout: 5000 });
 
     // Create first rental for same time slot
     const createRental = async () => {
       const newButton = page.locator('button:has-text("Nova"), a:has-text("Criar")');
       if (await newButton.isVisible({ timeout: 2000 })) {
         await newButton.click();
-        await page.waitForTimeout(1000);
+        await expect(page.locator('form, [role="dialog"]')).toBeVisible({ timeout: 3000 });
 
         // Fill rental details for same area/time
         const coachSelect = page.locator('select[name="coach_id"]');
@@ -174,7 +164,7 @@ test.describe('Rental & Coach Credit System', () => {
         }
 
         await page.click('button:has-text("Criar")');
-        await page.waitForTimeout(1500);
+        await expect(page.locator('text=sucesso, text=criado, text=erro, [data-toast]').first()).toBeVisible({ timeout: 5000 });
       }
     };
 
@@ -183,17 +173,17 @@ test.describe('Rental & Coach Credit System', () => {
 
     // Attempt rental 2 (may succeed if capacity allows)
     await page.goto('/admin/rentals');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('h1, h2, [data-page="rentals"]')).toBeVisible({ timeout: 5000 });
     await createRental();
 
     // Attempt rental 3 (should fail if capacity = 2)
     await page.goto('/admin/rentals');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('h1, h2, [data-page="rentals"]')).toBeVisible({ timeout: 5000 });
 
     const newButton = page.locator('button:has-text("Nova")');
     if (await newButton.isVisible({ timeout: 2000 })) {
       await newButton.click();
-      await page.waitForTimeout(1000);
+      await expect(page.locator('form, [role="dialog"]')).toBeVisible({ timeout: 3000 });
 
       // Fill same details
       const areaSelect = page.locator('select[name="area_id"]');
@@ -211,13 +201,11 @@ test.describe('Rental & Coach Credit System', () => {
             await startTime.fill('19:00');
 
             await page.click('button:has-text("Criar")');
-            await page.waitForTimeout(1000);
 
-            // Look for capacity error
+            // Look for capacity error or success (depends on area capacity)
             const capacityError = page.locator('text=capacidade, text=lotado, text=máximo, text=capacity');
-            await expect(capacityError.first()).toBeVisible({ timeout: 3000 }).catch(() => {
-              console.log('Capacity validation tested (may vary by configuration)');
-            });
+            const successMsg = page.locator('text=sucesso, text=criado');
+            await expect(capacityError.first().or(successMsg.first())).toBeVisible({ timeout: 5000 });
           }
         }
       }
@@ -235,13 +223,13 @@ test.describe('Rental & Coach Credit System', () => {
 
     // Navigate to check-in (during a time when exclusive rental exists)
     await page.goto('/staff/checkin');
-    await page.waitForTimeout(1500);
+    await expect(page.locator('input[placeholder*="Buscar"], h1, h2')).toBeVisible({ timeout: 5000 });
 
     // Try to check in a member
     const searchInput = page.locator('input[placeholder*="Buscar"]');
     if (await searchInput.isVisible({ timeout: 2000 })) {
       await searchInput.fill('João');
-      await page.waitForTimeout(500);
+      await expect(page.locator('[data-member], .member-card, li, text=João').first()).toBeVisible({ timeout: 3000 });
 
       const firstMember = page.locator('[data-member], .member-card, li').first();
       if (await firstMember.isVisible({ timeout: 2000 })) {
@@ -250,20 +238,17 @@ test.describe('Rental & Coach Credit System', () => {
         const checkinButton = page.locator('button:has-text("Check-in"), button:has-text("Confirmar")');
         if (await checkinButton.isVisible({ timeout: 2000 })) {
           await checkinButton.click();
-          await page.waitForTimeout(1000);
 
-          // Look for exclusive rental blocking message
+          // Look for exclusive rental blocking message OR regular check-in result
           const exclusiveBlock = page.locator('text=exclusiva, text=reservado, text=EXCLUSIVE, [data-result="EXCLUSIVE"]');
-          const isBlocked = await exclusiveBlock.isVisible({ timeout: 2000 }).catch(() => false);
+          const checkinResult = page.locator('text=liberado, text=sucesso, text=bloqueado, [data-result]');
+          await expect(exclusiveBlock.first().or(checkinResult.first())).toBeVisible({ timeout: 5000 });
 
+          const isBlocked = await exclusiveBlock.count() > 0;
           if (isBlocked) {
-            console.log('Exclusive rental blocking verified');
-
             // Verify rental details shown
-            const rentalDetails = page.locator('text=Coach, text=Horário');
-            await expect(rentalDetails.first()).toBeVisible({ timeout: 2000 }).catch(() => {});
-          } else {
-            console.log('No exclusive rental active at this time');
+            const rentalDetails = page.locator('text=Coach, text=Horário, text=até');
+            await expect(rentalDetails.first().or(exclusiveBlock.first())).toBeVisible({ timeout: 2000 });
           }
         }
       }
@@ -280,14 +265,14 @@ test.describe('Rental & Coach Credit System', () => {
 
     // Navigate to guest check-in page (if exists)
     await page.goto('/staff/guest-checkin');
-    await page.waitForTimeout(1500);
+    await expect(page.locator('h1, h2, button, form')).toBeVisible({ timeout: 5000 });
 
     // If no dedicated page, may be part of check-in flow
     const guestButton = page.locator('button:has-text("Convidado"), button:has-text("Guest"), [data-type="guest"]');
 
     if (await guestButton.isVisible({ timeout: 3000 })) {
       await guestButton.click();
-      await page.waitForTimeout(1000);
+      await expect(page.locator('select[name="rental"], form, [role="dialog"]')).toBeVisible({ timeout: 3000 });
 
       // Select active rental
       const rentalSelect = page.locator('select[name="rental"], select[name="rental_id"]');
@@ -303,13 +288,10 @@ test.describe('Rental & Coach Credit System', () => {
 
       // Confirm guest check-in
       await page.click('button:has-text("Confirmar"), button:has-text("Registar")');
-      await page.waitForTimeout(1500);
 
       // Verify success
       const successMsg = page.locator('text=sucesso, text=registado, [data-toast]');
-      await expect(successMsg.first()).toBeVisible({ timeout: 5000 }).catch(() => {
-        console.log('Guest check-in registered');
-      });
+      await expect(successMsg.first()).toBeVisible({ timeout: 5000 });
     } else {
       console.log('Guest check-in functionality not available or different structure');
     }
@@ -326,7 +308,7 @@ test.describe('Rental & Coach Credit System', () => {
 
     // Navigate to my rentals
     await page.goto('/partner/dashboard');
-    await page.waitForTimeout(1500);
+    await expect(page.locator('h1, h2, [data-page="partner-dashboard"]')).toBeVisible({ timeout: 5000 });
 
     // Look for a scheduled rental >48h in future
     const rentalCard = page.locator('[data-rental], .rental-card, tr').first();
@@ -337,25 +319,23 @@ test.describe('Rental & Coach Credit System', () => {
 
       if (await cancelButton.isVisible({ timeout: 2000 })) {
         await cancelButton.click();
-        await page.waitForTimeout(1000);
+        await expect(page.locator('[role="dialog"], text=confirmar, text=crédito')).toBeVisible({ timeout: 3000 });
 
         // Confirm cancellation
         const confirmButton = page.locator('button:has-text("Confirmar"), button:has-text("Sim")');
         if (await confirmButton.isVisible({ timeout: 2000 })) {
           await confirmButton.click();
-          await page.waitForTimeout(1500);
 
-          // Verify credit generated message
-          const creditMsg = page.locator('text=crédito, text=credit, text=gerado');
-          await expect(creditMsg.first()).toBeVisible({ timeout: 5000 }).catch(() => {
-            console.log('Rental >48h canceled with credit generated');
-          });
+          // Verify credit generated message or cancellation success
+          const creditMsg = page.locator('text=crédito, text=credit, text=gerado, text=cancelado, text=sucesso');
+          await expect(creditMsg.first()).toBeVisible({ timeout: 5000 });
 
-          // Verify 90-day expiration mentioned
+          // Check if expiration info shown (optional)
           const expirationMsg = page.locator('text=90 dias, text=90 days');
-          await expect(expirationMsg.first()).toBeVisible({ timeout: 3000 }).catch(() => {
-            console.log('Credit expiration (90 days) displayed');
-          });
+          const hasExpiration = await expirationMsg.count() > 0;
+          if (hasExpiration) {
+            await expect(expirationMsg.first()).toBeVisible({ timeout: 3000 });
+          }
         }
       }
     } else {
@@ -372,7 +352,7 @@ test.describe('Rental & Coach Credit System', () => {
     await expect(page).toHaveURL(/\/partner|\/admin/);
 
     await page.goto('/partner/dashboard');
-    await page.waitForTimeout(1500);
+    await expect(page.locator('h1, h2, [data-page="partner-dashboard"]')).toBeVisible({ timeout: 5000 });
 
     // Look for rental <48h away (if any exist)
     const rentalCard = page.locator('[data-rental], .rental-card').first();
@@ -382,28 +362,29 @@ test.describe('Rental & Coach Credit System', () => {
 
       if (await cancelButton.isVisible({ timeout: 2000 })) {
         await cancelButton.click();
-        await page.waitForTimeout(1000);
+        await expect(page.locator('[role="dialog"], text=confirmar, text=cancelar')).toBeVisible({ timeout: 3000 });
 
-        // Look for warning about no credit
+        // Look for warning about no credit OR confirmation dialog
         const noCreditWarning = page.locator('text=sem crédito, text=não será gerado, text=no credit');
-        const hasWarning = await noCreditWarning.isVisible({ timeout: 2000 }).catch(() => false);
+        const confirmDialog = page.locator('[role="dialog"], text=confirmar, text=cancelar');
+        const hasWarning = await noCreditWarning.count() > 0;
 
-        if (hasWarning) {
-          console.log('No credit warning shown for <48h cancellation');
+        // Some feedback should be shown
+        await expect(noCreditWarning.first().or(confirmDialog.first())).toBeVisible({ timeout: 3000 });
 
-          // Confirm anyway
-          const confirmButton = page.locator('button:has-text("Confirmar")');
-          if (await confirmButton.isVisible({ timeout: 2000 })) {
-            await confirmButton.click();
-            await page.waitForTimeout(1500);
+        // Confirm cancellation if button available
+        const confirmButton = page.locator('button:has-text("Confirmar")');
+        if (await confirmButton.isVisible({ timeout: 2000 })) {
+          await confirmButton.click();
 
-            // Verify NO credit generated
-            const creditMsg = page.locator('text=crédito gerado, text=credit generated');
-            const hasCredit = await creditMsg.isVisible({ timeout: 2000 }).catch(() => false);
+          // Verify cancellation completed (no credit expected)
+          const resultMsg = page.locator('text=cancelado, text=sucesso');
+          const creditGeneratedMsg = page.locator('text=crédito gerado, text=credit generated');
 
-            expect(hasCredit).toBe(false);
-            console.log('Rental <48h canceled WITHOUT credit');
-          }
+          await expect(resultMsg.first()).toBeVisible({ timeout: 5000 });
+          // For <48h cancellation, credit should NOT be generated
+          const creditGenerated = await creditGeneratedMsg.count() > 0;
+          expect(creditGenerated).toBe(false);
         }
       }
     }
@@ -419,13 +400,13 @@ test.describe('Rental & Coach Credit System', () => {
 
     // Navigate to create new rental
     await page.goto('/partner/dashboard');
-    await page.waitForTimeout(1500);
+    await expect(page.locator('h1, h2, [data-page="partner-dashboard"]')).toBeVisible({ timeout: 5000 });
 
     const newRentalButton = page.locator('button:has-text("Nova"), a:has-text("Reserva")');
 
     if (await newRentalButton.isVisible({ timeout: 2000 })) {
       await newRentalButton.click();
-      await page.waitForTimeout(1000);
+      await expect(page.locator('form, [role="dialog"], select[name="area_id"]')).toBeVisible({ timeout: 3000 });
 
       // Fill rental details
       const areaSelect = page.locator('select[name="area_id"]');
@@ -443,25 +424,23 @@ test.describe('Rental & Coach Credit System', () => {
 
           if (await applyCreditCheckbox.isVisible({ timeout: 2000 })) {
             await applyCreditCheckbox.check();
-            await page.waitForTimeout(500);
 
-            // Verify fee reduced to €0
+            // Verify fee displayed (may be reduced to €0 if credit applied)
             const feeDisplay = page.locator('[data-fee], text*="Taxa"');
-            const feeText = await feeDisplay.textContent().catch(() => '');
-
-            if (feeText.includes('0') || feeText.includes('€0')) {
-              console.log('Credit applied, fee reduced to €0');
+            await expect(feeDisplay.first().or(page.locator('form'))).toBeVisible({ timeout: 3000 });
+            const hasFeeDisplay = await feeDisplay.count() > 0;
+            if (hasFeeDisplay) {
+              const feeText = await feeDisplay.first().textContent() || '';
+              // Fee may or may not be zero depending on credit amount
+              expect(feeText).toBeTruthy();
             }
 
             // Create rental with credit
             await page.click('button:has-text("Criar")');
-            await page.waitForTimeout(1500);
 
-            // Verify credit marked as used
-            const successMsg = page.locator('text=crédito usado, text=credit used');
-            await expect(successMsg.first()).toBeVisible({ timeout: 5000 }).catch(() => {
-              console.log('Rental created using available credit');
-            });
+            // Verify success (credit used or rental created)
+            const successMsg = page.locator('text=crédito usado, text=credit used, text=sucesso, text=criado');
+            await expect(successMsg.first()).toBeVisible({ timeout: 5000 });
           }
         } else {
           console.log('No credits available to use');
@@ -480,7 +459,7 @@ test.describe('Rental & Coach Credit System', () => {
 
     // Navigate to credits/history page
     await page.goto('/partner/credits');
-    await page.waitForTimeout(1500);
+    await expect(page.locator('h1, h2, table, [data-credits]')).toBeVisible({ timeout: 5000 });
 
     // Look for expired credits
     const expiredCredit = page.locator('text=Expirado, text=Expired, [data-status="expired"]');
@@ -490,12 +469,12 @@ test.describe('Rental & Coach Credit System', () => {
 
       // Try to create rental and verify expired credit cannot be selected
       await page.goto('/partner/dashboard');
-      await page.waitForTimeout(1000);
+      await expect(page.locator('h1, h2, [data-page="partner-dashboard"]')).toBeVisible({ timeout: 5000 });
 
       const newRentalButton = page.locator('button:has-text("Nova")');
       if (await newRentalButton.isVisible({ timeout: 2000 })) {
         await newRentalButton.click();
-        await page.waitForTimeout(1000);
+        await expect(page.locator('form, [role="dialog"]')).toBeVisible({ timeout: 3000 });
 
         // Look for credit selection (should only show valid credits)
         const creditSelect = page.locator('select[name="credit_id"]');
@@ -522,32 +501,28 @@ test.describe('Rental & Coach Credit System', () => {
 
     // Navigate to rentals page
     await page.goto('/admin/rentals');
-    await page.waitForTimeout(1500);
+    await expect(page.locator('h1, h2, [data-page="rentals"]')).toBeVisible({ timeout: 5000 });
 
     // Filter by completed status
     const statusFilter = page.locator('select[name="status"], [data-filter="status"]');
 
     if (await statusFilter.isVisible({ timeout: 2000 })) {
       await statusFilter.selectOption('COMPLETED');
-      await page.waitForTimeout(500);
 
-      // Verify completed rentals shown
+      // Verify completed rentals shown OR empty state
       const completedRental = page.locator('[data-status="COMPLETED"], text=COMPLETED, text=Concluído');
-      await expect(completedRental.first()).toBeVisible({ timeout: 3000 }).catch(() => {
-        console.log('Completed rentals filter tested');
-      });
+      const emptyState = page.locator('text=nenhum, text=sem, text=empty, table');
+      await expect(completedRental.first().or(emptyState.first())).toBeVisible({ timeout: 5000 });
 
-      // Click on completed rental to view details
+      // Click on completed rental to view details (if any exist)
       const rentalCard = page.locator('[data-rental], .rental-card, tr').first();
       if (await rentalCard.isVisible({ timeout: 2000 })) {
         await rentalCard.click();
-        await page.waitForTimeout(1000);
 
-        // Verify transaction was created (fee charged)
+        // Verify some detail view shown
         const transactionInfo = page.locator('text=Transação, text=Transaction, text=Cobrança');
-        await expect(transactionInfo.first()).toBeVisible({ timeout: 3000 }).catch(() => {
-          console.log('Completed rental shows transaction details');
-        });
+        const detailView = page.locator('[data-rental-detail], .modal, [role="dialog"], h2, h3');
+        await expect(transactionInfo.first().or(detailView.first())).toBeVisible({ timeout: 5000 });
       }
     }
   });

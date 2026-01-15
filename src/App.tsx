@@ -8,6 +8,7 @@ import { CoachAuthProvider } from "@/hooks/useCoachAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ProtectedCoachRoute from "@/components/ProtectedCoachRoute";
 import { Analytics } from "@vercel/analytics/react";
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 
 // Public pages
 import Index from "./pages/Index";
@@ -330,6 +331,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <GoogleAnalytics />
         <Routes>
           {/* Coach routes - completely separate auth context (NOT wrapped by AuthProvider) */}
           <Route path="/coach/*" element={<CoachRoutes />} />

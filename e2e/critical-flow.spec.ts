@@ -19,9 +19,6 @@ test.describe('Critical User Flow', () => {
     await page.fill('input[name="email"]', uniqueEmail);
     await page.click('button:has-text("Criar Membro")');
 
-    // Wait for member to be created
-    await page.waitForTimeout(1000);
-
     // Verify member was created (look for success message or redirect)
     await expect(page.locator('text=João Teste E2E Critical').or(page.locator('text=sucesso'))).toBeVisible({ timeout: 10000 });
 
@@ -29,7 +26,7 @@ test.describe('Critical User Flow', () => {
     await page.goto('/staff/payment');
 
     await page.fill('input[placeholder*="Buscar"]', 'João Teste E2E Critical');
-    await page.waitForTimeout(500);
+    await expect(page.locator('text=João Teste E2E Critical')).toBeVisible({ timeout: 3000 });
     await page.click('text=João Teste E2E Critical');
 
     // Wait for plans to load
@@ -47,7 +44,7 @@ test.describe('Critical User Flow', () => {
     await page.goto('/staff/checkin');
 
     await page.fill('input[placeholder*="Buscar"]', 'João Teste E2E Critical');
-    await page.waitForTimeout(500);
+    await expect(page.locator('text=João Teste E2E Critical')).toBeVisible({ timeout: 3000 });
 
     // Click on member
     await page.click('text=João Teste E2E Critical');
@@ -78,12 +75,11 @@ test.describe('Critical User Flow', () => {
     await page.fill('input[name="email"]', uniqueEmail);
     await page.click('button:has-text("Criar Membro")');
 
-    await page.waitForTimeout(1000);
+    await expect(page.locator('text=Maria Sem Pagamento E2E').or(page.locator('text=sucesso'))).toBeVisible({ timeout: 5000 });
 
     // Try to check-in without payment
     await page.goto('/staff/checkin');
     await page.fill('input[placeholder*="Buscar"]', 'Maria Sem Pagamento E2E');
-    await page.waitForTimeout(500);
 
     const memberCard = page.locator('text=Maria Sem Pagamento E2E');
     if (await memberCard.isVisible()) {
@@ -112,11 +108,12 @@ test.describe('QR Code Scanning Flow', () => {
     if (await qrButton.isVisible({ timeout: 2000 })) {
       await qrButton.click();
 
-      // Verify scanner opened (camera permissions may block in CI)
-      await expect(page.locator('[data-qr-scanner], video, canvas').first()).toBeVisible({ timeout: 5000 }).catch(() => {
-        // Camera not available in test environment - this is expected
-        console.log('QR scanner UI tested, camera not available in test env');
-      });
+      // Verify scanner UI opened (camera permissions may block in CI, but UI should appear)
+      // Check for either the scanner container OR a permission prompt/fallback UI
+      const scannerUI = page.locator('[data-qr-scanner], video, canvas, [data-camera-prompt]').first();
+      const fallbackUI = page.locator('text=câmera, text=camera, text=permissão, text=permission').first();
+
+      await expect(scannerUI.or(fallbackUI)).toBeVisible({ timeout: 5000 });
     }
   });
 
@@ -136,13 +133,13 @@ test.describe('QR Code Scanning Flow', () => {
 
     // Test search functionality
     await searchInput.fill('João');
-    await page.waitForTimeout(500);
 
-    // Should show search results
-    const results = page.locator('[data-member-card], .member-result, li').first();
-    await expect(results).toBeVisible({ timeout: 3000 }).catch(() => {
-      // No members found - this is ok for test
-      console.log('Search tested, no results available');
-    });
+    // Wait for search to complete - either show results or empty state
+    const results = page.locator('[data-member-card], .member-result, li');
+    const emptyState = page.locator('text=nenhum, text=não encontrado, text=sem resultados, text=no results');
+    const loadingComplete = page.locator('[data-loading="false"]');
+
+    // Search should complete and show either results or empty state
+    await expect(results.first().or(emptyState.first()).or(loadingComplete)).toBeVisible({ timeout: 5000 });
   });
 });

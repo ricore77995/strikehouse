@@ -235,7 +235,7 @@ test.describe('Pending Payment Confirmation', () => {
     // Click search
     await page.click('button:has-text("Buscar")');
 
-    // Should process search (result depends on data)
-    await page.waitForTimeout(1000);
+    // Should process search (result depends on data) - wait for either results or empty state
+    await expect(page.locator('text=Nenhum, text=encontrado, table, [data-payment]').first()).toBeVisible({ timeout: 5000 });
   });
 });

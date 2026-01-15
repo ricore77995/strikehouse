@@ -132,6 +132,16 @@ export interface Subscription {
   expires_at: string | null;
   credits_remaining: number | null;
 
+  // Auto-renewal (Gap 2)
+  auto_renew: boolean;
+  renewal_reminder_sent_at: string | null;
+
+  // Freeze/Pause (Gap 3)
+  frozen_at: string | null;
+  frozen_until: string | null;
+  freeze_reason: string | null;
+  original_expires_at: string | null;
+
   // Status
   status: SubscriptionStatusType;
 

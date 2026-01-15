@@ -117,9 +117,7 @@ test.describe('Role-Based Menu Visibility', () => {
 
     // Staff should NOT see admin-only items
     const adminOnlyItems = page.locator('a:has-text("Configurações"), a[href*="settings"], a:has-text("Funcionários")');
-    const hasAdminItems = await adminOnlyItems.isVisible({ timeout: 1000 }).catch(() => false);
-
-    expect(hasAdminItems).toBe(false);
+    await expect(adminOnlyItems).toBeHidden({ timeout: 2000 });
   });
 
   test('ADMIN sees all menu items', async ({ page }) => {
@@ -151,7 +149,7 @@ test.describe('Session Persistence', () => {
 
     // Should still be logged in (not redirected to login)
     await expect(page).toHaveURL(/\/staff/);
-    await expect(page.locator('input[name="email"]')).not.toBeVisible({ timeout: 2000 }).catch(() => true);
+    await expect(page.locator('input[name="email"]')).not.toBeVisible({ timeout: 2000 });
   });
 
   test('session expires after logout', async ({ page }) => {

@@ -115,7 +115,7 @@ test.describe('Modalities Management', () => {
 
     // Toggle back to restore state
     await switchButton.click();
-    await page.waitForTimeout(500);
+    await expect(page.locator('[role="status"]:has-text("Status atualizado")').first()).toBeVisible({ timeout: 5000 });
   });
 
   test('shows inactive badge when modality is disabled', async ({ page }) => {
@@ -137,7 +137,7 @@ test.describe('Modalities Management', () => {
     // If currently active, disable it
     if (initialState === 'checked') {
       await switchButton.click();
-      await page.waitForTimeout(1000);
+      await expect(page.locator('[role="status"]:has-text("Status atualizado")').first()).toBeVisible({ timeout: 5000 });
 
       // Verify inactive badge appears
       await expect(lastCard.locator('text=Inativo')).toBeVisible({ timeout: 5000 });

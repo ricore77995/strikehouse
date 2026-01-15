@@ -85,6 +85,16 @@ export const useCheckin = () => {
       };
     }
 
+    // Check if subscription is frozen/paused (Gap 3)
+    if (member.status === 'PAUSADO') {
+      return {
+        success: false,
+        result: 'BLOCKED',
+        member,
+        message: 'Subscricao pausada. Entre em contato com a recepcao para reativar.',
+      };
+    }
+
     // Check if LEAD (no active plan)
     if (member.status === 'LEAD' || !member.access_type) {
       return {

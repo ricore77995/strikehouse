@@ -59,8 +59,8 @@ test.describe('Pricing Configuration', () => {
     // Save
     await page.click('button:has-text("Guardar Alteracoes")');
 
-    // Wait for save to complete (button becomes enabled again after loading)
-    await page.waitForTimeout(1500);
+    // Wait for save to complete
+    await expect(page.locator('button:has-text("Guardar Alteracoes")').or(page.locator('[role="status"]'))).toBeEnabled({ timeout: 5000 });
 
     // Reload and verify persistence
     await page.reload();
@@ -75,7 +75,7 @@ test.describe('Pricing Configuration', () => {
     // Restore original value
     await page.fill('input#basePrice', originalValue);
     await page.click('button:has-text("Guardar Alteracoes")');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('button:has-text("Guardar Alteracoes")')).toBeEnabled({ timeout: 5000 });
   });
 
   test('updates extra modality price', async ({ page }) => {
@@ -96,7 +96,7 @@ test.describe('Pricing Configuration', () => {
 
     // Save
     await page.click('button:has-text("Guardar Alteracoes")');
-    await page.waitForTimeout(1500);
+    await expect(page.locator('button:has-text("Guardar Alteracoes")')).toBeEnabled({ timeout: 5000 });
 
     // Verify persistence
     await page.reload();
@@ -111,7 +111,7 @@ test.describe('Pricing Configuration', () => {
     // Restore original value
     await page.fill('input#extraModalityPrice', originalValue);
     await page.click('button:has-text("Guardar Alteracoes")');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('button:has-text("Guardar Alteracoes")')).toBeEnabled({ timeout: 5000 });
   });
 
   test('updates enrollment fee', async ({ page }) => {
@@ -132,7 +132,7 @@ test.describe('Pricing Configuration', () => {
 
     // Save
     await page.click('button:has-text("Guardar Alteracoes")');
-    await page.waitForTimeout(1500);
+    await expect(page.locator('button:has-text("Guardar Alteracoes")')).toBeEnabled({ timeout: 5000 });
 
     // Verify persistence
     await page.reload();
@@ -147,7 +147,7 @@ test.describe('Pricing Configuration', () => {
     // Restore original value
     await page.fill('input#enrollmentFee', originalValue);
     await page.click('button:has-text("Guardar Alteracoes")');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('button:has-text("Guardar Alteracoes")')).toBeEnabled({ timeout: 5000 });
   });
 
   test('shows live price calculation example', async ({ page }) => {
@@ -196,7 +196,7 @@ test.describe('Pricing Configuration', () => {
     // Enter price with many decimal places
     await page.fill('input#basePrice', '59.99');
     await page.click('button:has-text("Guardar Alteracoes")');
-    await page.waitForTimeout(1500);
+    await expect(page.locator('button:has-text("Guardar Alteracoes")')).toBeEnabled({ timeout: 5000 });
 
     // Verify it saved
     await page.reload();
@@ -211,6 +211,6 @@ test.describe('Pricing Configuration', () => {
     // Restore original value
     await page.fill('input#basePrice', originalValue);
     await page.click('button:has-text("Guardar Alteracoes")');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('button:has-text("Guardar Alteracoes")')).toBeEnabled({ timeout: 5000 });
   });
 });

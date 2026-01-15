@@ -135,12 +135,17 @@ export function validatePromoCode(
 // Main Calculation
 // ================================
 
+export interface PromoDiscountInput {
+  type: 'percentage' | 'fixed';
+  value: number; // percentage (0-100) or fixed amount in cents
+}
+
 export interface CalculatePriceParams {
   config: PricingConfig;
   modalityCount: number;
   commitmentMonths: number;
   commitmentDiscountPct: number;
-  promoDiscountPct: number;
+  promoDiscount?: PromoDiscountInput | null;
   isFirstTime: boolean;
   planOverride?: PlanPricingOverride | null;
 }
@@ -156,7 +161,7 @@ export function calculatePrice(params: CalculatePriceParams): PricingBreakdown {
     modalityCount,
     commitmentMonths,
     commitmentDiscountPct,
-    promoDiscountPct,
+    promoDiscount,
     isFirstTime,
     planOverride,
   } = params;
@@ -172,16 +177,32 @@ export function calculatePrice(params: CalculatePriceParams): PricingBreakdown {
   const extraCents = extraCount * E;
   const subtotal = B + extraCents;
 
-  // Apply commitment discount
+  // Apply commitment discount (always percentage)
   const afterCommitment = subtotal * (1 - commitmentDiscountPct / 100);
   const commitmentSaved = subtotal - afterCommitment;
 
-  // Apply promo discount
-  const afterPromo = afterCommitment * (1 - promoDiscountPct / 100);
-  const promoSaved = afterCommitment - afterPromo;
+  // Apply promo discount (percentage OR fixed)
+  let promoSaved = 0;
+  let promoDiscountPct = 0;
 
-  // Final monthly price (round to cents)
-  const monthly = Math.round(afterPromo);
+  if (promoDiscount) {
+    if (promoDiscount.type === 'percentage') {
+      promoDiscountPct = promoDiscount.value;
+      promoSaved = afterCommitment * (promoDiscount.value / 100);
+    } else {
+      // Fixed discount: subtract flat amount (capped at afterCommitment)
+      promoSaved = Math.min(promoDiscount.value, afterCommitment);
+      // For display purposes, calculate effective percentage
+      promoDiscountPct = afterCommitment > 0
+        ? Math.round((promoSaved / afterCommitment) * 100)
+        : 0;
+    }
+  }
+
+  const afterPromo = afterCommitment - promoSaved;
+
+  // Final monthly price (round to cents, never negative)
+  const monthly = Math.max(0, Math.round(afterPromo));
 
   // Enrollment fee (only for first time / LEAD members)
   const enrollmentFee = isFirstTime ? resolved.enrollment_fee_cents : 0;
@@ -239,7 +260,7 @@ export function processPricing(params: PricingFlowParams): PricingResult {
 
   // Validate promo code if provided
   let promoDiscount: Discount | null = null;
-  let promoDiscountPct = 0;
+  let promoDiscountInput: PromoDiscountInput | null = null;
 
   if (promoCode && promoCode.trim() !== '') {
     const validation = validatePromoCode(promoCode, discounts, memberStatus);
@@ -247,10 +268,12 @@ export function processPricing(params: PricingFlowParams): PricingResult {
       return { success: false, error: validation.error };
     }
     promoDiscount = validation.discount || null;
-    promoDiscountPct =
-      promoDiscount?.discount_type === 'percentage'
-        ? promoDiscount.discount_value
-        : 0;
+    if (promoDiscount) {
+      promoDiscountInput = {
+        type: promoDiscount.discount_type as 'percentage' | 'fixed',
+        value: promoDiscount.discount_value,
+      };
+    }
   }
 
   // Calculate price
@@ -259,7 +282,7 @@ export function processPricing(params: PricingFlowParams): PricingResult {
     modalityCount: modalityIds.length,
     commitmentMonths,
     commitmentDiscountPct: commitmentResult.percentage,
-    promoDiscountPct,
+    promoDiscount: promoDiscountInput,
     isFirstTime: memberStatus === 'LEAD',
     planOverride,
   });

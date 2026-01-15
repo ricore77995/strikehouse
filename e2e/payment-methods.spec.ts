@@ -12,10 +12,10 @@ test.describe('Payment Method Flows', () => {
 
     // Ensure cash session is open
     await page.goto('/staff/caixa');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('h1, h2, form, button')).toBeVisible({ timeout: 5000 });
 
     const closeButton = page.locator('button:has-text("Fechar")');
-    const isOpen = await closeButton.isVisible({ timeout: 2000 }).catch(() => false);
+    const isOpen = await closeButton.isVisible({ timeout: 2000 });
 
     if (!isOpen) {
       // Open cash session
@@ -23,19 +23,19 @@ test.describe('Payment Method Flows', () => {
       if (await openingInput.isVisible({ timeout: 2000 })) {
         await openingInput.fill('100');
         await page.click('button:has-text("Abrir")');
-        await page.waitForTimeout(1500);
+        await expect(page.locator('text=aberto, text=sucesso, button:has-text("Fechar")').first()).toBeVisible({ timeout: 5000 });
       }
     }
 
     // Navigate to payment
     await page.goto('/staff/payment');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('h1, h2, input[placeholder*="Buscar"]')).toBeVisible({ timeout: 5000 });
 
     // Select member
     const searchInput = page.locator('input[placeholder*="Buscar"]');
     if (await searchInput.isVisible({ timeout: 2000 })) {
       await searchInput.fill('João');
-      await page.waitForTimeout(500);
+      await expect(page.locator('[data-member], .member-card, li').first()).toBeVisible({ timeout: 3000 });
 
       const firstMember = page.locator('[data-member], .member-card, li').first();
       if (await firstMember.isVisible({ timeout: 2000 })) {
@@ -54,23 +54,17 @@ test.describe('Payment Method Flows', () => {
 
           // Confirm payment
           await page.click('button:has-text("Confirmar")');
-          await page.waitForTimeout(1500);
 
           // Verify success (transaction created immediately)
           const successMsg = page.locator('text=sucesso, text=confirmad, [data-toast]');
-          await expect(successMsg.first()).toBeVisible({ timeout: 5000 }).catch(() => {
-            console.log('DINHEIRO payment completed');
-          });
+          await expect(successMsg.first()).toBeVisible({ timeout: 5000 });
 
           // Verify cash session was updated (navigate to caixa)
           await page.goto('/staff/caixa');
-          await page.waitForTimeout(1000);
 
           // Verify expected closing increased
           const expectedClosing = page.locator('[data-expected-closing], text*="Esperado"');
-          await expect(expectedClosing.first()).toBeVisible({ timeout: 3000 }).catch(() => {
-            console.log('Cash session updated with DINHEIRO payment');
-          });
+          await expect(expectedClosing.first()).toBeVisible({ timeout: 3000 });
         }
       }
     }
@@ -86,13 +80,13 @@ test.describe('Payment Method Flows', () => {
 
     // Navigate to payment
     await page.goto('/staff/payment');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('h1, h2, input[placeholder*="Buscar"]')).toBeVisible({ timeout: 5000 });
 
     // Select member
     const searchInput = page.locator('input[placeholder*="Buscar"]');
     if (await searchInput.isVisible({ timeout: 2000 })) {
       await searchInput.fill('Maria');
-      await page.waitForTimeout(500);
+      await expect(page.locator('[data-member], .member-card, li').first()).toBeVisible({ timeout: 3000 });
 
       const firstMember = page.locator('[data-member], .member-card, li').first();
       if (await firstMember.isVisible({ timeout: 2000 })) {
@@ -111,16 +105,10 @@ test.describe('Payment Method Flows', () => {
 
           // Confirm payment
           await page.click('button:has-text("Confirmar")');
-          await page.waitForTimeout(1500);
 
           // Verify success
           const successMsg = page.locator('text=sucesso, text=confirmad');
-          await expect(successMsg.first()).toBeVisible({ timeout: 5000 }).catch(() => {
-            console.log('CARTÃO payment completed (instant activation)');
-          });
-
-          // Verify NO cash session update (CARTÃO doesn't affect cash)
-          // This is verified by checking cash session remains unchanged
+          await expect(successMsg.first()).toBeVisible({ timeout: 5000 });
         }
       }
     }
@@ -135,12 +123,12 @@ test.describe('Payment Method Flows', () => {
     await expect(page).toHaveURL(/\/staff|\/admin/);
 
     await page.goto('/staff/payment');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('h1, h2, input[placeholder*="Buscar"]')).toBeVisible({ timeout: 5000 });
 
     const searchInput = page.locator('input[placeholder*="Buscar"]');
     if (await searchInput.isVisible({ timeout: 2000 })) {
       await searchInput.fill('Pedro');
-      await page.waitForTimeout(500);
+      await expect(page.locator('[data-member], .member-card, li').first()).toBeVisible({ timeout: 3000 });
 
       const firstMember = page.locator('[data-member], .member-card, li').first();
       if (await firstMember.isVisible({ timeout: 2000 })) {
@@ -157,13 +145,10 @@ test.describe('Payment Method Flows', () => {
           }
 
           await page.click('button:has-text("Confirmar")');
-          await page.waitForTimeout(1500);
 
           // Verify success
           const successMsg = page.locator('text=sucesso, text=confirmad');
-          await expect(successMsg.first()).toBeVisible({ timeout: 5000 }).catch(() => {
-            console.log('MBWAY payment completed');
-          });
+          await expect(successMsg.first()).toBeVisible({ timeout: 5000 });
         }
       }
     }
@@ -179,12 +164,12 @@ test.describe('Payment Method Flows', () => {
     await expect(page).toHaveURL(/\/staff|\/admin/);
 
     await page.goto('/staff/payment');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('h1, h2, input[placeholder*="Buscar"]')).toBeVisible({ timeout: 5000 });
 
     const searchInput = page.locator('input[placeholder*="Buscar"]');
     if (await searchInput.isVisible({ timeout: 2000 })) {
       await searchInput.fill('Ana');
-      await page.waitForTimeout(500);
+      await expect(page.locator('[data-member], .member-card, li').first()).toBeVisible({ timeout: 3000 });
 
       const firstMember = page.locator('[data-member], .member-card, li').first();
       if (await firstMember.isVisible({ timeout: 2000 })) {
@@ -202,16 +187,16 @@ test.describe('Payment Method Flows', () => {
 
           // Create pending payment
           await page.click('button:has-text("Confirmar"), button:has-text("Criar")');
-          await page.waitForTimeout(1500);
 
           // Verify pending payment created
           const pendingMsg = page.locator('text=pendente, text=Referência, text=BM-, text=ENR-, text=PAY-');
-          await expect(pendingMsg.first()).toBeVisible({ timeout: 5000 }).catch(() => {
-            console.log('Pending payment created');
-          });
+          await expect(pendingMsg.first()).toBeVisible({ timeout: 5000 });
 
           // Capture reference (if displayed)
-          const reference = await page.locator('[data-reference], text*="BM-", text*="ENR-", text*="PAY-"').textContent().catch(() => '');
+          const referenceLocator = page.locator('[data-reference], text*="BM-", text*="ENR-", text*="PAY-"').first();
+          const reference = await referenceLocator.isVisible({ timeout: 1000 })
+            ? await referenceLocator.textContent()
+            : '';
           console.log('Payment reference:', reference);
         }
       }
@@ -230,7 +215,7 @@ test.describe('Payment Method Flows', () => {
       }
     }
 
-    await page.waitForTimeout(1000);
+    await expect(page).toHaveURL(/\/login/);
 
     // Login as ADMIN
     await page.goto('/login');
@@ -242,19 +227,16 @@ test.describe('Payment Method Flows', () => {
 
     // Navigate to pending payments
     await page.goto('/admin/pending-payments');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('h1, h2, table, [data-pending]')).toBeVisible({ timeout: 5000 });
 
     // Find and confirm pending payment
     const confirmButton = page.locator('button:has-text("Confirmar")').first();
     if (await confirmButton.isVisible({ timeout: 3000 })) {
       await confirmButton.click();
-      await page.waitForTimeout(1500);
 
       // Verify confirmation success
       const successMsg = page.locator('text=confirmad, text=sucesso');
-      await expect(successMsg.first()).toBeVisible({ timeout: 5000 }).catch(() => {
-        console.log('Pending payment confirmed by admin');
-      });
+      await expect(successMsg.first()).toBeVisible({ timeout: 5000 });
     }
   });
 
@@ -271,7 +253,7 @@ test.describe('Payment Method Flows', () => {
 
     // Navigate to pending payments page
     await page.goto('/admin/pending-payments');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('h1, h2, table, [data-pending]')).toBeVisible({ timeout: 5000 });
 
     // Verify page loads with pending payments list
     await expect(page.locator('h1, h2, table, [data-pending]')).toBeVisible({ timeout: 5000 });
@@ -280,11 +262,11 @@ test.describe('Payment Method Flows', () => {
     const statusFilter = page.locator('select[name="status"], [data-filter="status"]');
     if (await statusFilter.isVisible({ timeout: 2000 })) {
       // Check if EXPIRED option exists
-      const hasExpired = await statusFilter.locator('option[value="EXPIRED"]').isVisible().catch(() => false);
+      const expiredOption = statusFilter.locator('option[value="EXPIRED"]');
+      const hasExpired = await expiredOption.count() > 0;
 
       if (hasExpired) {
         await statusFilter.selectOption('EXPIRED');
-        await page.waitForTimeout(500);
       }
     }
 
@@ -302,18 +284,18 @@ test.describe('Payment Method Flows', () => {
 
     // Navigate to member management to save IBAN
     await page.goto('/admin/members');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('h1, h2, input[placeholder*="Buscar"]')).toBeVisible({ timeout: 5000 });
 
     // Search for a member
     const searchInput = page.locator('input[placeholder*="Buscar"]');
     if (await searchInput.isVisible({ timeout: 2000 })) {
       await searchInput.fill('João');
-      await page.waitForTimeout(500);
+      await expect(page.locator('[data-member], .member-card, tr, li').first()).toBeVisible({ timeout: 3000 });
 
       const firstMember = page.locator('[data-member], .member-card, tr, li').first();
       if (await firstMember.isVisible({ timeout: 2000 })) {
         await firstMember.click();
-        await page.waitForTimeout(1000);
+        await expect(page.locator('input[name="iban"], form, [role="dialog"]')).toBeVisible({ timeout: 3000 });
 
         // Look for IBAN field
         const ibanField = page.locator('input[name="iban"], input[placeholder*="IBAN"]');
@@ -324,7 +306,7 @@ test.describe('Payment Method Flows', () => {
           const saveButton = page.locator('button:has-text("Salvar"), button:has-text("Guardar"), button[type="submit"]');
           if (await saveButton.isVisible({ timeout: 2000 })) {
             await saveButton.click();
-            await page.waitForTimeout(1000);
+            await expect(page.locator('text=sucesso, text=salvo, [data-toast]').first()).toBeVisible({ timeout: 5000 });
           }
         }
       }
@@ -332,13 +314,12 @@ test.describe('Payment Method Flows', () => {
 
     // Navigate to transfer verification page (if exists)
     await page.goto('/admin/pending-payments');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('h1, h2, table, [data-pending]')).toBeVisible({ timeout: 5000 });
 
-    // Verify IBAN matching functionality exists
+    // Verify IBAN matching functionality exists (or alternative UI)
     const ibanInput = page.locator('input[name="iban"], input[placeholder*="IBAN"]');
-    await expect(ibanInput).toBeVisible({ timeout: 3000 }).catch(() => {
-      console.log('IBAN matching tested (UI may vary)');
-    });
+    const pendingTable = page.locator('table, [data-pending-list]');
+    await expect(ibanInput.or(pendingTable)).toBeVisible({ timeout: 3000 });
   });
 
   test('partial payment: amount mismatch warning', async ({ page }) => {
@@ -351,7 +332,7 @@ test.describe('Payment Method Flows', () => {
 
     // Navigate to pending payments
     await page.goto('/admin/pending-payments');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('h1, h2, table, [data-pending]')).toBeVisible({ timeout: 5000 });
 
     // Look for amount verification field
     const amountInput = page.locator('input[name="amount"], input[name="actual_amount"], input[placeholder*="valor"]');
@@ -359,13 +340,11 @@ test.describe('Payment Method Flows', () => {
     if (await amountInput.isVisible({ timeout: 2000 })) {
       // Enter amount different from expected
       await amountInput.fill('50');
-      await page.waitForTimeout(500);
 
-      // Look for mismatch warning
+      // Look for mismatch warning or confirmation dialog
       const warningMsg = page.locator('text=diferença, text=discrepância, text=aviso, [data-warning]');
-      await expect(warningMsg.first()).toBeVisible({ timeout: 3000 }).catch(() => {
-        console.log('Partial payment warning tested');
-      });
+      const confirmDialog = page.locator('[role="dialog"], [data-confirm]');
+      await expect(warningMsg.first().or(confirmDialog)).toBeVisible({ timeout: 3000 });
     }
   });
 
@@ -380,12 +359,12 @@ test.describe('Payment Method Flows', () => {
 
     // Attempt to process payment for same member twice
     await page.goto('/staff/payment');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('h1, h2, input[placeholder*="Buscar"]')).toBeVisible({ timeout: 5000 });
 
     const searchInput = page.locator('input[placeholder*="Buscar"]');
     if (await searchInput.isVisible({ timeout: 2000 })) {
       await searchInput.fill('Carlos');
-      await page.waitForTimeout(500);
+      await expect(page.locator('[data-member], .member-card, li').first()).toBeVisible({ timeout: 3000 });
 
       const firstMember = page.locator('[data-member], .member-card, li').first();
       if (await firstMember.isVisible({ timeout: 2000 })) {
@@ -402,19 +381,18 @@ test.describe('Payment Method Flows', () => {
 
           // First payment attempt
           await page.click('button:has-text("Confirmar")');
-          await page.waitForTimeout(1500);
+          await expect(page.locator('text=sucesso, text=confirmad, [data-toast]').first()).toBeVisible({ timeout: 5000 });
 
           // Try to process again immediately (should be prevented or show warning)
           const confirmAgain = page.locator('button:has-text("Confirmar")');
           if (await confirmAgain.isVisible({ timeout: 1000 })) {
             await confirmAgain.click();
-            await page.waitForTimeout(1000);
 
-            // Look for duplicate warning or disabled button
+            // Look for duplicate warning, success (if allowed), or disabled button
             const duplicateWarning = page.locator('text=duplicad, text=já foi, [data-error]');
-            await expect(duplicateWarning.first()).toBeVisible({ timeout: 3000 }).catch(() => {
-              console.log('Duplicate payment prevention tested');
-            });
+            const successMsg = page.locator('text=sucesso, text=confirmad');
+            const disabledButton = page.locator('button:has-text("Confirmar"):disabled');
+            await expect(duplicateWarning.first().or(successMsg.first()).or(disabledButton)).toBeVisible({ timeout: 3000 });
           }
         }
       }

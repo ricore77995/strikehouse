@@ -19,20 +19,17 @@ test.describe('Complete Member Lifecycle', () => {
     await page.fill('input[name="telefone"]', '918765432');
     await page.fill('input[name="email"]', uniqueEmail);
     await page.click('button:has-text("Criar")');
-
-    await page.waitForTimeout(1500);
+    await expect(page.locator('text=sucesso, text=criado, [data-toast]').first()).toBeVisible({ timeout: 5000 });
 
     // 3. Navigate to enrollment page
     await page.goto('/staff/enrollment');
-
-    // Wait for page to load
-    await page.waitForTimeout(1000);
+    await expect(page.locator('h1, h2, input[placeholder*="Buscar"]')).toBeVisible({ timeout: 5000 });
 
     // Search for member
     const searchInput = page.locator('input[placeholder*="Buscar"], input[type="search"]');
     if (await searchInput.isVisible({ timeout: 2000 })) {
       await searchInput.fill('Maria Primeira Vez Lifecycle');
-      await page.waitForTimeout(500);
+      await expect(page.locator('text=Maria Primeira Vez Lifecycle')).toBeVisible({ timeout: 3000 });
 
       const memberCard = page.locator('text=Maria Primeira Vez Lifecycle');
       if (await memberCard.isVisible({ timeout: 3000 })) {
@@ -52,17 +49,16 @@ test.describe('Complete Member Lifecycle', () => {
       }
 
       await page.click('button:has-text("Confirmar")');
-      await page.waitForTimeout(1000);
+      await expect(page.locator('text=sucesso, text=confirmad, [data-toast]').first()).toBeVisible({ timeout: 5000 });
     }
 
     // 6. Verify member status changed to ATIVO (check via members list)
     await page.goto('/admin/members');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('h1, h2, input[placeholder*="Buscar"]')).toBeVisible({ timeout: 5000 });
 
     const searchMembers = page.locator('input[placeholder*="Buscar"]');
     if (await searchMembers.isVisible({ timeout: 2000 })) {
       await searchMembers.fill('Maria Primeira Vez Lifecycle');
-      await page.waitForTimeout(500);
     }
 
     // Success if we can find the member (status transitions are handled in UI)
@@ -79,13 +75,13 @@ test.describe('Complete Member Lifecycle', () => {
 
     // Navigate to regular payment page (NOT enrollment)
     await page.goto('/staff/payment');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('h1, h2, input[placeholder*="Buscar"]')).toBeVisible({ timeout: 5000 });
 
     // Search for an existing active member (using common Portuguese names)
     const searchInput = page.locator('input[placeholder*="Buscar"], input[type="search"]');
     if (await searchInput.isVisible({ timeout: 2000 })) {
       await searchInput.fill('João');
-      await page.waitForTimeout(500);
+      await expect(page.locator('[data-member], .member-card, li').first()).toBeVisible({ timeout: 3000 });
 
       // Select first result if available
       const firstMember = page.locator('[data-member], .member-card, li:has-text("João")').first();
@@ -99,10 +95,7 @@ test.describe('Complete Member Lifecycle', () => {
 
           // Verify NO enrollment fee shown (renewal, not enrollment)
           const enrollmentFee = page.locator('text=Taxa de Matrícula, text=Enrollment');
-          const hasEnrollmentFee = await enrollmentFee.isVisible({ timeout: 1000 }).catch(() => false);
-
-          // For renewal, there should be no enrollment fee
-          expect(hasEnrollmentFee).toBe(false);
+          await expect(enrollmentFee).toBeHidden({ timeout: 2000 });
 
           // Complete payment
           const paymentMethod = page.locator('input[value="DINHEIRO"]');
@@ -111,13 +104,10 @@ test.describe('Complete Member Lifecycle', () => {
           }
 
           await page.click('button:has-text("Confirmar")');
-          await page.waitForTimeout(1000);
 
           // Verify success
           const successMessage = page.locator('text=sucesso, text=confirmad, [data-toast]');
-          await expect(successMessage.first()).toBeVisible({ timeout: 5000 }).catch(() => {
-            console.log('Payment renewal completed (success message may vary)');
-          });
+          await expect(successMessage.first()).toBeVisible({ timeout: 5000 });
         }
       }
     }
@@ -136,19 +126,17 @@ test.describe('Complete Member Lifecycle', () => {
 
     // Create a member with expired access_expires_at (via admin interface if possible)
     await page.goto('/admin/members');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('h1, h2, input[placeholder*="Buscar"]')).toBeVisible({ timeout: 5000 });
 
     // Try to find a blocked or expired member
     const searchInput = page.locator('input[placeholder*="Buscar"]');
     if (await searchInput.isVisible({ timeout: 2000 })) {
       // Search for any member to test with
       await searchInput.fill('');
-      await page.waitForTimeout(500);
     }
 
     // Navigate to check-in to test blocked access
     await page.goto('/staff/checkin');
-    await page.waitForTimeout(1000);
 
     // Verify check-in page loads (automatic blocking is verified in unit tests)
     await expect(page.locator('input[placeholder*="Buscar"], h1, h2')).toBeVisible({ timeout: 5000 });
@@ -164,14 +152,13 @@ test.describe('Complete Member Lifecycle', () => {
 
     // Navigate to payment page
     await page.goto('/staff/payment');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('h1, h2, input[placeholder*="Buscar"]')).toBeVisible({ timeout: 5000 });
 
     // Search for blocked member (if any exist)
     const searchInput = page.locator('input[placeholder*="Buscar"]');
     if (await searchInput.isVisible({ timeout: 2000 })) {
       // Try searching for members
       await searchInput.fill('');
-      await page.waitForTimeout(500);
 
       // Select first available member
       const firstMember = page.locator('[data-member], .member-card, li').first();
@@ -190,7 +177,7 @@ test.describe('Complete Member Lifecycle', () => {
           }
 
           await page.click('button:has-text("Confirmar")');
-          await page.waitForTimeout(1000);
+          await expect(page.locator('text=sucesso, text=confirmad, [data-toast]').first()).toBeVisible({ timeout: 5000 });
         }
       }
     }
@@ -212,13 +199,12 @@ test.describe('Complete Member Lifecycle', () => {
 
     // Navigate to members page
     await page.goto('/admin/members');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('h1, h2, input[placeholder*="Buscar"]')).toBeVisible({ timeout: 5000 });
 
     // Verify we can filter by status (if filter exists)
     const statusFilter = page.locator('select[name="status"], [data-filter="status"]');
     if (await statusFilter.isVisible({ timeout: 2000 })) {
       await statusFilter.selectOption('CANCELADO');
-      await page.waitForTimeout(500);
     }
 
     // Verify page loads (actual auto-cancellation is tested in backend)
@@ -235,13 +221,12 @@ test.describe('Complete Member Lifecycle', () => {
 
     // For cancelled member reactivation, go to enrollment or payment
     await page.goto('/staff/payment');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('h1, h2, input[placeholder*="Buscar"]')).toBeVisible({ timeout: 5000 });
 
     // Search for any member to test reactivation flow
     const searchInput = page.locator('input[placeholder*="Buscar"]');
     if (await searchInput.isVisible({ timeout: 2000 })) {
       await searchInput.fill('');
-      await page.waitForTimeout(500);
 
       const firstMember = page.locator('[data-member], .member-card, li').first();
       if (await firstMember.isVisible({ timeout: 2000 })) {
@@ -258,7 +243,7 @@ test.describe('Complete Member Lifecycle', () => {
           }
 
           await page.click('button:has-text("Confirmar")');
-          await page.waitForTimeout(1000);
+          await expect(page.locator('text=sucesso, text=confirmad, [data-toast]').first()).toBeVisible({ timeout: 5000 });
         }
       }
     }
@@ -277,12 +262,12 @@ test.describe('Complete Member Lifecycle', () => {
 
     // 1. Purchase CREDITS plan
     await page.goto('/staff/payment');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('h1, h2, input[placeholder*="Buscar"]')).toBeVisible({ timeout: 5000 });
 
     const searchInput = page.locator('input[placeholder*="Buscar"]');
     if (await searchInput.isVisible({ timeout: 2000 })) {
       await searchInput.fill('João');
-      await page.waitForTimeout(500);
+      await expect(page.locator('[data-member], .member-card, li').first()).toBeVisible({ timeout: 3000 });
 
       const firstMember = page.locator('[data-member], .member-card, li').first();
       if (await firstMember.isVisible({ timeout: 2000 })) {
@@ -299,16 +284,16 @@ test.describe('Complete Member Lifecycle', () => {
           }
 
           await page.click('button:has-text("Confirmar")');
-          await page.waitForTimeout(1500);
+          await expect(page.locator('text=sucesso, text=confirmad, [data-toast]').first()).toBeVisible({ timeout: 5000 });
 
           // 2. Perform check-in to decrement credits
           await page.goto('/staff/checkin');
-          await page.waitForTimeout(1000);
+          await expect(page.locator('h1, h2, input[placeholder*="Buscar"]')).toBeVisible({ timeout: 5000 });
 
           const checkinSearch = page.locator('input[placeholder*="Buscar"]');
           if (await checkinSearch.isVisible({ timeout: 2000 })) {
             await checkinSearch.fill('João');
-            await page.waitForTimeout(500);
+            await expect(page.locator('text=João, [data-member]').first()).toBeVisible({ timeout: 3000 });
 
             const memberCard = page.locator('text=João, [data-member]').first();
             if (await memberCard.isVisible({ timeout: 2000 })) {
@@ -318,13 +303,10 @@ test.describe('Complete Member Lifecycle', () => {
               const checkinButton = page.locator('button:has-text("Check-in"), button:has-text("Confirmar")');
               if (await checkinButton.isVisible({ timeout: 2000 })) {
                 await checkinButton.click();
-                await page.waitForTimeout(1000);
 
                 // Verify check-in success (credits should decrement)
                 const successMsg = page.locator('text=liberado, text=sucesso, [data-result="ALLOWED"]');
-                await expect(successMsg.first()).toBeVisible({ timeout: 5000 }).catch(() => {
-                  console.log('Check-in completed (credit decremented)');
-                });
+                await expect(successMsg.first()).toBeVisible({ timeout: 5000 });
               }
             }
           }
@@ -343,12 +325,12 @@ test.describe('Complete Member Lifecycle', () => {
 
     // 1. Purchase DAILY_PASS plan
     await page.goto('/staff/payment');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('h1, h2, input[placeholder*="Buscar"]')).toBeVisible({ timeout: 5000 });
 
     const searchInput = page.locator('input[placeholder*="Buscar"]');
     if (await searchInput.isVisible({ timeout: 2000 })) {
       await searchInput.fill('João');
-      await page.waitForTimeout(500);
+      await expect(page.locator('[data-member], .member-card, li').first()).toBeVisible({ timeout: 3000 });
 
       const firstMember = page.locator('[data-member], .member-card, li').first();
       if (await firstMember.isVisible({ timeout: 2000 })) {
@@ -365,16 +347,16 @@ test.describe('Complete Member Lifecycle', () => {
           }
 
           await page.click('button:has-text("Confirmar")');
-          await page.waitForTimeout(1500);
+          await expect(page.locator('text=sucesso, text=confirmad, [data-toast]').first()).toBeVisible({ timeout: 5000 });
 
           // 2. Perform check-in same day
           await page.goto('/staff/checkin');
-          await page.waitForTimeout(1000);
+          await expect(page.locator('h1, h2, input[placeholder*="Buscar"]')).toBeVisible({ timeout: 5000 });
 
           const checkinSearch = page.locator('input[placeholder*="Buscar"]');
           if (await checkinSearch.isVisible({ timeout: 2000 })) {
             await checkinSearch.fill('João');
-            await page.waitForTimeout(500);
+            await expect(page.locator('text=João, [data-member]').first()).toBeVisible({ timeout: 3000 });
 
             const memberCard = page.locator('text=João, [data-member]').first();
             if (await memberCard.isVisible({ timeout: 2000 })) {
@@ -383,13 +365,10 @@ test.describe('Complete Member Lifecycle', () => {
               const checkinButton = page.locator('button:has-text("Check-in"), button:has-text("Confirmar")');
               if (await checkinButton.isVisible({ timeout: 2000 })) {
                 await checkinButton.click();
-                await page.waitForTimeout(1000);
 
                 // Verify check-in allowed (same day)
                 const successMsg = page.locator('text=liberado, text=sucesso');
-                await expect(successMsg.first()).toBeVisible({ timeout: 5000 }).catch(() => {
-                  console.log('Daily pass check-in successful');
-                });
+                await expect(successMsg.first()).toBeVisible({ timeout: 5000 });
               }
             }
           }

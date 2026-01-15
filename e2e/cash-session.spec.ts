@@ -62,15 +62,18 @@ test.describe('Cash Session Flow', () => {
       const openingBalanceInput = page.locator('input[name="opening_balance"], input[placeholder*="abertura"]');
       await openingBalanceInput.fill('100');
       await page.click('button:has-text("Abrir")');
-      await page.waitForTimeout(1000);
+      await expect(page.locator('text=aberto').or(page.locator('text=sucesso'))).toBeVisible({ timeout: 5000 });
     }
 
     // Try to close with large difference (>€5)
     const closingInput = page.locator('input[name="actual_closing"], input[name="closing_balance"], input[placeholder*="fechamento"]');
 
     if (await closingInput.isVisible({ timeout: 2000 })) {
-      // Get expected closing amount
-      const expectedText = await page.locator('[data-expected-closing], text*="Esperado"').textContent().catch(() => '');
+      // Get expected closing amount (for reference)
+      const expectedLocator = page.locator('[data-expected-closing], text*="Esperado"').first();
+      const expectedText = await expectedLocator.isVisible({ timeout: 1000 })
+        ? await expectedLocator.textContent()
+        : '';
 
       // Enter amount with large difference (€20 off)
       await closingInput.fill('80'); // If expected is 100, this is €20 difference
@@ -133,7 +136,7 @@ test.describe('Cash Session Integration with Sales', () => {
       const openingBalanceInput = page.locator('input[name="opening_balance"], input[placeholder*="abertura"]');
       await openingBalanceInput.fill('100');
       await page.click('button:has-text("Abrir")');
-      await page.waitForTimeout(1000);
+      await expect(page.locator('text=aberto').or(page.locator('text=sucesso'))).toBeVisible({ timeout: 5000 });
     }
 
     // Go to sales page
@@ -157,9 +160,10 @@ test.describe('Cash Session Integration with Sales', () => {
       // Go back to cash session and verify total increased
       await page.goto('/staff/caixa');
 
-      // Expected closing should be > opening balance
-      const expectedText = await page.locator('[data-expected-closing]').textContent().catch(() => '');
-      expect(expectedText).toBeTruthy();
+      // Expected closing should be visible and show a value
+      const expectedClosing = page.locator('[data-expected-closing]');
+      await expect(expectedClosing).toBeVisible({ timeout: 5000 });
+      await expect(expectedClosing).not.toBeEmpty();
     }
   });
 });
