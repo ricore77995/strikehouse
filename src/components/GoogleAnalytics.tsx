@@ -25,6 +25,9 @@ export function GoogleAnalytics() {
   };
 
   useEffect(() => {
+    // Only track in production
+    if (!import.meta.env.PROD) return;
+
     if (!isPublicRoute()) return;
 
     // Check if script already loaded
