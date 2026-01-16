@@ -1,4 +1,8 @@
+import * as dotenv from 'dotenv';
 import { getServiceClient } from './helpers/api-client';
+
+// Load environment variables from .env file
+dotenv.config();
 
 /**
  * Playwright Global Setup

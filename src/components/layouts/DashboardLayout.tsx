@@ -238,11 +238,11 @@ const navGroups: NavGroup[] = [
     ],
   },
 
-  // Gestão - OWNER & ADMIN
+  // Gestão - OWNER only
   {
     title: 'Gestão',
     icon: Settings,
-    roles: ['OWNER', 'ADMIN'],
+    roles: ['OWNER'],
     defaultOpen: false,
     items: [
       {

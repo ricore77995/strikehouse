@@ -43,7 +43,7 @@ export const useUpdatePricingConfig = () => {
     mutationFn: async (updates: Partial<Omit<PricingConfig, 'id' | 'updated_at'>> & { id: string }) => {
       const { id, ...updateData } = updates;
 
-      const { data, error } = await supabase
+      const { data, error, count } = await supabase
         .from('pricing_config')
         .update({
           ...updateData,
@@ -54,7 +54,18 @@ export const useUpdatePricingConfig = () => {
         .single();
 
       if (error) throw error;
-      return data as PricingConfig;
+
+      // Verify the update actually happened by checking returned values
+      const returnedData = data as PricingConfig;
+      const keysToCheck = Object.keys(updateData) as (keyof typeof updateData)[];
+      for (const key of keysToCheck) {
+        if (updateData[key] !== undefined && returnedData[key] !== updateData[key]) {
+          console.error(`Update verification failed: ${key} expected ${updateData[key]} but got ${returnedData[key]}`);
+          throw new Error(`Atualizacao falhou: ${key} nao foi salvo. Verifique permissoes.`);
+        }
+      }
+
+      return returnedData;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pricing-config'] });

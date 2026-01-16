@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { validateMemberAccess, type MemberAccessParams } from '@/lib/checkin-rules';
 
 export interface MemberCheckinInfo {
   id: string;
@@ -66,80 +67,21 @@ export const useCheckin = () => {
   };
 
   const validateAccess = (member: MemberCheckinInfo): CheckinResult => {
-    // Check if member is blocked or cancelled
-    if (member.status === 'BLOQUEADO') {
-      return {
-        success: false,
-        result: 'BLOCKED',
-        member,
-        message: 'Membro bloqueado. Entre em contato com a recepção.',
-      };
-    }
+    // Use pure function for business rule validation
+    const accessParams: MemberAccessParams = {
+      status: member.status as MemberAccessParams['status'],
+      access_type: member.access_type as MemberAccessParams['access_type'],
+      access_expires_at: member.access_expires_at,
+      credits_remaining: member.credits_remaining,
+    };
 
-    if (member.status === 'CANCELADO') {
-      return {
-        success: false,
-        result: 'BLOCKED',
-        member,
-        message: 'Membro cancelado. Entre em contato com a recepção.',
-      };
-    }
-
-    // Check if subscription is frozen/paused (Gap 3)
-    if (member.status === 'PAUSADO') {
-      return {
-        success: false,
-        result: 'BLOCKED',
-        member,
-        message: 'Subscricao pausada. Entre em contato com a recepcao para reativar.',
-      };
-    }
-
-    // Check if LEAD (no active plan)
-    if (member.status === 'LEAD' || !member.access_type) {
-      return {
-        success: false,
-        result: 'EXPIRED',
-        member,
-        message: 'Membro sem plano ativo. Favor regularizar situação.',
-      };
-    }
-
-    // Check expiration for subscription/daily pass
-    if (member.access_type === 'SUBSCRIPTION' || member.access_type === 'DAILY_PASS') {
-      if (member.access_expires_at) {
-        const expiresAt = new Date(member.access_expires_at);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        if (expiresAt < today) {
-          return {
-            success: false,
-            result: 'EXPIRED',
-            member,
-            message: `Acesso expirado em ${expiresAt.toLocaleDateString('pt-BR')}. Favor renovar.`,
-          };
-        }
-      }
-    }
-
-    // Check credits
-    if (member.access_type === 'CREDITS') {
-      if (!member.credits_remaining || member.credits_remaining <= 0) {
-        return {
-          success: false,
-          result: 'NO_CREDITS',
-          member,
-          message: 'Sem créditos disponíveis. Favor adquirir mais créditos.',
-        };
-      }
-    }
+    const validation = validateMemberAccess(accessParams);
 
     return {
-      success: true,
-      result: 'ALLOWED',
+      success: validation.allowed,
+      result: validation.result,
       member,
-      message: 'Acesso liberado!',
+      message: validation.message,
     };
   };
 

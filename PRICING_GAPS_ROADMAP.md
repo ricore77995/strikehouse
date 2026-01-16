@@ -221,10 +221,11 @@ e2e/
 - [ ] E2E tests
 
 ### Gap 3: Freeze Subscription
-- [ ] Migration
-- [ ] Status PAUSADO
-- [ ] Freeze/unfreeze logic
-- [ ] Check-in validation
+- [x] Migration (`20260115020000_add_subscription_freeze.sql`)
+- [x] Status PAUSADO (added to members constraint)
+- [x] Freeze/unfreeze logic (`src/lib/subscription-freeze.ts`)
+- [x] Check-in validation (`useCheckin.ts` - PAUSADO check)
+- [x] Auto-unfreeze in scheduled-jobs
 - [ ] UI Freeze button
 - [ ] E2E tests
 

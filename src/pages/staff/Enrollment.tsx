@@ -147,6 +147,23 @@ const Enrollment = () => {
   // Create member mutation
   const createMemberMutation = useMutation({
     mutationFn: async (data: MemberFormData) => {
+      // Check for existing member with same phone or email
+      const orConditions = [`telefone.eq.${data.telefone}`];
+      if (data.email) {
+        orConditions.push(`email.eq.${data.email}`);
+      }
+      const { data: existing } = await supabase
+        .from('members')
+        .select('id, nome, telefone, email')
+        .or(orConditions.join(','))
+        .limit(1);
+
+      if (existing && existing.length > 0) {
+        const match = existing[0];
+        const matchField = match.telefone === data.telefone ? 'telefone' : 'email';
+        throw new Error(`Já existe membro com este ${matchField}: ${match.nome}`);
+      }
+
       const { data: newMember, error } = await supabase
         .from('members')
         .insert({
@@ -168,8 +185,12 @@ const Enrollment = () => {
       memberForm.reset();
       setCurrentStep(2);
     },
-    onError: () => {
-      toast({ title: 'Erro ao criar membro', variant: 'destructive' });
+    onError: (error) => {
+      toast({
+        title: 'Erro ao criar membro',
+        description: error instanceof Error ? error.message : 'Verifique os dados',
+        variant: 'destructive',
+      });
     },
   });
 

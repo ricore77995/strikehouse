@@ -100,7 +100,10 @@ const Discounts = () => {
       nome: discount.nome,
       category: discount.category,
       discount_type: discount.discount_type,
-      discount_value: discount.discount_value,
+      // Convert cents to euros for fixed type display
+      discount_value: discount.discount_type === 'fixed'
+        ? discount.discount_value / 100
+        : discount.discount_value,
       min_commitment_months: discount.min_commitment_months,
       valid_from: discount.valid_from || '',
       valid_until: discount.valid_until || '',
@@ -123,6 +126,11 @@ const Discounts = () => {
     }
 
     try {
+      // Convert euros to cents for fixed type storage
+      const valueToSave = formData.discount_type === 'fixed'
+        ? Math.round(formData.discount_value * 100)
+        : formData.discount_value;
+
       if (editingDiscount) {
         await updateMutation.mutateAsync({
           id: editingDiscount.id,
@@ -130,7 +138,7 @@ const Discounts = () => {
             code: formData.code.toUpperCase(),
             nome: formData.nome,
             discount_type: formData.discount_type,
-            discount_value: formData.discount_value,
+            discount_value: valueToSave,
             min_commitment_months: formData.min_commitment_months,
             valid_from: formData.valid_from || null,
             valid_until: formData.valid_until || null,
@@ -145,7 +153,7 @@ const Discounts = () => {
           nome: formData.nome,
           category: formData.category,
           discount_type: formData.discount_type,
-          discount_value: formData.discount_value,
+          discount_value: valueToSave,
           min_commitment_months: formData.min_commitment_months,
           valid_from: formData.valid_from || null,
           valid_until: formData.valid_until || null,
@@ -321,6 +329,7 @@ const Discounts = () => {
                         setFormData({
                           ...formData,
                           discount_type: val as DiscountTypeType,
+                          discount_value: 0, // Reset value when changing type
                         })
                       }
                     >
@@ -336,20 +345,22 @@ const Discounts = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="discount_value">
-                      {formData.discount_type === 'percentage' ? 'Percentagem' : 'Valor (€)'}
+                      {formData.discount_type === 'percentage' ? 'Percentagem (%)' : 'Valor (€)'}
                     </Label>
                     <Input
                       id="discount_value"
                       type="number"
                       min="0"
+                      step={formData.discount_type === 'fixed' ? '0.01' : '1'}
                       max={formData.discount_type === 'percentage' ? 100 : undefined}
                       value={formData.discount_value}
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          discount_value: parseInt(e.target.value) || 0,
+                          discount_value: parseFloat(e.target.value) || 0,
                         })
                       }
+                      placeholder={formData.discount_type === 'fixed' ? 'ex: 10.00' : 'ex: 15'}
                     />
                   </div>
                 </div>

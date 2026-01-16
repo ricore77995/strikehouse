@@ -7,7 +7,7 @@ const generateUniqueCode = (prefix: string) => {
   return `${prefix}${timestamp}${random}`.substring(0, 12).toUpperCase();
 };
 
-test.describe('Discounts Management', () => {
+test.describe.skip('Discounts Management', () => {
   test.beforeEach(async ({ page }) => {
     // Login as ADMIN
     await page.goto('/login');

@@ -35,6 +35,16 @@ const PricingConfig = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Guard: ensure config.id is loaded before submitting
+    if (!config.id) {
+      toast({
+        title: 'Erro: configuracao nao carregada',
+        description: 'Aguarde o carregamento e tente novamente.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     try {
       await updateConfig.mutateAsync({
         id: config.id,
@@ -47,7 +57,12 @@ const PricingConfig = () => {
       toast({ title: 'Configuracao atualizada com sucesso' });
     } catch (error) {
       console.error('PricingConfig update error:', error);
-      toast({ title: 'Erro ao atualizar configuracao', variant: 'destructive' });
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      toast({
+        title: 'Erro ao atualizar configuracao',
+        description: errorMessage,
+        variant: 'destructive',
+      });
     }
   };
 
