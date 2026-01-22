@@ -22,6 +22,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -40,6 +47,7 @@ import {
   Dumbbell,
   Package,
   Settings,
+  Phone,
 } from 'lucide-react';
 import { addDays, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -61,7 +69,7 @@ interface Member {
   status: 'LEAD' | 'ATIVO' | 'BLOQUEADO' | 'CANCELADO';
 }
 
-type PaymentMethod = 'DINHEIRO' | 'CARTAO' | 'MBWAY' | 'TRANSFERENCIA';
+type PaymentMethod = 'DINHEIRO' | 'CARTAO' | 'MBWAY' | 'TRANSFERENCIA' | 'STRIPE';
 
 const Enrollment = () => {
   const navigate = useNavigate();
@@ -83,6 +91,11 @@ const Enrollment = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [enrollmentFeeOverride, setEnrollmentFeeOverride] = useState<string>('');
   const [autoRenew, setAutoRenew] = useState(false);
+
+  // Stripe checkout state
+  const [showStripeDialog, setShowStripeDialog] = useState(false);
+  const [stripeCheckoutUrl, setStripeCheckoutUrl] = useState('');
+  const [stripeSessionId, setStripeSessionId] = useState('');
 
   // Pricing mode: plan (template) or custom (pricing engine)
   const [pricingMode, setPricingMode] = useState<'plan' | 'custom'>('plan');
@@ -416,6 +429,58 @@ const Enrollment = () => {
     },
   });
 
+  // Stripe checkout mutation
+  const stripeCheckoutMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedMember || !staffId) {
+        throw new Error('Missing required data');
+      }
+
+      // Determine if new member (needs enrollment fee)
+      const isNewMember = selectedMember.status === 'LEAD';
+
+      // Call Supabase Edge Function
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: {
+          customerEmail: selectedMember.email || `${selectedMember.telefone}@temp.boxemaster.com`,
+          customerName: selectedMember.nome,
+          isNewMember: isNewMember,
+          customMetadata: {
+            memberId: selectedMember.id,
+            planId: pricingMode === 'plan' ? selectedPlan?.id : undefined,
+            createdBy: staffId,
+            enrollmentFeeCents: enrollmentFeeCents,
+            pricingMode: pricingMode,
+          },
+        },
+      });
+
+      if (error) throw error;
+
+      return {
+        checkoutUrl: data.checkoutUrl,
+        sessionId: data.sessionId,
+        expiresAt: data.expiresAt,
+      };
+    },
+    onSuccess: (data) => {
+      setStripeCheckoutUrl(data.checkoutUrl);
+      setStripeSessionId(data.sessionId);
+      setShowStripeDialog(true);
+      toast({
+        title: 'Link de Pagamento Criado',
+        description: 'Envie o link ao membro via WhatsApp',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Erro ao criar checkout Stripe',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
   const handleMemberSelect = (member: Member) => {
     setSelectedMember(member);
     setSearchQuery('');
@@ -450,6 +515,9 @@ const Enrollment = () => {
     try {
       if (paymentMethod === 'TRANSFERENCIA') {
         await pendingPaymentMutation.mutateAsync();
+      } else if (paymentMethod === 'STRIPE') {
+        await stripeCheckoutMutation.mutateAsync();
+        // Don't set isSuccess here - wait for payment confirmation from admin
       } else {
         await enrollMutation.mutateAsync();
       }
@@ -499,11 +567,13 @@ const Enrollment = () => {
               <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-green-500/20 flex items-center justify-center">
                 <CheckCircle className="h-10 w-10 text-green-600" />
               </div>
-              <CardTitle className="text-2xl">Matricula Concluida!</CardTitle>
+              <CardTitle className="text-2xl">Matrícula Concluída!</CardTitle>
               <CardDescription>
                 {paymentMethod === 'TRANSFERENCIA'
-                  ? 'Pagamento pendente criado. O membro sera ativado apos confirmacao.'
-                  : `${selectedMember?.nome} agora tem acesso ao ginasio.`}
+                  ? 'Pagamento pendente criado. O membro será ativado após confirmação.'
+                  : paymentMethod === 'STRIPE'
+                  ? 'Link de pagamento criado e enviado. Confirme após o membro pagar.'
+                  : `${selectedMember?.nome} agora tem acesso ao ginásio.`}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -998,10 +1068,11 @@ const Enrollment = () => {
                     <SelectValue placeholder="Escolha o metodo de pagamento" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="DINHEIRO">Dinheiro</SelectItem>
-                    <SelectItem value="CARTAO">Cartao (TPA)</SelectItem>
-                    <SelectItem value="MBWAY">MBWay</SelectItem>
-                    <SelectItem value="TRANSFERENCIA">Transferencia Bancaria</SelectItem>
+                    <SelectItem value="DINHEIRO">💵 Dinheiro</SelectItem>
+                    <SelectItem value="CARTAO">💳 Cartão (TPA)</SelectItem>
+                    <SelectItem value="MBWAY">📱 MBWay</SelectItem>
+                    <SelectItem value="TRANSFERENCIA">🏦 Transferência Bancária</SelectItem>
+                    <SelectItem value="STRIPE">🌐 Pagamento Online (Stripe)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1014,6 +1085,23 @@ const Enrollment = () => {
                       <p className="font-semibold text-yellow-600 mb-1">Pagamento Pendente</p>
                       <p className="text-muted-foreground">
                         O membro sera ativado apenas apos o admin confirmar a transferencia.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {paymentMethod === 'STRIPE' && (
+                <div className="bg-blue-500/10 border border-blue-500/50 rounded-lg p-4">
+                  <div className="flex gap-2">
+                    <AlertCircle className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                        Pagamento Online via Stripe
+                      </p>
+                      <p className="text-xs text-blue-800/80 dark:text-blue-200/80">
+                        Será gerado um link seguro de pagamento. O membro pode pagar com cartão
+                        ou Klarna. Após o pagamento, confirme em <strong>Admin → Pagamentos Stripe</strong>.
                       </p>
                     </div>
                   </div>
@@ -1069,13 +1157,146 @@ const Enrollment = () => {
                   disabled={!paymentMethod || isProcessing}
                 >
                   {isProcessing && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  {paymentMethod === 'TRANSFERENCIA' ? 'Registrar Pendente' : 'Confirmar Matricula'}
+                  {paymentMethod === 'TRANSFERENCIA'
+                    ? 'Registrar Pendente'
+                    : paymentMethod === 'STRIPE'
+                    ? 'Gerar Link de Pagamento'
+                    : 'Confirmar Matrícula'}
                 </Button>
               </div>
             </CardContent>
           </Card>
         )}
       </div>
+
+      {/* Stripe Checkout Dialog */}
+      <Dialog open={showStripeDialog} onOpenChange={setShowStripeDialog}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Link de Pagamento Criado</DialogTitle>
+            <DialogDescription>
+              Envie este link ao membro via WhatsApp. Válido por 24 horas.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Checkout URL */}
+            <div className="space-y-2">
+              <Label>Link de Pagamento</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={stripeCheckoutUrl}
+                  readOnly
+                  className="flex-1 text-xs"
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    navigator.clipboard.writeText(stripeCheckoutUrl);
+                    toast({ title: '✓ Link copiado!' });
+                  }}
+                >
+                  Copiar
+                </Button>
+              </div>
+            </div>
+
+            {/* Member Summary */}
+            <div className="bg-muted/50 rounded-lg p-4 space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Membro:</span>
+                <span className="font-medium">{selectedMember?.nome}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Plano:</span>
+                <span className="font-medium">
+                  {pricingMode === 'plan' ? selectedPlan?.nome : 'Personalizado'}
+                </span>
+              </div>
+              <Separator />
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Plano:</span>
+                <span className="font-medium">{pricing.formatPrice(finalPriceCents)}</span>
+              </div>
+              {enrollmentFeeCents > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Taxa de Matrícula:</span>
+                  <span className="font-medium">{pricing.formatPrice(enrollmentFeeCents)}</span>
+                </div>
+              )}
+              <Separator />
+              <div className="flex justify-between text-base font-semibold">
+                <span>Total:</span>
+                <span>{pricing.formatPrice(totalCents)}</span>
+              </div>
+            </div>
+
+            {/* WhatsApp Send Button */}
+            <Button
+              className="w-full"
+              size="lg"
+              onClick={() => {
+                const phone = selectedMember?.telefone.replace(/\D/g, '');
+                const planName = pricingMode === 'plan' ? selectedPlan?.nome : 'plano personalizado';
+
+                const message = `Olá ${selectedMember?.nome}! 👋
+
+Segue o link para pagamento da sua matrícula:
+
+📦 *${planName}*
+💶 Valor: *${pricing.formatPrice(totalCents)}*
+
+🔗 Link de pagamento (válido por 24h):
+${stripeCheckoutUrl}
+
+Pode pagar com cartão ou Klarna (parcelado).
+
+Qualquer dúvida, estamos à disposição!`;
+
+                const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+                window.open(whatsappUrl, '_blank');
+
+                toast({
+                  title: 'WhatsApp aberto',
+                  description: 'Envie a mensagem ao membro',
+                });
+              }}
+            >
+              <Phone className="mr-2 h-5 w-5" />
+              Enviar via WhatsApp
+            </Button>
+
+            {/* Instructions */}
+            <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t">
+              <p className="font-medium">Próximos passos:</p>
+              <ol className="list-decimal list-inside space-y-1 ml-2">
+                <li>Envie o link ao membro via WhatsApp</li>
+                <li>Membro completa o pagamento online</li>
+                <li>Você confirma em <strong>Admin → Pagamentos Stripe</strong></li>
+                <li>Membro é ativado automaticamente após confirmação</li>
+              </ol>
+            </div>
+
+            {/* Close Button */}
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => {
+                setShowStripeDialog(false);
+                // Reset and go back to step 1
+                setCurrentStep(1);
+                setSelectedMember(null);
+                setPaymentMethod('');
+                setSelectedPlan(null);
+                setIsSuccess(false);
+              }}
+            >
+              Concluir
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };

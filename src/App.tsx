@@ -30,6 +30,7 @@ import Members from "./pages/admin/Members";
 import MemberForm from "./pages/admin/MemberForm";
 import Coaches from "./pages/admin/Coaches";
 import PendingPayments from "./pages/admin/PendingPayments";
+import StripePayments from "./pages/admin/StripePayments";
 import Billing from "./pages/admin/Billing";
 import Areas from "./pages/admin/Areas";
 import Rentals from "./pages/admin/Rentals";
@@ -144,6 +145,14 @@ const StaffRoutes = () => (
         element={
           <ProtectedRoute allowedRoles={['OWNER', 'ADMIN']}>
             <PendingPayments />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/stripe-payments"
+        element={
+          <ProtectedRoute allowedRoles={['OWNER', 'ADMIN']}>
+            <StripePayments />
           </ProtectedRoute>
         }
       />
