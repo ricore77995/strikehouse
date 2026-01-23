@@ -17,6 +17,8 @@ import { usePlans } from '@/hooks/usePlans';
 import PlanSelector from '@/components/PlanSelector';
 import { handleSupabaseError } from '@/lib/supabase-utils';
 import type { Plan } from '@/types/pricing';
+import { createCheckoutSession, mapCommitmentMonthsToPeriod } from '@/api/stripe';
+import type { CreateCheckoutSessionInput } from '@/api/stripe';
 import {
   Search,
   CreditCard,
@@ -36,6 +38,7 @@ import {
   UserPlus,
   Package,
   Settings,
+  Info,
 } from 'lucide-react';
 import QuickMemberModal from '@/components/QuickMemberModal';
 import { cn } from '@/lib/utils';
@@ -62,13 +65,11 @@ interface CurrentSubscription {
   expires_at: string | null;
 }
 
-type PaymentMethod = 'DINHEIRO' | 'CARTAO' | 'MBWAY' | 'TRANSFERENCIA';
+type PaymentMethod = 'DINHEIRO' | 'STRIPE';
 
 const paymentMethods: { value: PaymentMethod; label: string; icon: React.ReactNode; instant: boolean }[] = [
-  { value: 'DINHEIRO', label: 'Dinheiro', icon: <Banknote className="h-5 w-5" />, instant: true },
-  { value: 'CARTAO', label: 'Cartão', icon: <CreditCard className="h-5 w-5" />, instant: true },
-  { value: 'MBWAY', label: 'MBway', icon: <Smartphone className="h-5 w-5" />, instant: true },
-  { value: 'TRANSFERENCIA', label: 'Transferência', icon: <Building2 className="h-5 w-5" />, instant: false },
+  { value: 'DINHEIRO', label: '💵 Dinheiro (Pagamento Imediato)', icon: <Banknote className="h-5 w-5" />, instant: true },
+  { value: 'STRIPE', label: '💳 Cartão (Stripe Checkout)', icon: <CreditCard className="h-5 w-5" />, instant: false },
 ];
 
 const StaffPayment = () => {
@@ -221,131 +222,76 @@ const StaffPayment = () => {
         };
       }
 
-      const isInstant = paymentMethods.find(m => m.value === selectedMethod)?.instant;
+      // Only DINHEIRO uses this mutation now
+      // STRIPE goes through handleStripeCheckout → webhook
 
-      if (isInstant) {
-        // Direct payment - activate immediately
+      // 1. Create subscription
+      const { data: subscription, error: subError } = await supabase
+        .from('subscriptions')
+        .insert({
+          member_id: selectedMember.id,
+          plan_id: subscriptionData.plan_id,
+          modalities: subscriptionData.modalities,
+          commitment_months: subscriptionData.commitment_months,
+          calculated_price_cents: subscriptionData.calculated_price_cents,
+          commitment_discount_pct: subscriptionData.commitment_discount_pct,
+          promo_discount_pct: subscriptionData.promo_discount_pct,
+          final_price_cents: subscriptionData.final_price_cents,
+          enrollment_fee_cents: 0, // No enrollment fee for renewals
+          starts_at: today,
+          expires_at: subscriptionData.expires_at,
+          commitment_discount_id: subscriptionData.commitment_discount_id,
+          promo_discount_id: subscriptionData.promo_discount_id,
+          status: 'active',
+          created_by: staffId,
+        })
+        .select()
+        .single();
 
-        // 1. Create subscription
-        const { data: subscription, error: subError } = await supabase
-          .from('subscriptions')
-          .insert({
-            member_id: selectedMember.id,
-            plan_id: subscriptionData.plan_id,
-            modalities: subscriptionData.modalities,
-            commitment_months: subscriptionData.commitment_months,
-            calculated_price_cents: subscriptionData.calculated_price_cents,
-            commitment_discount_pct: subscriptionData.commitment_discount_pct,
-            promo_discount_pct: subscriptionData.promo_discount_pct,
-            final_price_cents: subscriptionData.final_price_cents,
-            enrollment_fee_cents: 0, // No enrollment fee for renewals
-            starts_at: today,
-            expires_at: subscriptionData.expires_at,
-            commitment_discount_id: subscriptionData.commitment_discount_id,
-            promo_discount_id: subscriptionData.promo_discount_id,
-            status: 'active',
-            created_by: staffId,
-          })
-          .select()
-          .single();
+      if (subError) throw subError;
 
-        if (subError) throw subError;
+      // 2. Update member
+      const { error: memberError } = await supabase
+        .from('members')
+        .update({
+          status: 'ATIVO',
+          access_type: 'SUBSCRIPTION',
+          access_expires_at: subscriptionData.expires_at,
+          current_subscription_id: subscription.id,
+        })
+        .eq('id', selectedMember.id);
 
-        // 2. Update member
-        const { error: memberError } = await supabase
-          .from('members')
-          .update({
-            status: 'ATIVO',
-            access_type: 'SUBSCRIPTION',
-            access_expires_at: subscriptionData.expires_at,
-            current_subscription_id: subscription.id,
-          })
-          .eq('id', selectedMember.id);
+      if (memberError) throw memberError;
 
-        if (memberError) throw memberError;
+      // 3. Create transaction
+      const { error: txError } = await supabase
+        .from('transactions')
+        .insert({
+          type: 'RECEITA',
+          category: 'SUBSCRIPTION',
+          amount_cents: subscriptionData.final_price_cents,
+          payment_method: selectedMethod,
+          member_id: selectedMember.id,
+          description: subscriptionData.description,
+          created_by: staffId,
+        });
 
-        // 3. Create transaction
-        const { error: txError } = await supabase
-          .from('transactions')
-          .insert({
-            type: 'RECEITA',
-            category: 'SUBSCRIPTION',
-            amount_cents: subscriptionData.final_price_cents,
-            payment_method: selectedMethod,
-            member_id: selectedMember.id,
-            description: subscriptionData.description,
-            created_by: staffId,
-          });
+      if (txError) throw txError;
 
-        if (txError) throw txError;
-
-        // 4. Increment promo code uses if applicable (custom mode only)
-        if (pricingMode === 'custom' && subscriptionData.promo_discount_id) {
-          await pricing.confirmPromoCode();
-        }
-
-        return { type: 'instant' as const, finalPrice: subscriptionData.final_price_cents };
-      } else {
-        // Transfer - create pending payment
-        const expiresAtPending = addDays(new Date(), 7);
-
-        // Build metadata based on pricing mode
-        let notes: string;
-        if (pricingMode === 'plan') {
-          notes = JSON.stringify({
-            pricing_mode: 'plan',
-            plan_id: subscriptionData.plan_id,
-            expires_at: subscriptionData.expires_at,
-          });
-        } else {
-          notes = JSON.stringify({
-            pricing_mode: 'custom',
-            subscription_config: {
-              modalities: subscriptionData.modalities,
-              commitment_months: subscriptionData.commitment_months,
-              calculated_price_cents: subscriptionData.calculated_price_cents,
-              commitment_discount_pct: subscriptionData.commitment_discount_pct,
-              promo_discount_pct: subscriptionData.promo_discount_pct,
-              final_price_cents: subscriptionData.final_price_cents,
-              commitment_discount_id: subscriptionData.commitment_discount_id,
-              promo_discount_id: subscriptionData.promo_discount_id,
-              expires_at: subscriptionData.expires_at,
-            },
-          });
-        }
-
-        const { error: pendingError } = await supabase
-          .from('pending_payments')
-          .insert({
-            member_id: selectedMember.id,
-            amount_cents: subscriptionData.final_price_cents,
-            payment_method: selectedMethod,
-            reference: `PAY-${Date.now()}`,
-            expires_at: expiresAtPending.toISOString(),
-            created_by: staffId,
-            notes,
-          });
-
-        if (pendingError) throw pendingError;
-
-        return { type: 'pending' as const, finalPrice: subscriptionData.final_price_cents };
+      // 4. Increment promo code uses if applicable (custom mode only)
+      if (pricingMode === 'custom' && subscriptionData.promo_discount_id) {
+        await pricing.confirmPromoCode();
       }
+
+      return { finalPrice: subscriptionData.final_price_cents };
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['members'] });
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
 
-      if (result.type === 'instant') {
-        setPaymentSuccess({ member: selectedMember!, finalPrice: result.finalPrice });
-        toast({ title: 'Pagamento confirmado! Membro ativado.' });
-      } else {
-        toast({
-          title: 'Pagamento pendente criado',
-          description: 'Aguardando confirmação da transferência.',
-        });
-        resetForm();
-      }
+      setPaymentSuccess({ member: selectedMember!, finalPrice: result.finalPrice });
+      toast({ title: 'Pagamento confirmado! Membro ativado.' });
     },
     onError: (error) => {
       const message = handleSupabaseError(error, 'processar pagamento');
@@ -376,7 +322,82 @@ const StaffPayment = () => {
     pricing.setPromoCode('');
   };
 
-  const handlePayment = () => {
+  const handleStripeCheckout = async () => {
+    if (!selectedMember || !staffId) {
+      toast({ title: 'Dados inválidos', variant: 'destructive' });
+      return;
+    }
+
+    let planId: string;
+    let modalityIds: string[];
+    let commitmentMonths: number;
+
+    if (pricingMode === 'plan') {
+      if (!selectedPlan) {
+        toast({ title: 'Selecione um plano', variant: 'destructive' });
+        return;
+      }
+      planId = selectedPlan.id;
+      modalityIds = selectedPlan.modalities || [];
+      commitmentMonths = selectedPlan.commitment_months || 1;
+    } else {
+      // Custom mode
+      const subscriptionData = pricing.getSubscriptionData();
+      if (!subscriptionData) {
+        toast({ title: 'Dados de pricing inválidos', variant: 'destructive' });
+        return;
+      }
+      // For custom mode, we need a plan_id (use null and let backend handle)
+      toast({ title: 'Modo custom não suportado com Stripe ainda', variant: 'destructive' });
+      return;
+    }
+
+    const commitmentPeriod = mapCommitmentMonthsToPeriod(commitmentMonths);
+
+    // Get promo code ID if applied
+    let promoCodeId: string | undefined;
+    if (pricing.promoCode && pricing.result.success) {
+      const { data: promoData } = await supabase
+        .from('promo_codes')
+        .select('id')
+        .ilike('code', pricing.promoCode)
+        .single();
+      if (promoData) {
+        promoCodeId = promoData.id;
+      }
+    }
+
+    const input: CreateCheckoutSessionInput = {
+      memberId: selectedMember.id,
+      memberEmail: selectedMember.email || `${selectedMember.telefone}@noemail.com`,
+      memberName: selectedMember.nome,
+      memberStatus: selectedMember.status as 'LEAD' | 'BLOQUEADO' | 'CANCELADO',
+      planId,
+      modalityIds,
+      commitmentPeriod,
+      promoCodeId,
+      chargeEnrollmentFee: false, // No enrollment fee for renewals
+      staffId,
+    };
+
+    console.log('Creating Stripe checkout session for renewal:', input);
+
+    const result = await createCheckoutSession(input);
+
+    if (result.success) {
+      console.log('Redirecting to Stripe:', result.checkoutUrl);
+      window.location.href = result.checkoutUrl;
+    } else {
+      console.error('Failed to create checkout session:', result);
+      toast({
+        title: 'Erro ao criar checkout',
+        description: result.message || result.error,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handlePayment = async () => {
     if (!selectedMember || !selectedMethod) {
       toast({ title: 'Selecione todos os campos', variant: 'destructive' });
       return;
@@ -388,7 +409,14 @@ const StaffPayment = () => {
       });
       return;
     }
-    paymentMutation.mutate();
+
+    // If STRIPE, redirect to Stripe Checkout
+    if (selectedMethod === 'STRIPE') {
+      await handleStripeCheckout();
+    } else {
+      // DINHEIRO - instant activation
+      paymentMutation.mutate();
+    }
   };
 
   const getStatusBadge = (status: string) => {

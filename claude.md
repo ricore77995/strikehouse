@@ -18,8 +18,50 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - State: TanStack Query (React Query)
 - Routing: React Router v6
 - i18n: i18next
+- Payments: Stripe Checkout + Webhooks (100% online)
 
 **⚠️ Important:** This is a **Vite project**, NOT Next.js. Don't suggest Next.js patterns.
+
+---
+
+## 📚 Documentation Structure
+
+**CRITICAL: Read these documents before making changes:**
+
+1. **`CLAUDE.md` (this file)** - Technical implementation guide
+   - Architecture patterns
+   - Code conventions
+   - Common pitfalls
+
+2. **`BUSINESS_FUNCTIONAL_SPEC.md`** (worktree: stupefied-galileo)
+   - Business rules (100% non-technical)
+   - Pricing model (plans, extras, discounts, promo codes)
+   - PT interno & sublocação (revenue splits)
+   - Use cases completos com exemplos
+   - **READ THIS FIRST** for business logic questions
+
+3. **`USE_CASES_TEST_CASES.md`** (worktree: stupefied-galileo)
+   - 23 Use Cases detalhados (UC-001 a UC-023)
+   - 20 Test Cases completos (TC-001 a TC-020)
+   - Edge cases e cenários negativos
+   - Test data fixtures e automation IDs
+   - **USE THIS** for understanding user flows and test coverage
+
+4. **`spec.md`** - Original spec (legacy, v1.7.1)
+   - Database schema completo
+   - Technical requirements (low-level)
+
+5. **`PROJECT_PLAN.md`** - Implementation roadmap
+   - Task checklist com status
+   - Phases 1-11 breakdown
+
+**When to read what:**
+- **Implementing feature?** → Read BUSINESS_FUNCTIONAL_SPEC.md + relevant Use Cases
+- **Writing tests?** → Read USE_CASES_TEST_CASES.md for Test Cases
+- **Debugging?** → Check Use Cases for expected behavior
+- **Schema question?** → Check spec.md for DB structure
+
+---
 
 ## Development Commands
 
@@ -647,11 +689,112 @@ const { data: session } = await supabase
 - Hook: `useLanguage()` from `src/hooks/useLanguage.ts`
 - Switcher: `<LanguageSwitcher />` component in header
 
+## 🎯 Use Cases & Test Cases (Reference Guide)
+
+**Location:** `USE_CASES_TEST_CASES.md` (worktree: stupefied-galileo)
+
+### Quick Reference: Use Cases
+
+**Matrícula & Pagamentos:**
+- **UC-001:** Matrícula LEAD (primeira vez) → Taxa de matrícula obrigatória
+- **UC-002:** Renovação BLOQUEADO → SEM taxa de matrícula
+- **UC-003:** Reativação CANCELADO → Staff decide se cobra taxa
+- **UC-004:** Upgrade com modalidades extras → Proration via Stripe
+- **UC-005:** Aplicar código promocional → Validação local
+- **UC-006:** Webhook Stripe bem-sucedido → Ativa aluno, cria transações
+- **UC-007:** Webhook Stripe falhado → Retries automáticos
+- **UC-008:** Cancelamento subscription → Mantém acesso até expiração
+
+**Check-in & Controlo de Acesso:**
+- **UC-009:** Check-in permitido → QR code válido, créditos disponíveis
+- **UC-010:** Check-in bloqueado - Limite semanal → Planos 2x/3x
+- **UC-011:** Check-in bloqueado - Modalidade não incluída → Sugere upgrade
+- **UC-012:** Check-in bloqueado - Acesso expirado → Orienta renovação
+- **UC-013:** Check-in bloqueado - Status CANCELADO → Orienta reativação
+- **UC-014:** Reset automático de créditos → Rolling 7 days
+
+**PT & Sublocação:**
+- **UC-015:** Registar cliente de PT interno → Aluno paga plano + PT paga €200/mês
+- **UC-016:** Propor exceção PT fee → Staff propõe, Admin aprova
+- **UC-017:** Aprovar exceção PT fee → Admin/Owner aprova/rejeita
+- **UC-018:** Registar aluno de professor externo → Split 50/50 padrão
+- **UC-019:** Propor exceção sublocation split → Staff propõe ajuste
+- **UC-020:** Aprovar exceção sublocation split → Admin/Owner decide
+
+**Auditoria & Compliance:**
+- **UC-021:** Visualizar audit logs → Apenas Owner (transparência total)
+- **UC-022:** Rastrear transação Stripe → Admin debug end-to-end
+- **UC-023:** Exportar relatório financeiro → PDF/Excel mensal
+
+### Quick Reference: Test Cases
+
+**Críticos (Phase 1 - Deploy Blocker):**
+- **TC-001:** Matrícula LEAD com taxa → Stripe + webhook + 2 transactions
+- **TC-009:** Check-in plano 2x permitido → Créditos decrementados
+- **TC-010:** Check-in plano 2x bloqueado → Limite atingido, data de reset
+- **TC-015:** Webhook duplicado → Idempotência garante no-op
+
+**Importantes (Phase 2 - Pré-Production):**
+- **TC-002:** Promo code válido → Desconto aplicado, times_used++
+- **TC-011:** Modalidade não incluída → Bloqueio + sugestão upgrade
+- **TC-016:** Pagamento falha 3x → Auto bloqueio
+- **TC-003:** Renovação BLOQUEADO → SEM taxa
+
+**Edge Cases (Phase 3 - Post-Launch):**
+- **TC-020:** QR code colisão → Regeneração automática
+- **TC-019:** Permissão negada → RLS bloqueia
+
+### How to Use Use Cases
+
+**Scenario 1: Implementing new feature**
+```bash
+# 1. Read business spec
+cat BUSINESS_FUNCTIONAL_SPEC.md | grep "Taxa de Matrícula"
+
+# 2. Find relevant Use Case
+cat USE_CASES_TEST_CASES.md | grep "UC-001"
+
+# 3. Understand flow, rules, edge cases
+# 4. Implement based on Use Case steps
+# 5. Write tests based on Test Cases
+```
+
+**Scenario 2: Debugging bug**
+```bash
+# User reports: "Pagamento não ativou aluno"
+# → Check UC-006 (Webhook Stripe bem-sucedido)
+# → Verify: Member status, transactions created, audit log
+# → Check UC-022 (Rastrear transação) for debugging steps
+```
+
+**Scenario 3: Understanding business logic**
+```bash
+# Question: "BLOQUEADO paga taxa de matrícula?"
+# → Read UC-002 (Renovação BLOQUEADO)
+# → Answer: NÃO, renovação nunca cobra taxa
+# → Compare with UC-003 (CANCELADO): Staff decide
+```
+
+---
+
 ## Edge Functions
 
 **Location:** `supabase/functions/`
 
-Current functions:
+**Stripe Integration Functions:**
+- `create-checkout-session/` - Cria Stripe Checkout Session (UC-001)
+  - Validates inputs
+  - Calculates pricing (backend authority)
+  - Creates session with metadata
+  - Returns checkout URL
+- `stripe-webhook/` - Processa webhooks do Stripe (UC-006)
+  - Validates Stripe signature (security)
+  - Idempotency check (UC-015, TC-015)
+  - Updates member status (LEAD → ATIVO)
+  - Creates transactions (2 for enrollment, 1 for renewal)
+  - Increments promo code usage
+
+**Legacy/Utility Functions:**
 - `seed-test-users/` - Creates test users for each role (OWNER, ADMIN, STAFF, PARTNER)
 - `send-notification/` - WhatsApp integration (not implemented yet)
 - `scheduled-jobs/` - Cron tasks for membership expiration and reminders (not implemented yet)
