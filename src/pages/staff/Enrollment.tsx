@@ -40,9 +40,12 @@ import {
   Dumbbell,
   Package,
   Settings,
+  Info,
 } from 'lucide-react';
 import { addDays, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { createCheckoutSession, mapCommitmentMonthsToPeriod } from '@/api/stripe';
+import type { CreateCheckoutSessionInput } from '@/api/stripe';
 
 const memberSchema = z.object({
   nome: z.string().trim().min(2, 'Nome deve ter pelo menos 2 caracteres').max(100, 'Nome muito longo'),
@@ -61,7 +64,7 @@ interface Member {
   status: 'LEAD' | 'ATIVO' | 'BLOQUEADO' | 'CANCELADO';
 }
 
-type PaymentMethod = 'DINHEIRO' | 'CARTAO' | 'MBWAY' | 'TRANSFERENCIA';
+type PaymentMethod = 'DINHEIRO' | 'STRIPE';
 
 const Enrollment = () => {
   const navigate = useNavigate();
@@ -363,59 +366,6 @@ const Enrollment = () => {
     },
   });
 
-  // Pending payment mutation (TRANSFERENCIA)
-  const pendingPaymentMutation = useMutation({
-    mutationFn: async () => {
-      if (!selectedMember || !staffId) {
-        throw new Error('Missing required data');
-      }
-
-      // Build metadata based on pricing mode
-      let metadata: Record<string, unknown>;
-
-      if (pricingMode === 'plan') {
-        if (!selectedPlan) throw new Error('No plan selected');
-        metadata = {
-          pricing_mode: 'plan',
-          plan_id: selectedPlan.id,
-          plan_nome: selectedPlan.nome,
-          enrollment_fee_cents: enrollmentFeeCents,
-        };
-      } else {
-        if (!pricing.breakdown) throw new Error('Invalid pricing data');
-        const subscriptionData = pricing.getSubscriptionData();
-        if (!subscriptionData) throw new Error('Invalid subscription data');
-        metadata = {
-          pricing_mode: 'custom',
-          subscription_data: subscriptionData,
-          enrollment_fee_cents: enrollmentFeeCents,
-        };
-      }
-
-      // Store subscription data in metadata for later activation
-      const { error } = await supabase
-        .from('pending_payments')
-        .insert({
-          member_id: selectedMember.id,
-          amount_cents: totalCents,
-          payment_method: 'TRANSFERENCIA',
-          reference: selectedMember.status === 'LEAD' ? `ENR-${Date.now()}` : `REA-${Date.now()}`,
-          expires_at: addDays(new Date(), 7).toISOString(),
-          created_by: staffId,
-          metadata,
-        });
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      setIsSuccess(true);
-      toast({ title: 'Pagamento pendente criado' });
-    },
-    onError: () => {
-      toast({ title: 'Erro ao criar pagamento pendente', variant: 'destructive' });
-    },
-  });
-
   const handleMemberSelect = (member: Member) => {
     setSelectedMember(member);
     setSearchQuery('');
@@ -441,16 +391,102 @@ const Enrollment = () => {
     setCurrentStep(3);
   };
 
+  const handleStripeCheckout = async () => {
+    if (!selectedMember || !staffId) {
+      toast({ title: 'Dados inválidos', variant: 'destructive' });
+      return;
+    }
+
+    // Get plan ID and modalityIds based on pricing mode
+    let planId: string;
+    let modalityIds: string[];
+    let commitmentMonths: number;
+
+    if (pricingMode === 'plan') {
+      if (!selectedPlan) {
+        toast({ title: 'Selecione um plano', variant: 'destructive' });
+        return;
+      }
+      planId = selectedPlan.id;
+      modalityIds = selectedPlan.modalities || [];
+      commitmentMonths = selectedPlan.commitment_months || 1;
+    } else {
+      // Custom mode
+      const subscriptionData = pricing.getSubscriptionData();
+      if (!subscriptionData) {
+        toast({ title: 'Dados de pricing inválidos', variant: 'destructive' });
+        return;
+      }
+
+      // For custom mode, use first selected plan as base
+      // TODO: Create a generic plan in DB or handle custom pricing differently
+      toast({ title: 'Modo custom ainda não suportado com Stripe', variant: 'destructive' });
+      return;
+    }
+
+    // Map commitment months to period enum
+    const commitmentPeriod = mapCommitmentMonthsToPeriod(commitmentMonths);
+
+    // Get promo code ID if applied
+    let promoCodeId: string | undefined;
+    if (pricing.promoCode && pricing.result.success) {
+      const { data: promoData } = await supabase
+        .from('promo_codes')
+        .select('id')
+        .ilike('code', pricing.promoCode)
+        .single();
+
+      if (promoData) {
+        promoCodeId = promoData.id;
+      }
+    }
+
+    // Build Stripe checkout session input
+    const input: CreateCheckoutSessionInput = {
+      memberId: selectedMember.id,
+      memberEmail: selectedMember.email || `${selectedMember.telefone}@noemail.com`,
+      memberName: selectedMember.nome,
+      memberStatus: selectedMember.status as 'LEAD' | 'BLOQUEADO' | 'CANCELADO',
+      planId,
+      modalityIds,
+      commitmentPeriod,
+      promoCodeId,
+      chargeEnrollmentFee: selectedMember.status === 'CANCELADO' ? true : undefined,
+      staffId,
+    };
+
+    console.log('Creating Stripe checkout session:', input);
+
+    // Call Edge Function via API client
+    const result = await createCheckoutSession(input);
+
+    if (result.success) {
+      console.log('Redirecting to Stripe:', result.checkoutUrl);
+      // Redirect to Stripe Checkout
+      window.location.href = result.checkoutUrl;
+    } else {
+      console.error('Failed to create checkout session:', result);
+      toast({
+        title: 'Erro ao criar checkout',
+        description: result.message || result.error,
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handlePaymentConfirm = async () => {
     if (!paymentMethod) {
       toast({ title: 'Selecione um metodo de pagamento', variant: 'destructive' });
       return;
     }
+
     setIsProcessing(true);
+
     try {
-      if (paymentMethod === 'TRANSFERENCIA') {
-        await pendingPaymentMutation.mutateAsync();
+      if (paymentMethod === 'STRIPE') {
+        await handleStripeCheckout();
       } else {
+        // DINHEIRO - instant activation
         await enrollMutation.mutateAsync();
       }
     } finally {
@@ -501,9 +537,9 @@ const Enrollment = () => {
               </div>
               <CardTitle className="text-2xl">Matricula Concluida!</CardTitle>
               <CardDescription>
-                {paymentMethod === 'TRANSFERENCIA'
-                  ? 'Pagamento pendente criado. O membro sera ativado apos confirmacao.'
-                  : `${selectedMember?.nome} agora tem acesso ao ginasio.`}
+                {paymentMethod === 'STRIPE'
+                  ? 'Aguardando confirmação do Stripe. O membro será ativado automaticamente.'
+                  : `${selectedMember?.nome} agora tem acesso ao ginásio.`}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -998,22 +1034,21 @@ const Enrollment = () => {
                     <SelectValue placeholder="Escolha o metodo de pagamento" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="DINHEIRO">Dinheiro</SelectItem>
-                    <SelectItem value="CARTAO">Cartao (TPA)</SelectItem>
-                    <SelectItem value="MBWAY">MBWay</SelectItem>
-                    <SelectItem value="TRANSFERENCIA">Transferencia Bancaria</SelectItem>
+                    <SelectItem value="DINHEIRO">💵 Dinheiro (Pagamento Imediato)</SelectItem>
+                    <SelectItem value="STRIPE">💳 Cartão (Stripe Checkout)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              {paymentMethod === 'TRANSFERENCIA' && (
-                <div className="bg-yellow-500/10 border border-yellow-500/50 rounded-lg p-4">
+              {paymentMethod === 'STRIPE' && (
+                <div className="bg-blue-500/10 border border-blue-500/50 rounded-lg p-4">
                   <div className="flex gap-2">
-                    <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                    <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
                     <div className="text-sm">
-                      <p className="font-semibold text-yellow-600 mb-1">Pagamento Pendente</p>
+                      <p className="font-semibold text-blue-600 mb-1">Checkout Seguro</p>
                       <p className="text-muted-foreground">
-                        O membro sera ativado apenas apos o admin confirmar a transferencia.
+                        Você será redirecionado para o Stripe para completar o pagamento com segurança.
+                        O membro será ativado automaticamente após confirmação.
                       </p>
                     </div>
                   </div>
@@ -1069,7 +1104,7 @@ const Enrollment = () => {
                   disabled={!paymentMethod || isProcessing}
                 >
                   {isProcessing && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  {paymentMethod === 'TRANSFERENCIA' ? 'Registrar Pendente' : 'Confirmar Matricula'}
+                  {paymentMethod === 'STRIPE' ? 'Ir para Pagamento' : 'Confirmar Matricula'}
                 </Button>
               </div>
             </CardContent>

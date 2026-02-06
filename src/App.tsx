@@ -47,6 +47,7 @@ import StaffCheckin from "./pages/staff/Checkin";
 import StaffGuestCheckin from "./pages/staff/GuestCheckin";
 import StaffPayment from "./pages/staff/Payment";
 import StaffEnrollment from "./pages/staff/Enrollment";
+import EnrollmentSuccess from "./pages/staff/EnrollmentSuccess";
 import StaffSales from "./pages/staff/Sales";
 import StaffCaixa from "./pages/staff/Caixa";
 import StaffMemberNew from "./pages/staff/MemberNew";
@@ -266,6 +267,14 @@ const StaffRoutes = () => (
         element={
           <ProtectedRoute allowedRoles={['OWNER', 'ADMIN', 'STAFF']}>
             <StaffEnrollment />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/staff/enrollment-success"
+        element={
+          <ProtectedRoute allowedRoles={['OWNER', 'ADMIN', 'STAFF']}>
+            <EnrollmentSuccess />
           </ProtectedRoute>
         }
       />

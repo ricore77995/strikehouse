@@ -52,7 +52,7 @@ interface Member {
   telefone: string;
 }
 
-type PaymentMethod = 'DINHEIRO' | 'CARTAO' | 'MBWAY';
+type PaymentMethod = 'DINHEIRO' | 'STRIPE';
 
 const Sales = () => {
   const { staffId } = useAuth();
@@ -438,11 +438,10 @@ const Sales = () => {
                   {/* Payment Method */}
                   <div className="space-y-2 mb-4">
                     <Label className="text-xs">Método de Pagamento</Label>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 gap-2">
                       {[
-                        { value: 'DINHEIRO', label: 'Dinheiro', icon: Banknote },
-                        { value: 'CARTAO', label: 'Cartão', icon: CreditCard },
-                        { value: 'MBWAY', label: 'MBway', icon: Smartphone },
+                        { value: 'DINHEIRO', label: '💵 Dinheiro', icon: Banknote },
+                        { value: 'STRIPE', label: '💳 Cartão', icon: CreditCard },
                       ].map((method) => {
                         const Icon = method.icon;
                         return (
