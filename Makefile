@@ -47,14 +47,26 @@ push-ci:
 
 # Supabase
 db-push:
-	npx supabase db push --include-all
+	@if [ -z "$$SUPABASE_ACCESS_TOKEN" ] && [ -f .env ]; then \
+		export $$(cat .env | grep -v '^#' | xargs) && npx supabase db push --include-all; \
+	else \
+		npx supabase db push --include-all; \
+	fi
 
 db-types:
-	npx supabase gen types typescript --linked > src/integrations/supabase/types.ts
+	@if [ -z "$$SUPABASE_ACCESS_TOKEN" ] && [ -f .env ]; then \
+		export $$(cat .env | grep -v '^#' | xargs) && npx supabase gen types typescript --linked > src/integrations/supabase/types.ts; \
+	else \
+		npx supabase gen types typescript --linked > src/integrations/supabase/types.ts; \
+	fi
 
 db-reset:
 	@echo "Reset completo: limpa dados + recria test users"
-	npx tsx scripts/db-reset.ts
+	@if [ -z "$$SUPABASE_ACCESS_TOKEN" ] && [ -f .env ]; then \
+		export $$(cat .env | grep -v '^#' | xargs) && npx tsx scripts/db-reset.ts; \
+	else \
+		npx tsx scripts/db-reset.ts; \
+	fi
 
 # Limpeza
 clean:

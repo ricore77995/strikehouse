@@ -736,6 +736,7 @@ export type Database = {
           expires_at: string
           id: string
           member_id: string
+          metadata: Json | null
           payment_method: string
           plan_id: string | null
           reference: string
@@ -753,6 +754,7 @@ export type Database = {
           expires_at: string
           id?: string
           member_id: string
+          metadata?: Json | null
           payment_method: string
           plan_id?: string | null
           reference: string
@@ -770,6 +772,7 @@ export type Database = {
           expires_at?: string
           id?: string
           member_id?: string
+          metadata?: Json | null
           payment_method?: string
           plan_id?: string | null
           reference?: string
@@ -1200,6 +1203,120 @@ export type Database = {
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "external_coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stripe_payment_ledger: {
+        Row: {
+          amount_total: number
+          auto_matched: boolean | null
+          confirmed: boolean | null
+          confirmed_at: string | null
+          confirmed_by: string | null
+          created_at: string | null
+          currency: string | null
+          customer_email: string
+          customer_name: string | null
+          event_id: string
+          event_type: string
+          id: string
+          is_new_member: boolean | null
+          matched_member_id: string | null
+          metadata: Json | null
+          payment_method: string | null
+          payment_status: string | null
+          product_type: string | null
+          stripe_customer_id: string | null
+          stripe_invoice_id: string | null
+          stripe_session_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount_total: number
+          auto_matched?: boolean | null
+          confirmed?: boolean | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string | null
+          currency?: string | null
+          customer_email: string
+          customer_name?: string | null
+          event_id: string
+          event_type: string
+          id?: string
+          is_new_member?: boolean | null
+          matched_member_id?: string | null
+          metadata?: Json | null
+          payment_method?: string | null
+          payment_status?: string | null
+          product_type?: string | null
+          stripe_customer_id?: string | null
+          stripe_invoice_id?: string | null
+          stripe_session_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount_total?: number
+          auto_matched?: boolean | null
+          confirmed?: boolean | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string | null
+          currency?: string | null
+          customer_email?: string
+          customer_name?: string | null
+          event_id?: string
+          event_type?: string
+          id?: string
+          is_new_member?: boolean | null
+          matched_member_id?: string | null
+          metadata?: Json | null
+          payment_method?: string | null
+          payment_status?: string | null
+          product_type?: string | null
+          stripe_customer_id?: string | null
+          stripe_invoice_id?: string | null
+          stripe_session_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stripe_payment_ledger_confirmed_by_fkey"
+            columns: ["confirmed_by"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stripe_payment_ledger_matched_member_id_fkey"
+            columns: ["matched_member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stripe_payment_ledger_matched_member_id_fkey"
+            columns: ["matched_member_id"]
+            isOneToOne: false
+            referencedRelation: "v_active_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stripe_payment_ledger_matched_member_id_fkey"
+            columns: ["matched_member_id"]
+            isOneToOne: false
+            referencedRelation: "v_expiring_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stripe_payment_ledger_matched_member_id_fkey"
+            columns: ["matched_member_id"]
+            isOneToOne: false
+            referencedRelation: "v_overdue_members"
             referencedColumns: ["id"]
           },
         ]
