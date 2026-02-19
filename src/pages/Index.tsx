@@ -518,28 +518,18 @@ const Index = () => {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="max-w-4xl mx-auto"
+            className="flex justify-center"
           >
-            <div className="relative aspect-video bg-background border border-border rounded-lg overflow-hidden group">
-              <div
-                className="absolute inset-0 bg-cover bg-center"
-                style={{ backgroundImage: `url(${trainingImg})` }}
+            <div className="w-full max-w-[400px] aspect-[9/16] bg-background border border-border rounded-lg overflow-hidden">
+              <iframe
+                src="https://www.instagram.com/reel/DTgLl6ZCn6G/embed/"
+                className="w-full h-full"
+                frameBorder="0"
+                scrolling="no"
+                allowTransparency={true}
+                allowFullScreen={true}
+                title="Striker's House - Instagram Reel"
               />
-              <div className="absolute inset-0 bg-black/50 flex items-center justify-center transition-colors group-hover:bg-black/40">
-                <a
-                  href="https://www.instagram.com/strikershouse/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-20 h-20 rounded-full bg-accent/90 flex items-center justify-center transition-transform group-hover:scale-110"
-                >
-                  <Play className="w-8 h-8 text-accent-foreground ml-1" />
-                </a>
-              </div>
-              <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
-                <p className="text-sm text-white/90 font-light">
-                  {t("membership.page.videoCta")}
-                </p>
-              </div>
             </div>
           </motion.div>
         </div>
