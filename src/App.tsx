@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { CoachAuthProvider } from "@/hooks/useCoachAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -13,10 +13,11 @@ import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 // Public pages
 import Index from "./pages/Index";
 import TheTeam from "./pages/TheTeam";
-import Membership from "./pages/Membership";
+import FAQ from "./pages/FAQ";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import MemberQR from "./pages/MemberQR";
+import CheckoutSuccess from "./pages/CheckoutSuccess";
 
 // Owner pages
 import OwnerDashboard from "./pages/owner/Dashboard";
@@ -25,11 +26,10 @@ import OwnerSettings from "./pages/owner/Settings";
 
 // Admin pages
 import AdminDashboard from "./pages/admin/Dashboard";
-import Plans from "./pages/admin/Plans";
+// Plans.tsx deleted - using StripeLinks as source of truth
 import Members from "./pages/admin/Members";
 import MemberForm from "./pages/admin/MemberForm";
 import Coaches from "./pages/admin/Coaches";
-import PendingPayments from "./pages/admin/PendingPayments";
 import StripePayments from "./pages/admin/StripePayments";
 import Billing from "./pages/admin/Billing";
 import Areas from "./pages/admin/Areas";
@@ -39,14 +39,13 @@ import Audit from "./pages/admin/Audit";
 import Finances from "./pages/admin/Finances";
 import JobLogs from "./pages/admin/JobLogs";
 import Schedule from "./pages/admin/Schedule";
-import PricingConfig from "./pages/admin/PricingConfig";
 import Modalities from "./pages/admin/Modalities";
-import Discounts from "./pages/admin/Discounts";
+import StripeLinks from "./pages/admin/StripeLinks";
+import CreatePaymentLink from "./pages/admin/CreatePaymentLink";
 
 // Staff pages
 import StaffCheckin from "./pages/staff/Checkin";
 import StaffGuestCheckin from "./pages/staff/GuestCheckin";
-import StaffPayment from "./pages/staff/Payment";
 import StaffEnrollment from "./pages/staff/Enrollment";
 import EnrollmentSuccess from "./pages/staff/EnrollmentSuccess";
 import StaffSales from "./pages/staff/Sales";
@@ -70,9 +69,11 @@ const StaffRoutes = () => (
       {/* Public routes */}
       <Route path="/" element={<Index />} />
       <Route path="/team" element={<TheTeam />} />
-      <Route path="/membership" element={<Membership />} />
+      <Route path="/faq" element={<FAQ />} />
+      <Route path="/membership" element={<Navigate to="/" replace />} />
       <Route path="/login" element={<Login />} />
       <Route path="/m/:qrCode" element={<MemberQR />} />
+      <Route path="/checkout/success" element={<CheckoutSuccess />} />
 
       {/* Owner routes */}
       <Route
@@ -109,14 +110,7 @@ const StaffRoutes = () => (
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/admin/plans"
-        element={
-          <ProtectedRoute allowedRoles={['OWNER', 'ADMIN']}>
-            <Plans />
-          </ProtectedRoute>
-        }
-      />
+      {/* /admin/plans route removed - using /admin/stripe-links */}
       <Route
         path="/admin/members"
         element={
@@ -138,14 +132,6 @@ const StaffRoutes = () => (
         element={
           <ProtectedRoute allowedRoles={['OWNER', 'ADMIN']}>
             <Coaches />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/finances/verify"
-        element={
-          <ProtectedRoute allowedRoles={['OWNER', 'ADMIN']}>
-            <PendingPayments />
           </ProtectedRoute>
         }
       />
@@ -222,14 +208,6 @@ const StaffRoutes = () => (
         }
       />
       <Route
-        path="/admin/pricing"
-        element={
-          <ProtectedRoute allowedRoles={['OWNER', 'ADMIN']}>
-            <PricingConfig />
-          </ProtectedRoute>
-        }
-      />
-      <Route
         path="/admin/modalities"
         element={
           <ProtectedRoute allowedRoles={['OWNER', 'ADMIN']}>
@@ -238,10 +216,18 @@ const StaffRoutes = () => (
         }
       />
       <Route
-        path="/admin/discounts"
+        path="/admin/stripe-links"
         element={
           <ProtectedRoute allowedRoles={['OWNER', 'ADMIN']}>
-            <Discounts />
+            <StripeLinks />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/stripe-links/new"
+        element={
+          <ProtectedRoute allowedRoles={['OWNER', 'ADMIN']}>
+            <CreatePaymentLink />
           </ProtectedRoute>
         }
       />
@@ -260,14 +246,6 @@ const StaffRoutes = () => (
         element={
           <ProtectedRoute allowedRoles={['OWNER', 'ADMIN', 'STAFF']}>
             <StaffGuestCheckin />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/staff/payment"
-        element={
-          <ProtectedRoute allowedRoles={['OWNER', 'ADMIN', 'STAFF']}>
-            <StaffPayment />
           </ProtectedRoute>
         }
       />
@@ -311,7 +289,6 @@ const StaffRoutes = () => (
           </ProtectedRoute>
         }
       />
-
       {/* Catch-all */}
       <Route path="*" element={<NotFound />} />
     </Routes>
