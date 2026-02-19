@@ -18,7 +18,11 @@ import {
 } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Loader2, Save, QrCode, Trash2, Plus, Receipt, Pause, Play, CalendarDays } from 'lucide-react';
+import { ArrowLeft, Loader2, Save, QrCode, Trash2, Plus, Receipt, Pause, Play, CalendarDays, Dumbbell, Clock, X, CreditCard, ArrowUpCircle, Ban, RotateCcw } from 'lucide-react';
+import { useMemberModalities, useSetMemberModalities } from '@/hooks/useMemberModalities';
+import { useMemberClasses, useSetMemberClasses, useClasses } from '@/hooks/useMemberClasses';
+import { useModalities } from '@/hooks/useModalities';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -59,14 +63,9 @@ interface Member {
   credits_remaining: number;
   current_plan_id: string | null;
   current_subscription_id: string | null;
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
   created_at: string;
-  plans?: {
-    id: string;
-    nome: string;
-    tipo: string;
-    preco_cents: number;
-    duracao_dias: number | null;
-  } | null;
 }
 
 interface Subscription {
@@ -144,6 +143,15 @@ const MemberForm = () => {
   const [freezeReason, setFreezeReason] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
+  // Stripe subscription management
+  const [stripeCancelDialogOpen, setStripeCancelDialogOpen] = useState(false);
+  const [stripePauseDialogOpen, setStripePauseDialogOpen] = useState(false);
+  const [stripeUpgradeDialogOpen, setStripeUpgradeDialogOpen] = useState(false);
+  const [stripeCancelImmediately, setStripeCancelImmediately] = useState(false);
+  const [stripeCancelReason, setStripeCancelReason] = useState('');
+  const [stripePauseResumeDate, setStripePauseResumeDate] = useState('');
+  const [stripePauseReason, setStripePauseReason] = useState('');
+
   // Fetch member data if editing (with plan join)
   const { data: member, isLoading: isLoadingMember } = useQuery({
     queryKey: ['member', id],
@@ -151,7 +159,7 @@ const MemberForm = () => {
       if (!isEditing) return null;
       const { data, error } = await supabase
         .from('members')
-        .select('*, plans(id, nome, tipo, preco_cents, duracao_dias)')
+        .select('*')
         .eq('id', id)
         .maybeSingle();
       if (error) throw error;
@@ -223,6 +231,35 @@ const MemberForm = () => {
     },
     enabled: isEditing,
   });
+
+  // Fetch member modalities and classes
+  const { data: memberModalities, isLoading: isLoadingModalities } = useMemberModalities(isEditing ? id : null);
+  const { data: memberClasses, isLoading: isLoadingClasses } = useMemberClasses(isEditing ? id : null);
+  const { modalities: allModalities } = useModalities();
+  const { data: allClasses } = useClasses();
+  const setMemberModalities = useSetMemberModalities();
+  const setMemberClasses = useSetMemberClasses();
+
+  // Local state for editing modalities/classes
+  const [editingModalityIds, setEditingModalityIds] = useState<string[]>([]);
+  const [editingClassIds, setEditingClassIds] = useState<string[]>([]);
+  const [isEditingTurmas, setIsEditingTurmas] = useState(false);
+
+  // Days of week in Portuguese
+  const DAYS_PT = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+  // Sync editing state when data loads
+  useEffect(() => {
+    if (memberModalities) {
+      setEditingModalityIds(memberModalities.map(m => m.modality_id));
+    }
+  }, [memberModalities]);
+
+  useEffect(() => {
+    if (memberClasses) {
+      setEditingClassIds(memberClasses.map(c => c.class_id));
+    }
+  }, [memberClasses]);
 
   // Update form when member data loads
   useEffect(() => {
@@ -520,6 +557,168 @@ const MemberForm = () => {
     },
   });
 
+  // Stripe: Cancel subscription
+  const stripeCancelMutation = useMutation({
+    mutationFn: async ({ cancelImmediately, reason }: { cancelImmediately: boolean; reason: string }) => {
+      if (!member?.id) throw new Error('No member');
+      const { data, error } = await supabase.functions.invoke('cancel-subscription', {
+        body: { memberId: member.id, cancelImmediately, reason },
+      });
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || 'Failed to cancel');
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['member', id] });
+      setStripeCancelDialogOpen(false);
+      setStripeCancelReason('');
+      setStripeCancelImmediately(false);
+      toast({
+        title: 'Subscription cancelada',
+        description: data.cancelledImmediately
+          ? 'Acesso revogado imediatamente.'
+          : `Acesso continua até ${new Date(data.accessEndsAt).toLocaleDateString('pt-PT')}`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erro ao cancelar',
+        description: error instanceof Error ? error.message : 'Erro desconhecido',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Stripe: Pause subscription
+  const stripePauseMutation = useMutation({
+    mutationFn: async ({ resumeDate, reason }: { resumeDate?: string; reason?: string }) => {
+      if (!member?.id) throw new Error('No member');
+      const { data, error } = await supabase.functions.invoke('pause-subscription', {
+        body: { memberId: member.id, action: 'pause', resumeDate, reason },
+      });
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || 'Failed to pause');
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['member', id] });
+      setStripePauseDialogOpen(false);
+      setStripePauseResumeDate('');
+      setStripePauseReason('');
+      toast({
+        title: 'Subscription pausada',
+        description: data.resumesAt
+          ? `Retoma em ${new Date(data.resumesAt).toLocaleDateString('pt-PT')}`
+          : 'Pausada indefinidamente',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erro ao pausar',
+        description: error instanceof Error ? error.message : 'Erro desconhecido',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Stripe: Resume subscription
+  const stripeResumeMutation = useMutation({
+    mutationFn: async () => {
+      if (!member?.id) throw new Error('No member');
+      const { data, error } = await supabase.functions.invoke('pause-subscription', {
+        body: { memberId: member.id, action: 'resume' },
+      });
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || 'Failed to resume');
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['member', id] });
+      toast({
+        title: 'Subscription reactivada',
+        description: `Próximo pagamento: ${new Date(data.nextBillingDate).toLocaleDateString('pt-PT')}`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erro ao reativar',
+        description: error instanceof Error ? error.message : 'Erro desconhecido',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Stripe: Revert pending cancellation
+  const stripeRevertCancelMutation = useMutation({
+    mutationFn: async () => {
+      if (!member?.id) throw new Error('No member');
+      const { data, error } = await supabase.functions.invoke('cancel-subscription', {
+        body: { memberId: member.id, action: 'revert' },
+      });
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || 'Failed to revert');
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['member', id] });
+      toast({ title: 'Cancelamento revertido', description: 'A subscription vai continuar normalmente.' });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erro ao reverter',
+        description: error instanceof Error ? error.message : 'Erro desconhecido',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Stripe: Upgrade/downgrade subscription
+  const [selectedUpgradePriceId, setSelectedUpgradePriceId] = useState('');
+  const stripeUpgradeMutation = useMutation({
+    mutationFn: async ({ newPriceId }: { newPriceId: string }) => {
+      if (!member?.id) throw new Error('No member');
+      const { data, error } = await supabase.functions.invoke('update-subscription', {
+        body: { memberId: member.id, newPriceId },
+      });
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || 'Failed to upgrade');
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['member', id] });
+      setStripeUpgradeDialogOpen(false);
+      setSelectedUpgradePriceId('');
+      toast({
+        title: 'Plano alterado',
+        description: data.prorationAmount > 0
+          ? `Proratização: €${(data.prorationAmount / 100).toFixed(2)}`
+          : 'Alteração aplicada com sucesso.',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erro ao alterar plano',
+        description: error instanceof Error ? error.message : 'Erro desconhecido',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Fetch available payment links for upgrade selection
+  const { data: paymentLinks } = useQuery({
+    queryKey: ['stripe-payment-links-for-upgrade'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('stripe_payment_links')
+        .select('*')
+        .eq('ativo', true)
+        .order('amount_cents', { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+    enabled: stripeUpgradeDialogOpen,
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -634,8 +833,17 @@ const MemberForm = () => {
 
         {isEditing ? (
           <Tabs defaultValue="dados" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 max-w-md">
+            <TabsList className="grid w-full grid-cols-3 max-w-lg">
               <TabsTrigger value="dados">Dados</TabsTrigger>
+              <TabsTrigger value="turmas" className="flex items-center gap-2">
+                <Dumbbell className="h-4 w-4" />
+                Turmas
+                {memberModalities && memberModalities.length > 0 && (
+                  <Badge variant="secondary" className="ml-1 text-xs">
+                    {memberModalities.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
               <TabsTrigger value="pagamentos" className="flex items-center gap-2">
                 <Receipt className="h-4 w-4" />
                 Pagamentos
@@ -813,19 +1021,15 @@ const MemberForm = () => {
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                       <div>
                         <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
-                          Plano Atual
+                          Status
                         </p>
                         <p className="font-medium">
-                          {member.plans?.nome || (
-                            <span className="text-muted-foreground">Nenhum plano</span>
-                          )}
+                          {member.status === 'ATIVO' && <span className="text-green-500">Ativo</span>}
+                          {member.status === 'LEAD' && <span className="text-yellow-500">Lead</span>}
+                          {member.status === 'BLOQUEADO' && <span className="text-orange-500">Bloqueado</span>}
+                          {member.status === 'CANCELADO' && <span className="text-red-500">Cancelado</span>}
+                          {member.status === 'PAUSADO' && <span className="text-blue-500">Pausado</span>}
                         </p>
-                        {member.plans && (
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            €{(member.plans.preco_cents / 100).toFixed(2)}
-                            {member.plans.duracao_dias && ` / ${member.plans.duracao_dias} dias`}
-                          </p>
-                        )}
                       </div>
                       <div>
                         <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
@@ -992,6 +1196,497 @@ const MemberForm = () => {
                   </CardContent>
                 </Card>
               )}
+
+              {/* Stripe Subscription Management */}
+              {member?.stripe_subscription_id && (
+                <Card className="bg-card border-border border-purple-500/30">
+                  <CardHeader>
+                    <CardTitle className="uppercase tracking-wider text-base flex items-center gap-2">
+                      <CreditCard className="h-5 w-5 text-purple-500" />
+                      Stripe Subscription
+                    </CardTitle>
+                    <CardDescription>
+                      Gestão da subscription no Stripe
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
+                          Subscription ID
+                        </p>
+                        <code className="text-sm bg-secondary px-2 py-1 rounded">
+                          {member.stripe_subscription_id.slice(0, 20)}...
+                        </code>
+                      </div>
+                      {member.stripe_customer_id && (
+                        <div>
+                          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
+                            Customer ID
+                          </p>
+                          <code className="text-sm bg-secondary px-2 py-1 rounded">
+                            {member.stripe_customer_id.slice(0, 20)}...
+                          </code>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex flex-wrap gap-2 pt-4 border-t border-border">
+                      {/* Pause Button */}
+                      <Dialog open={stripePauseDialogOpen} onOpenChange={setStripePauseDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="sm" className="border-yellow-500/50 text-yellow-500 hover:bg-yellow-500/10">
+                            <Pause className="h-4 w-4 mr-1" />
+                            Pausar
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Pausar Subscription</DialogTitle>
+                            <DialogDescription>
+                              A cobrança será suspensa. O membro mantém acesso até o período actual terminar.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="space-y-4 py-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="stripePauseDate">Retomar em (opcional)</Label>
+                              <Input
+                                id="stripePauseDate"
+                                type="date"
+                                value={stripePauseResumeDate}
+                                onChange={(e) => setStripePauseResumeDate(e.target.value)}
+                                min={new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0]}
+                                className="bg-secondary border-border"
+                              />
+                              <p className="text-xs text-muted-foreground">
+                                Deixe vazio para pausar indefinidamente
+                              </p>
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="stripePauseReason">Motivo (opcional)</Label>
+                              <Textarea
+                                id="stripePauseReason"
+                                value={stripePauseReason}
+                                onChange={(e) => setStripePauseReason(e.target.value)}
+                                placeholder="Ex: Férias, lesão..."
+                                className="bg-secondary border-border"
+                                rows={2}
+                              />
+                            </div>
+                          </div>
+                          <DialogFooter>
+                            <Button variant="ghost" onClick={() => setStripePauseDialogOpen(false)}>
+                              Cancelar
+                            </Button>
+                            <Button
+                              onClick={() => stripePauseMutation.mutate({
+                                resumeDate: stripePauseResumeDate || undefined,
+                                reason: stripePauseReason || undefined,
+                              })}
+                              disabled={stripePauseMutation.isPending}
+                              className="bg-yellow-600 hover:bg-yellow-700"
+                            >
+                              {stripePauseMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                              Pausar Subscription
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+
+                      {/* Resume Button */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-green-500/50 text-green-500 hover:bg-green-500/10"
+                        onClick={() => stripeResumeMutation.mutate()}
+                        disabled={stripeResumeMutation.isPending}
+                      >
+                        {stripeResumeMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                        ) : (
+                          <Play className="h-4 w-4 mr-1" />
+                        )}
+                        Retomar
+                      </Button>
+
+                      {/* Revert Cancellation */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-blue-500/50 text-blue-500 hover:bg-blue-500/10"
+                        onClick={() => stripeRevertCancelMutation.mutate()}
+                        disabled={stripeRevertCancelMutation.isPending}
+                      >
+                        {stripeRevertCancelMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                        ) : (
+                          <RotateCcw className="h-4 w-4 mr-1" />
+                        )}
+                        Reverter Cancel
+                      </Button>
+
+                      {/* Upgrade Button */}
+                      <Dialog open={stripeUpgradeDialogOpen} onOpenChange={setStripeUpgradeDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="sm" className="border-purple-500/50 text-purple-500 hover:bg-purple-500/10">
+                            <ArrowUpCircle className="h-4 w-4 mr-1" />
+                            Upgrade
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-lg">
+                          <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2">
+                              <ArrowUpCircle className="h-5 w-5 text-purple-500" />
+                              Alterar Plano
+                            </DialogTitle>
+                            <DialogDescription>
+                              Seleccione o novo plano. O Stripe calcula automaticamente a proratização.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="space-y-4 py-4">
+                            <div className="space-y-2">
+                              <Label>Novo Plano</Label>
+                              <Select
+                                value={selectedUpgradePriceId}
+                                onValueChange={setSelectedUpgradePriceId}
+                              >
+                                <SelectTrigger className="bg-secondary border-border">
+                                  <SelectValue placeholder="Seleccionar plano..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {paymentLinks?.map((link) => (
+                                    <SelectItem key={link.id} value={link.price_id}>
+                                      <div className="flex items-center justify-between gap-4">
+                                        <span>{link.display_name}</span>
+                                        <span className="text-muted-foreground">
+                                          €{(link.amount_cents / 100).toFixed(2)}
+                                        </span>
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            {selectedUpgradePriceId && (
+                              <Alert className="border-purple-500/50 bg-purple-500/10">
+                                <ArrowUpCircle className="h-4 w-4 text-purple-500" />
+                                <AlertDescription className="text-sm">
+                                  O valor será ajustado proporcionalmente ao tempo restante do período actual.
+                                </AlertDescription>
+                              </Alert>
+                            )}
+                          </div>
+                          <DialogFooter>
+                            <Button variant="ghost" onClick={() => setStripeUpgradeDialogOpen(false)}>
+                              Cancelar
+                            </Button>
+                            <Button
+                              onClick={() => stripeUpgradeMutation.mutate({ newPriceId: selectedUpgradePriceId })}
+                              disabled={!selectedUpgradePriceId || stripeUpgradeMutation.isPending}
+                              className="bg-purple-600 hover:bg-purple-700"
+                            >
+                              {stripeUpgradeMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                              Confirmar Alteração
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+
+                      {/* Cancel Button */}
+                      <Dialog open={stripeCancelDialogOpen} onOpenChange={setStripeCancelDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="sm" className="border-red-500/50 text-red-500 hover:bg-red-500/10">
+                            <Ban className="h-4 w-4 mr-1" />
+                            Cancelar
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle className="text-red-500">Cancelar Subscription</DialogTitle>
+                            <DialogDescription>
+                              Esta acção vai cancelar a subscription do Stripe.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="space-y-4 py-4">
+                            <div className="flex items-center gap-3 p-3 rounded-lg border border-border">
+                              <Checkbox
+                                id="stripeCancelImmediately"
+                                checked={stripeCancelImmediately}
+                                onCheckedChange={(checked) => setStripeCancelImmediately(checked === true)}
+                              />
+                              <div>
+                                <Label htmlFor="stripeCancelImmediately" className="font-medium">
+                                  Cancelar imediatamente
+                                </Label>
+                                <p className="text-xs text-muted-foreground">
+                                  Se desmarcado, o acesso continua até o fim do período pago
+                                </p>
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="stripeCancelReason">Motivo (opcional)</Label>
+                              <Textarea
+                                id="stripeCancelReason"
+                                value={stripeCancelReason}
+                                onChange={(e) => setStripeCancelReason(e.target.value)}
+                                placeholder="Ex: Solicitado pelo membro..."
+                                className="bg-secondary border-border"
+                                rows={2}
+                              />
+                            </div>
+                            {stripeCancelImmediately && (
+                              <Alert className="border-red-500/50 bg-red-500/10">
+                                <Ban className="h-4 w-4 text-red-500" />
+                                <AlertTitle className="text-red-500">Atenção</AlertTitle>
+                                <AlertDescription className="text-red-400/80 text-sm">
+                                  O acesso será revogado <strong>imediatamente</strong>. O membro não poderá fazer check-in.
+                                </AlertDescription>
+                              </Alert>
+                            )}
+                          </div>
+                          <DialogFooter>
+                            <Button variant="ghost" onClick={() => setStripeCancelDialogOpen(false)}>
+                              Voltar
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              onClick={() => stripeCancelMutation.mutate({
+                                cancelImmediately: stripeCancelImmediately,
+                                reason: stripeCancelReason,
+                              })}
+                              disabled={stripeCancelMutation.isPending}
+                            >
+                              {stripeCancelMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                              {stripeCancelImmediately ? 'Cancelar Agora' : 'Cancelar no Fim do Período'}
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+
+                    {/* Link to Stripe Dashboard */}
+                    <div className="pt-2 border-t border-border">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-purple-500 hover:text-purple-400"
+                        onClick={() => window.open(
+                          `https://dashboard.stripe.com/subscriptions/${member.stripe_subscription_id}`,
+                          '_blank'
+                        )}
+                      >
+                        <CreditCard className="h-4 w-4 mr-2" />
+                        Ver no Stripe Dashboard
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+
+            <TabsContent value="turmas" className="mt-6">
+              <Card className="bg-card border-border">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="uppercase tracking-wider text-base flex items-center gap-2">
+                        <Dumbbell className="h-5 w-5" />
+                        Modalidades e Turmas
+                      </CardTitle>
+                      <CardDescription>
+                        O que este membro treina e em quais horários
+                      </CardDescription>
+                    </div>
+                    {!isEditingTurmas ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsEditingTurmas(true)}
+                      >
+                        Editar
+                      </Button>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setIsEditingTurmas(false);
+                            // Reset to original values
+                            if (memberModalities) {
+                              setEditingModalityIds(memberModalities.map(m => m.modality_id));
+                            }
+                            if (memberClasses) {
+                              setEditingClassIds(memberClasses.map(c => c.class_id));
+                            }
+                          }}
+                        >
+                          <X className="h-4 w-4 mr-1" />
+                          Cancelar
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={async () => {
+                            try {
+                              await setMemberModalities.mutateAsync({
+                                memberId: id!,
+                                modalityIds: editingModalityIds,
+                              });
+                              await setMemberClasses.mutateAsync({
+                                memberId: id!,
+                                classIds: editingClassIds,
+                              });
+                              toast({ title: 'Turmas atualizadas!' });
+                              setIsEditingTurmas(false);
+                            } catch (error) {
+                              toast({
+                                title: 'Erro ao salvar',
+                                description: 'Tente novamente',
+                                variant: 'destructive',
+                              });
+                            }
+                          }}
+                          disabled={setMemberModalities.isPending || setMemberClasses.isPending}
+                        >
+                          {(setMemberModalities.isPending || setMemberClasses.isPending) ? (
+                            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                          ) : (
+                            <Save className="h-4 w-4 mr-1" />
+                          )}
+                          Salvar
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Modalities */}
+                  <div className="space-y-3">
+                    <Label className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                      Modalidades
+                    </Label>
+                    {isLoadingModalities ? (
+                      <div className="flex justify-center py-4">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      </div>
+                    ) : isEditingTurmas ? (
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                        {allModalities?.map((mod) => (
+                          <div
+                            key={mod.id}
+                            onClick={() => {
+                              setEditingModalityIds((prev) =>
+                                prev.includes(mod.id)
+                                  ? prev.filter((id) => id !== mod.id)
+                                  : [...prev, mod.id]
+                              );
+                            }}
+                            className={`flex items-center gap-2 p-3 border rounded-lg cursor-pointer transition-all ${
+                              editingModalityIds.includes(mod.id)
+                                ? 'border-accent bg-accent/10 ring-1 ring-accent/30'
+                                : 'hover:border-accent/50'
+                            }`}
+                          >
+                            <Checkbox
+                              checked={editingModalityIds.includes(mod.id)}
+                              onCheckedChange={() => {
+                                setEditingModalityIds((prev) =>
+                                  prev.includes(mod.id)
+                                    ? prev.filter((id) => id !== mod.id)
+                                    : [...prev, mod.id]
+                                );
+                              }}
+                            />
+                            <span className="text-sm font-medium">{mod.nome}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : memberModalities && memberModalities.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {memberModalities.map((mm) => (
+                          <Badge key={mm.modality_id} variant="secondary" className="text-sm">
+                            {mm.modality?.nome || 'Modalidade'}
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Nenhuma modalidade definida</p>
+                    )}
+                  </div>
+
+                  {/* Classes/Schedule */}
+                  <div className="space-y-3">
+                    <Label className="text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      Turmas / Horários
+                    </Label>
+                    {isLoadingClasses ? (
+                      <div className="flex justify-center py-4">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      </div>
+                    ) : isEditingTurmas ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {allClasses?.map((cls) => (
+                          <div
+                            key={cls.id}
+                            onClick={() => {
+                              setEditingClassIds((prev) =>
+                                prev.includes(cls.id)
+                                  ? prev.filter((id) => id !== cls.id)
+                                  : [...prev, cls.id]
+                              );
+                            }}
+                            className={`flex items-center gap-2 p-3 border rounded-lg cursor-pointer transition-all ${
+                              editingClassIds.includes(cls.id)
+                                ? 'border-accent bg-accent/10 ring-1 ring-accent/30'
+                                : 'hover:border-accent/50'
+                            }`}
+                          >
+                            <Checkbox
+                              checked={editingClassIds.includes(cls.id)}
+                              onCheckedChange={() => {
+                                setEditingClassIds((prev) =>
+                                  prev.includes(cls.id)
+                                    ? prev.filter((id) => id !== cls.id)
+                                    : [...prev, cls.id]
+                                );
+                              }}
+                            />
+                            <div className="flex-1">
+                              <p className="text-sm font-medium">{cls.nome || cls.modalidade}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {DAYS_PT[cls.dia_semana]} {cls.hora_inicio?.slice(0, 5)}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : memberClasses && memberClasses.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {memberClasses.map((mc) => (
+                          <div
+                            key={mc.id}
+                            className="flex items-center gap-3 p-3 bg-secondary/50 rounded-lg"
+                          >
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                            <div>
+                              <p className="text-sm font-medium">
+                                {mc.class?.nome || mc.class?.modalidade || 'Turma'}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {mc.class ? `${DAYS_PT[mc.class.dia_semana]} ${mc.class.hora_inicio?.slice(0, 5)}` : ''}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Nenhuma turma definida</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="pagamentos" className="mt-6">

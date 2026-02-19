@@ -39,6 +39,8 @@ export default defineConfig(({ mode }) => {
         VITE_SUPABASE_URL: env.VITE_SUPABASE_URL,
         VITE_SUPABASE_ANON_KEY: env.VITE_SUPABASE_PUBLISHABLE_KEY,
         SUPABASE_SERVICE_ROLE_KEY: env.SUPABASE_SERVICE_ROLE_KEY,
+        STRIPE_SECRET_KEY: env.STRIPE_SECRET_KEY,
+        STRIPE_WEBHOOK_SECRET: env.STRIPE_WEBHOOK_SECRET,
       },
     },
     resolve: {

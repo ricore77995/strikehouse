@@ -1,0 +1,3 @@
+# Disable JWT verification for webhook
+# Stripe sends requests directly without Supabase auth
+verify_jwt = false

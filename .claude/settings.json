@@ -1,0 +1,11 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "ExitPlanMode",
+        "type": "prompt",
+        "prompt": "Um plano foi criado. Use o skill /pm review para validar o plano contra as regras de negocio da Striker's House antes de implementar."
+      }
+    ]
+  }
+}

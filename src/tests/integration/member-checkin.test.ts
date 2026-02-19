@@ -298,6 +298,230 @@ describe('Member Check-in Validation (Real Supabase)', () => {
     });
   });
 
+  describe('Weekly Limit Access Control', () => {
+    it('BLOCKS member when weekly limit reached', async () => {
+      // Create member with 2x/week limit
+      const member = await createTestMember(client, {
+        nome: 'Weekly Limit Member',
+        status: 'ATIVO',
+        access_type: 'SUBSCRIPTION',
+        access_expires_at: format(addDays(new Date(), 30), 'yyyy-MM-dd'),
+        weekly_limit: 2, // Max 2 check-ins per week
+      });
+      createdIds.members.push(member.id);
+
+      // Create 2 ALLOWED check-ins (filling the weekly quota)
+      for (let i = 0; i < 2; i++) {
+        const { data: checkin } = await client
+          .from('check_ins')
+          .insert({
+            type: 'MEMBER',
+            result: 'ALLOWED',
+            member_id: member.id,
+            checked_in_by: staffId,
+          })
+          .select()
+          .single();
+        createdIds.checkins.push(checkin!.id);
+      }
+
+      // Count check-ins in last 7 days
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+
+      const { count } = await client
+        .from('check_ins')
+        .select('*', { count: 'exact', head: true })
+        .eq('member_id', member.id)
+        .eq('result', 'ALLOWED')
+        .gte('checked_in_at', weekAgo.toISOString());
+
+      expect(count).toBe(2); // At limit
+
+      // Third check-in should be BLOCKED
+      const isLimitReached = count! >= member.weekly_limit!;
+      expect(isLimitReached).toBe(true);
+
+      // Create BLOCKED check-in
+      const { data: blockedCheckin, error } = await client
+        .from('check_ins')
+        .insert({
+          type: 'MEMBER',
+          result: 'BLOCKED',
+          member_id: member.id,
+          checked_in_by: staffId,
+        })
+        .select()
+        .single();
+
+      expect(error).toBeNull();
+      expect(blockedCheckin.result).toBe('BLOCKED');
+      createdIds.checkins.push(blockedCheckin.id);
+    });
+
+    it('ALLOWS member when under weekly limit', async () => {
+      // Create member with 3x/week limit
+      const member = await createTestMember(client, {
+        nome: 'Under Weekly Limit Member',
+        status: 'ATIVO',
+        access_type: 'SUBSCRIPTION',
+        access_expires_at: format(addDays(new Date(), 30), 'yyyy-MM-dd'),
+        weekly_limit: 3, // Max 3 check-ins per week
+      });
+      createdIds.members.push(member.id);
+
+      // Create only 1 check-in (under limit)
+      const { data: firstCheckin } = await client
+        .from('check_ins')
+        .insert({
+          type: 'MEMBER',
+          result: 'ALLOWED',
+          member_id: member.id,
+          checked_in_by: staffId,
+        })
+        .select()
+        .single();
+      createdIds.checkins.push(firstCheckin!.id);
+
+      // Count should be under limit
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+
+      const { count } = await client
+        .from('check_ins')
+        .select('*', { count: 'exact', head: true })
+        .eq('member_id', member.id)
+        .eq('result', 'ALLOWED')
+        .gte('checked_in_at', weekAgo.toISOString());
+
+      expect(count).toBe(1);
+      expect(count! < member.weekly_limit!).toBe(true);
+
+      // Second check-in should be ALLOWED
+      const { data: secondCheckin, error } = await client
+        .from('check_ins')
+        .insert({
+          type: 'MEMBER',
+          result: 'ALLOWED',
+          member_id: member.id,
+          checked_in_by: staffId,
+        })
+        .select()
+        .single();
+
+      expect(error).toBeNull();
+      expect(secondCheckin.result).toBe('ALLOWED');
+      createdIds.checkins.push(secondCheckin.id);
+    });
+
+    it('unlimited member (weekly_limit null) is always ALLOWED', async () => {
+      const member = await createTestMember(client, {
+        nome: 'Unlimited Member',
+        status: 'ATIVO',
+        access_type: 'SUBSCRIPTION',
+        access_expires_at: format(addDays(new Date(), 30), 'yyyy-MM-dd'),
+        weekly_limit: null, // Unlimited
+      });
+      createdIds.members.push(member.id);
+
+      // Create 5 check-ins (should all be allowed)
+      for (let i = 0; i < 5; i++) {
+        const { data: checkin, error } = await client
+          .from('check_ins')
+          .insert({
+            type: 'MEMBER',
+            result: 'ALLOWED',
+            member_id: member.id,
+            checked_in_by: staffId,
+          })
+          .select()
+          .single();
+
+        expect(error).toBeNull();
+        expect(checkin.result).toBe('ALLOWED');
+        createdIds.checkins.push(checkin.id);
+      }
+
+      // All should be allowed because weekly_limit is null
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+
+      const { count } = await client
+        .from('check_ins')
+        .select('*', { count: 'exact', head: true })
+        .eq('member_id', member.id)
+        .eq('result', 'ALLOWED')
+        .gte('checked_in_at', weekAgo.toISOString());
+
+      expect(count).toBe(5);
+
+      // No limit validation needed when weekly_limit is null
+      expect(member.weekly_limit).toBeNull();
+    });
+
+    it('counts only ALLOWED check-ins for limit (BLOCKED ignored)', async () => {
+      const member = await createTestMember(client, {
+        nome: 'Blocked Ignored Member',
+        status: 'ATIVO',
+        access_type: 'SUBSCRIPTION',
+        access_expires_at: format(addDays(new Date(), 30), 'yyyy-MM-dd'),
+        weekly_limit: 2,
+      });
+      createdIds.members.push(member.id);
+
+      // Create 1 ALLOWED + 2 BLOCKED
+      const { data: allowed } = await client
+        .from('check_ins')
+        .insert({
+          type: 'MEMBER',
+          result: 'ALLOWED',
+          member_id: member.id,
+          checked_in_by: staffId,
+        })
+        .select()
+        .single();
+      createdIds.checkins.push(allowed!.id);
+
+      for (let i = 0; i < 2; i++) {
+        const { data: blocked } = await client
+          .from('check_ins')
+          .insert({
+            type: 'MEMBER',
+            result: 'BLOCKED',
+            member_id: member.id,
+            checked_in_by: staffId,
+          })
+          .select()
+          .single();
+        createdIds.checkins.push(blocked!.id);
+      }
+
+      // Count only ALLOWED
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+
+      const { count: allowedCount } = await client
+        .from('check_ins')
+        .select('*', { count: 'exact', head: true })
+        .eq('member_id', member.id)
+        .eq('result', 'ALLOWED')
+        .gte('checked_in_at', weekAgo.toISOString());
+
+      const { count: totalCount } = await client
+        .from('check_ins')
+        .select('*', { count: 'exact', head: true })
+        .eq('member_id', member.id)
+        .gte('checked_in_at', weekAgo.toISOString());
+
+      // Only 1 ALLOWED counts toward limit
+      expect(allowedCount).toBe(1);
+      expect(totalCount).toBe(3);
+
+      // Still under limit (1 < 2)
+      expect(allowedCount! < member.weekly_limit!).toBe(true);
+    });
+  });
+
   describe('Daily Pass Access Type', () => {
     it('ALLOWS daily pass on purchase day', async () => {
       const today = format(new Date(), 'yyyy-MM-dd');

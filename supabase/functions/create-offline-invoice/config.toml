@@ -1,0 +1,3 @@
+# Config for create-offline-invoice Edge Function
+# JWT verification disabled - uses API key auth
+verify_jwt = false

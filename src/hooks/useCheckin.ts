@@ -13,11 +13,13 @@ export interface MemberCheckinInfo {
   access_expires_at: string | null;
   credits_remaining: number | null;
   qr_code: string;
+  weekly_limit: number | null;
+  modalities_count: number | null;
 }
 
 export interface CheckinResult {
   success: boolean;
-  result: 'ALLOWED' | 'BLOCKED' | 'EXPIRED' | 'NO_CREDITS' | 'NOT_FOUND' | 'AREA_EXCLUSIVE';
+  result: 'ALLOWED' | 'BLOCKED' | 'EXPIRED' | 'NO_CREDITS' | 'NOT_FOUND' | 'AREA_EXCLUSIVE' | 'WEEKLY_LIMIT_REACHED';
   member?: MemberCheckinInfo;
   message: string;
   rentalInfo?: {
@@ -25,15 +27,20 @@ export interface CheckinResult {
     areaName: string;
     endTime: string;
   };
+  weeklyLimitInfo?: {
+    limit: number;
+    used: number;
+    nextResetDate: string;
+  };
 }
 
 // Mapeia resultados estendidos para valores válidos no banco de dados
-// NOT_FOUND e AREA_EXCLUSIVE são mapeados para BLOCKED no banco
+// NOT_FOUND, AREA_EXCLUSIVE e WEEKLY_LIMIT_REACHED são mapeados para BLOCKED no banco
 // A mensagem correta já é mostrada na UI via CheckinResult.message
 const mapToDatabaseResult = (
   result: CheckinResult['result']
 ): 'ALLOWED' | 'BLOCKED' | 'EXPIRED' | 'NO_CREDITS' => {
-  if (result === 'NOT_FOUND' || result === 'AREA_EXCLUSIVE') {
+  if (result === 'NOT_FOUND' || result === 'AREA_EXCLUSIVE' || result === 'WEEKLY_LIMIT_REACHED') {
     return 'BLOCKED';
   }
   return result as 'ALLOWED' | 'BLOCKED' | 'EXPIRED' | 'NO_CREDITS';
@@ -129,6 +136,66 @@ export const useCheckin = () => {
     return { isBlocked: false };
   };
 
+  /**
+   * Check if member has reached their weekly check-in limit
+   * Uses rolling 7-day window (not calendar week)
+   */
+  const checkWeeklyLimit = async (
+    memberId: string,
+    weeklyLimit: number
+  ): Promise<{
+    isLimitReached: boolean;
+    used: number;
+    nextResetDate: string;
+  }> => {
+    // Calculate date 7 days ago
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const weekAgoIso = weekAgo.toISOString();
+
+    // Count successful check-ins in the last 7 days
+    const { count, error } = await supabase
+      .from('check_ins')
+      .select('*', { count: 'exact', head: true })
+      .eq('member_id', memberId)
+      .eq('result', 'ALLOWED')
+      .gte('checked_in_at', weekAgoIso);
+
+    if (error) {
+      console.error('Error checking weekly limit:', error);
+      // On error, allow check-in (fail open)
+      return { isLimitReached: false, used: 0, nextResetDate: '' };
+    }
+
+    const usedCount = count || 0;
+    const isLimitReached = usedCount >= weeklyLimit;
+
+    // Find the oldest check-in in the window to calculate next reset
+    let nextResetDate = '';
+    if (isLimitReached) {
+      const { data: oldestCheckin } = await supabase
+        .from('check_ins')
+        .select('checked_in_at')
+        .eq('member_id', memberId)
+        .eq('result', 'ALLOWED')
+        .gte('checked_in_at', weekAgoIso)
+        .order('checked_in_at', { ascending: true })
+        .limit(1);
+
+      if (oldestCheckin && oldestCheckin.length > 0) {
+        const oldestDate = new Date(oldestCheckin[0].checked_in_at);
+        oldestDate.setDate(oldestDate.getDate() + 7);
+        nextResetDate = oldestDate.toLocaleDateString('pt-BR', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'short',
+        });
+      }
+    }
+
+    return { isLimitReached, used: usedCount, nextResetDate };
+  };
+
   const performCheckin = async (
     member: MemberCheckinInfo,
     staffId: string | null
@@ -159,6 +226,33 @@ export const useCheckin = () => {
             endTime: exclusiveCheck.rental.end_time,
           },
         };
+      }
+
+      // Check weekly limit if member has one
+      if (member.weekly_limit && member.weekly_limit > 0) {
+        const limitCheck = await checkWeeklyLimit(member.id, member.weekly_limit);
+
+        if (limitCheck.isLimitReached) {
+          // Register blocked check-in for auditing
+          await supabase.from('check_ins').insert({
+            member_id: member.id,
+            type: 'MEMBER',
+            result: 'BLOCKED',
+            checked_in_by: staffId,
+          });
+
+          return {
+            success: false,
+            result: 'WEEKLY_LIMIT_REACHED',
+            member,
+            message: `Limite semanal atingido (${limitCheck.used}/${member.weekly_limit}). Próximo check-in disponível ${limitCheck.nextResetDate}.`,
+            weeklyLimitInfo: {
+              limit: member.weekly_limit,
+              used: limitCheck.used,
+              nextResetDate: limitCheck.nextResetDate,
+            },
+          };
+        }
       }
 
       const validation = validateAccess(member);

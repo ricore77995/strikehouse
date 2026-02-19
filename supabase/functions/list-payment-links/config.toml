@@ -1,0 +1,3 @@
+# List Payment Links - Edge Function Config
+# No JWT verification needed - staff needs to access this to send links to members
+verify_jwt = false

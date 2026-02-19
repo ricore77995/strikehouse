@@ -110,15 +110,14 @@ const Billing = () => {
         .select('*', { count: 'exact', head: true })
         .eq('status', 'ATIVO');
 
-      // Estimate expected (active members * average plan price)
-      const { data: plans } = await supabase
-        .from('plans')
-        .select('preco_cents')
-        .eq('ativo', true)
-        .eq('tipo', 'SUBSCRIPTION');
+      // Estimate expected (active members * average plan price from Stripe Payment Links)
+      const { data: paymentLinks } = await supabase
+        .from('stripe_payment_links')
+        .select('price_cents')
+        .eq('active', true);
 
-      const avgPrice = plans && plans.length > 0
-        ? plans.reduce((sum, p) => sum + p.preco_cents, 0) / plans.length
+      const avgPrice = paymentLinks && paymentLinks.length > 0
+        ? paymentLinks.reduce((sum, p) => sum + p.price_cents, 0) / paymentLinks.length
         : 5000; // Default 50€
 
       const esperado = (activeCount || 0) * avgPrice;

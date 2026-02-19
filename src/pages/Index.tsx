@@ -494,47 +494,6 @@ const Index = () => {
         </motion.div>
       </section>
 
-      {/* Video Section */}
-      <section className="py-20 bg-charcoal relative overflow-hidden">
-        <div className="container mx-auto px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-12"
-          >
-            <div className="section-line mx-auto mb-4" />
-            <h2 className="text-3xl md:text-4xl font-light tracking-[0.1em] mb-4">
-              {t("membership.page.videoTitle")}
-            </h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">
-              {t("membership.page.videoDescription")}
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="flex justify-center"
-          >
-            <div className="w-full max-w-[400px] aspect-[9/16] bg-background border border-border rounded-lg overflow-hidden">
-              <iframe
-                src="https://www.instagram.com/reel/DTgLl6ZCn6G/embed/"
-                className="w-full h-full"
-                frameBorder="0"
-                scrolling="no"
-                allowTransparency={true}
-                allowFullScreen={true}
-                title="Striker's House - Instagram Reel"
-              />
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
       {/* Modalities Section */}
       <section className="py-20 bg-background relative overflow-hidden">
         <OctagonFrame

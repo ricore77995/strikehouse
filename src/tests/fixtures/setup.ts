@@ -15,6 +15,10 @@ export const createdIds: {
   checkins: string[];
   staff: string[];
   authUsers: string[];
+  transactions: string[];
+  cashSessions: string[];
+  pendingPayments: string[];
+  memberIbans: string[];
 } = {
   coaches: [],
   areas: [],
@@ -25,6 +29,10 @@ export const createdIds: {
   checkins: [],
   staff: [],
   authUsers: [],
+  transactions: [],
+  cashSessions: [],
+  pendingPayments: [],
+  memberIbans: [],
 };
 
 /**
@@ -40,6 +48,10 @@ export const resetTracking = () => {
   createdIds.checkins = [];
   createdIds.staff = [];
   createdIds.authUsers = [];
+  createdIds.transactions = [];
+  createdIds.cashSessions = [];
+  createdIds.pendingPayments = [];
+  createdIds.memberIbans = [];
 };
 
 /**
@@ -51,6 +63,15 @@ export const cleanupTrackedEntities = async () => {
   // Order matters due to FK constraints
   if (createdIds.checkins.length > 0) {
     await client.from('check_ins').delete().in('id', createdIds.checkins);
+  }
+  if (createdIds.transactions.length > 0) {
+    await client.from('transactions').delete().in('id', createdIds.transactions);
+  }
+  if (createdIds.pendingPayments.length > 0) {
+    await client.from('pending_payments').delete().in('id', createdIds.pendingPayments);
+  }
+  if (createdIds.memberIbans.length > 0) {
+    await client.from('member_ibans').delete().in('id', createdIds.memberIbans);
   }
   if (createdIds.credits.length > 0) {
     await client.from('coach_credits').delete().in('id', createdIds.credits);
@@ -72,6 +93,9 @@ export const cleanupTrackedEntities = async () => {
   }
   if (createdIds.staff.length > 0) {
     await client.from('staff').delete().in('id', createdIds.staff);
+  }
+  if (createdIds.cashSessions.length > 0) {
+    await client.from('cash_sessions').delete().in('id', createdIds.cashSessions);
   }
 
   // Clean up auth users last
@@ -122,3 +146,71 @@ afterAll(async () => {
 beforeEach(() => {
   // Reset any per-test state if needed
 });
+
+/**
+ * Get the test Supabase client (service role)
+ */
+export function getTestSupabaseClient() {
+  return serviceClient;
+}
+
+/**
+ * Create a test member with specified options
+ */
+export async function createTestMember(
+  client: ReturnType<typeof createServiceClient>,
+  options: {
+    status?: 'LEAD' | 'ATIVO' | 'BLOQUEADO' | 'CANCELADO';
+    email?: string;
+    nome?: string;
+    telefone?: string;
+    qrCode?: string;
+  } = {}
+): Promise<{ id: string; email: string; nome: string; qr_code: string }> {
+  const timestamp = Date.now();
+  const randomStr = Math.random().toString(36).substring(2, 10).toUpperCase();
+
+  const memberData = {
+    nome: options.nome || `Test Member ${timestamp}`,
+    email: options.email || `test-${timestamp}@example.com`,
+    telefone: options.telefone || `91${timestamp.toString().slice(-7)}`,
+    status: options.status || 'LEAD',
+    qr_code: options.qrCode || `MBR-${randomStr}`,
+  };
+
+  const { data, error } = await client
+    .from('members')
+    .insert(memberData)
+    .select('id, email, nome, qr_code')
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to create test member: ${error.message}`);
+  }
+
+  // Track for cleanup
+  createdIds.members.push(data.id);
+
+  return data;
+}
+
+/**
+ * Clean up a specific test member and related data
+ */
+export async function cleanupTestMember(
+  client: ReturnType<typeof createServiceClient>,
+  memberId: string
+): Promise<void> {
+  // Delete related data first (FK constraints)
+  await client.from('check_ins').delete().eq('member_id', memberId);
+  await client.from('transactions').delete().eq('member_id', memberId);
+  await client.from('pending_payments').delete().eq('member_id', memberId);
+  await client.from('member_ibans').delete().eq('member_id', memberId);
+  await client.from('subscriptions').delete().eq('member_id', memberId);
+
+  // Delete member
+  await client.from('members').delete().eq('id', memberId);
+
+  // Remove from tracking
+  createdIds.members = createdIds.members.filter((id) => id !== memberId);
+}

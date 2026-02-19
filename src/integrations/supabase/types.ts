@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       areas: {
@@ -176,6 +151,91 @@ export type Database = {
           },
         ]
       }
+      cash_transactions: {
+        Row: {
+          amount_cents: number
+          category: string
+          created_at: string | null
+          created_by: string
+          description: string | null
+          id: string
+          member_id: string | null
+          reference_id: string | null
+          reference_type: string | null
+          session_id: string
+          type: string
+        }
+        Insert: {
+          amount_cents: number
+          category: string
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          id?: string
+          member_id?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          session_id: string
+          type: string
+        }
+        Update: {
+          amount_cents?: number
+          category?: string
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          id?: string
+          member_id?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          session_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cash_transactions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_transactions_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_transactions_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "v_active_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_transactions_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "v_expiring_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_transactions_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "v_overdue_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_transactions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "cash_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           code: string
@@ -199,6 +259,7 @@ export type Database = {
           checked_in_at: string | null
           checked_in_by: string | null
           class_id: string | null
+          guest_id: string | null
           guest_name: string | null
           id: string
           member_id: string | null
@@ -210,6 +271,7 @@ export type Database = {
           checked_in_at?: string | null
           checked_in_by?: string | null
           class_id?: string | null
+          guest_id?: string | null
           guest_name?: string | null
           id?: string
           member_id?: string | null
@@ -221,6 +283,7 @@ export type Database = {
           checked_in_at?: string | null
           checked_in_by?: string | null
           class_id?: string | null
+          guest_id?: string | null
           guest_name?: string | null
           id?: string
           member_id?: string | null
@@ -234,6 +297,13 @@ export type Database = {
             columns: ["class_id"]
             isOneToOne: false
             referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "check_ins_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "coach_guests"
             referencedColumns: ["id"]
           },
           {
@@ -299,6 +369,7 @@ export type Database = {
           hora_inicio: string
           id: string
           modalidade: string
+          modality_id: string | null
           nome: string
           updated_at: string | null
         }
@@ -313,6 +384,7 @@ export type Database = {
           hora_inicio: string
           id?: string
           modalidade: string
+          modality_id?: string | null
           nome: string
           updated_at?: string | null
         }
@@ -327,6 +399,7 @@ export type Database = {
           hora_inicio?: string
           id?: string
           modalidade?: string
+          modality_id?: string | null
           nome?: string
           updated_at?: string | null
         }
@@ -343,6 +416,13 @@ export type Database = {
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "external_coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "classes_modality_id_fkey"
+            columns: ["modality_id"]
+            isOneToOne: false
+            referencedRelation: "modalities"
             referencedColumns: ["id"]
           },
         ]
@@ -395,6 +475,50 @@ export type Database = {
             columns: ["rental_id"]
             isOneToOne: false
             referencedRelation: "v_today_rentals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_guests: {
+        Row: {
+          ativo: boolean | null
+          coach_id: string
+          created_at: string | null
+          email: string | null
+          id: string
+          nome: string
+          notas: string | null
+          telefone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          coach_id: string
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          nome: string
+          notas?: string | null
+          telefone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          coach_id?: string
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          nome?: string
+          notas?: string | null
+          telefone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_guests_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "external_coaches"
             referencedColumns: ["id"]
           },
         ]
@@ -475,6 +599,7 @@ export type Database = {
           id: string
           modalidade: string | null
           nome: string
+          stripe_customer_id: string | null
           telefone: string | null
           user_id: string | null
         }
@@ -488,6 +613,7 @@ export type Database = {
           id?: string
           modalidade?: string | null
           nome: string
+          stripe_customer_id?: string | null
           telefone?: string | null
           user_id?: string | null
         }
@@ -501,6 +627,7 @@ export type Database = {
           id?: string
           modalidade?: string | null
           nome?: string
+          stripe_customer_id?: string | null
           telefone?: string | null
           user_id?: string | null
         }
@@ -574,6 +701,79 @@ export type Database = {
         }
         Relationships: []
       }
+      member_class_enrollments: {
+        Row: {
+          class_id: string
+          created_by: string | null
+          dropped_at: string | null
+          enrolled_at: string | null
+          id: string
+          member_id: string
+          status: string | null
+        }
+        Insert: {
+          class_id: string
+          created_by?: string | null
+          dropped_at?: string | null
+          enrolled_at?: string | null
+          id?: string
+          member_id: string
+          status?: string | null
+        }
+        Update: {
+          class_id?: string
+          created_by?: string | null
+          dropped_at?: string | null
+          enrolled_at?: string | null
+          id?: string
+          member_id?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_class_enrollments_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_class_enrollments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_class_enrollments_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_class_enrollments_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "v_active_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_class_enrollments_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "v_expiring_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_class_enrollments_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "v_overdue_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       member_ibans: {
         Row: {
           created_at: string | null
@@ -630,6 +830,60 @@ export type Database = {
           },
         ]
       }
+      member_modalities: {
+        Row: {
+          enrolled_at: string | null
+          member_id: string
+          modality_id: string
+        }
+        Insert: {
+          enrolled_at?: string | null
+          member_id: string
+          modality_id: string
+        }
+        Update: {
+          enrolled_at?: string | null
+          member_id?: string
+          modality_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_modalities_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_modalities_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "v_active_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_modalities_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "v_expiring_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_modalities_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "v_overdue_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_modalities_modality_id_fkey"
+            columns: ["modality_id"]
+            isOneToOne: false
+            referencedRelation: "modalities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       members: {
         Row: {
           access_expires_at: string | null
@@ -640,12 +894,16 @@ export type Database = {
           current_subscription_id: string | null
           email: string | null
           id: string
+          modalities_count: number | null
           nome: string
           preferred_payment_method: string | null
           qr_code: string
           status: string | null
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
           telefone: string
           updated_at: string | null
+          weekly_limit: number | null
         }
         Insert: {
           access_expires_at?: string | null
@@ -656,12 +914,16 @@ export type Database = {
           current_subscription_id?: string | null
           email?: string | null
           id?: string
+          modalities_count?: number | null
           nome: string
           preferred_payment_method?: string | null
           qr_code: string
           status?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           telefone: string
           updated_at?: string | null
+          weekly_limit?: number | null
         }
         Update: {
           access_expires_at?: string | null
@@ -672,12 +934,16 @@ export type Database = {
           current_subscription_id?: string | null
           email?: string | null
           id?: string
+          modalities_count?: number | null
           nome?: string
           preferred_payment_method?: string | null
           qr_code?: string
           status?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           telefone?: string
           updated_at?: string | null
+          weekly_limit?: number | null
         }
         Relationships: [
           {
@@ -847,12 +1113,17 @@ export type Database = {
           created_at: string | null
           creditos: number | null
           duracao_dias: number | null
-          enrollment_fee_cents: number | null
+          enrollment_fee_cents: number
           id: string
           modalities: string[] | null
           nome: string
           preco_cents: number
+          price_source: string | null
           pricing_override: Json | null
+          stripe_payment_link_id: string | null
+          stripe_price_id: string | null
+          stripe_product_id: string | null
+          stripe_synced_at: string | null
           tipo: string
           visible: boolean | null
         }
@@ -862,12 +1133,17 @@ export type Database = {
           created_at?: string | null
           creditos?: number | null
           duracao_dias?: number | null
-          enrollment_fee_cents?: number | null
+          enrollment_fee_cents?: number
           id?: string
           modalities?: string[] | null
           nome: string
           preco_cents: number
+          price_source?: string | null
           pricing_override?: Json | null
+          stripe_payment_link_id?: string | null
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
+          stripe_synced_at?: string | null
           tipo: string
           visible?: boolean | null
         }
@@ -877,12 +1153,17 @@ export type Database = {
           created_at?: string | null
           creditos?: number | null
           duracao_dias?: number | null
-          enrollment_fee_cents?: number | null
+          enrollment_fee_cents?: number
           id?: string
           modalities?: string[] | null
           nome?: string
           preco_cents?: number
+          price_source?: string | null
           pricing_override?: Json | null
+          stripe_payment_link_id?: string | null
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
+          stripe_synced_at?: string | null
           tipo?: string
           visible?: boolean | null
         }
@@ -1207,6 +1488,39 @@ export type Database = {
           },
         ]
       }
+      stripe_events: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          event_id: string
+          event_type: string
+          id: string
+          payload: Json | null
+          processed_at: string
+          success: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          event_id: string
+          event_type: string
+          id?: string
+          payload?: Json | null
+          processed_at?: string
+          success?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          event_id?: string
+          event_type?: string
+          id?: string
+          payload?: Json | null
+          processed_at?: string
+          success?: boolean | null
+        }
+        Relationships: []
+      }
       stripe_payment_ledger: {
         Row: {
           amount_total: number
@@ -1321,6 +1635,77 @@ export type Database = {
           },
         ]
       }
+      stripe_payment_links: {
+        Row: {
+          amount_cents: number
+          ativo: boolean
+          compromisso: string
+          created_at: string | null
+          display_name: string | null
+          enrollment_price_id: string | null
+          frequencia: string
+          id: string
+          includes_enrollment_fee: boolean
+          is_family_friends: boolean
+          modalities_count: number | null
+          payment_link_id: string
+          payment_link_url: string
+          plan_id: string | null
+          price_id: string
+          tags: string[] | null
+          updated_at: string | null
+          weekly_limit: number | null
+        }
+        Insert: {
+          amount_cents: number
+          ativo?: boolean
+          compromisso: string
+          created_at?: string | null
+          display_name?: string | null
+          enrollment_price_id?: string | null
+          frequencia: string
+          id?: string
+          includes_enrollment_fee?: boolean
+          is_family_friends?: boolean
+          modalities_count?: number | null
+          payment_link_id: string
+          payment_link_url: string
+          plan_id?: string | null
+          price_id: string
+          tags?: string[] | null
+          updated_at?: string | null
+          weekly_limit?: number | null
+        }
+        Update: {
+          amount_cents?: number
+          ativo?: boolean
+          compromisso?: string
+          created_at?: string | null
+          display_name?: string | null
+          enrollment_price_id?: string | null
+          frequencia?: string
+          id?: string
+          includes_enrollment_fee?: boolean
+          is_family_friends?: boolean
+          modalities_count?: number | null
+          payment_link_id?: string
+          payment_link_url?: string
+          plan_id?: string | null
+          price_id?: string
+          tags?: string[] | null
+          updated_at?: string | null
+          weekly_limit?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stripe_payment_links_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
           auto_renew: boolean
@@ -1350,6 +1735,8 @@ export type Database = {
           renewal_reminder_sent_at: string | null
           starts_at: string
           status: string
+          stripe_price_id: string | null
+          stripe_subscription_id: string | null
         }
         Insert: {
           auto_renew?: boolean
@@ -1379,6 +1766,8 @@ export type Database = {
           renewal_reminder_sent_at?: string | null
           starts_at?: string
           status?: string
+          stripe_price_id?: string | null
+          stripe_subscription_id?: string | null
         }
         Update: {
           auto_renew?: boolean
@@ -1408,6 +1797,8 @@ export type Database = {
           renewal_reminder_sent_at?: string | null
           starts_at?: string
           status?: string
+          stripe_price_id?: string | null
+          stripe_subscription_id?: string | null
         }
         Relationships: [
           {
@@ -1487,6 +1878,7 @@ export type Database = {
           payment_method: string
           reference_id: string | null
           reference_type: string | null
+          stripe_session_id: string | null
           transaction_date: string
           type: string
         }
@@ -1501,6 +1893,7 @@ export type Database = {
           payment_method: string
           reference_id?: string | null
           reference_type?: string | null
+          stripe_session_id?: string | null
           transaction_date?: string
           type: string
         }
@@ -1515,6 +1908,7 @@ export type Database = {
           payment_method?: string
           reference_id?: string | null
           reference_type?: string | null
+          stripe_session_id?: string | null
           transaction_date?: string
           type?: string
         }
@@ -1744,6 +2138,15 @@ export type Database = {
         Args: { p_session_date: string }
         Returns: number
       }
+      check_plan_sync_status: {
+        Args: { p_plan_id: string }
+        Returns: {
+          is_synced: boolean
+          last_synced_at: string
+          local_price_cents: number
+          stripe_price_cents: number
+        }[]
+      }
       generate_member_qr: { Args: never; Returns: string }
       generate_payment_reference: { Args: never; Returns: string }
       get_coach_id_from_auth: { Args: never; Returns: string }
@@ -1755,10 +2158,28 @@ export type Database = {
           credits_remaining: number
           email: string
           id: string
+          modalities_count: number
           nome: string
           qr_code: string
           status: string
           telefone: string
+          weekly_limit: number
+        }[]
+      }
+      get_payment_link: {
+        Args: {
+          p_compromisso: string
+          p_frequencia: string
+          p_is_family_friends?: boolean
+          p_is_new_member: boolean
+        }
+        Returns: {
+          amount_cents: number
+          display_name: string
+          enrollment_price_id: string
+          payment_link_id: string
+          payment_link_url: string
+          price_id: string
         }[]
       }
       get_staff_coach_id: { Args: { p_user_id: string }; Returns: string }
@@ -1898,10 +2319,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },
 } as const
+A new version of Supabase CLI is available: v2.75.0 (currently installed v2.67.1)
+We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli

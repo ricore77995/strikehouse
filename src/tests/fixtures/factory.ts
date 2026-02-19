@@ -155,6 +155,8 @@ interface CreateMemberOptions {
   access_expires_at?: string | null;
   credits_remaining?: number;
   qr_code?: string;
+  weekly_limit?: number | null;
+  modalities_count?: number | null;
 }
 
 export const createTestMember = async (
@@ -395,4 +397,134 @@ export const deleteTestAuthUser = async (
 ) => {
   const { error } = await client.auth.admin.deleteUser(userId);
   if (error) throw new Error(`Failed to delete auth user: ${error.message}`);
+};
+
+// ============================================
+// Financial Test Factories
+// ============================================
+
+interface CreateTransactionOptions {
+  type: 'RECEITA' | 'DESPESA';
+  category: string;
+  amount_cents: number;
+  payment_method?: 'DINHEIRO' | 'CARTAO' | 'MBWAY' | 'TRANSFERENCIA';
+  member_id?: string;
+  description?: string;
+  created_by?: string;
+}
+
+export const createTestTransaction = async (
+  client: SupabaseClient,
+  options: CreateTransactionOptions
+) => {
+  const defaults = {
+    payment_method: 'DINHEIRO' as const,
+    description: `Test Transaction ${Date.now()}`,
+  };
+
+  const { data, error } = await client
+    .from('transactions')
+    .insert({ ...defaults, ...options })
+    .select()
+    .single();
+
+  if (error) throw new Error(`Failed to create transaction: ${error.message}`);
+  return data;
+};
+
+interface CreateCashSessionOptions {
+  session_date?: string;
+  opening_balance_cents?: number;
+  expected_closing_cents?: number;
+  actual_closing_cents?: number;
+  difference_cents?: number;
+  status?: 'OPEN' | 'CLOSED';
+  opened_by: string;
+  closed_by?: string;
+}
+
+let cashSessionDateOffset = 0;
+
+export const createTestCashSession = async (
+  client: SupabaseClient,
+  options: CreateCashSessionOptions
+) => {
+  cashSessionDateOffset += 1;
+  // Generate truly unique date by combining offset with high-resolution timestamp
+  const uniqueOffset = cashSessionDateOffset * 1000 + Date.now() % 10000;
+  const uniqueDate = addDays(new Date(), uniqueOffset);
+
+  const defaults = {
+    session_date: format(uniqueDate, 'yyyy-MM-dd'),
+    opening_balance_cents: 10000,
+    status: 'OPEN' as const,
+  };
+
+  const { data, error } = await client
+    .from('cash_sessions')
+    .insert({ ...defaults, ...options })
+    .select()
+    .single();
+
+  if (error) throw new Error(`Failed to create cash session: ${error.message}`);
+  return data;
+};
+
+interface CreatePendingPaymentOptions {
+  member_id: string;
+  amount_cents: number;
+  reference?: string;
+  payment_method?: 'TRANSFERENCIA' | 'MBWAY' | 'STRIPE';
+  status?: 'PENDING' | 'CONFIRMED' | 'EXPIRED' | 'CANCELLED';
+  expires_at?: string;
+  plan_id?: string;
+  created_by?: string;
+}
+
+export const createTestPendingPayment = async (
+  client: SupabaseClient,
+  options: CreatePendingPaymentOptions
+) => {
+  const timestamp = Date.now();
+  const defaults = {
+    reference: `TEST-${timestamp}`,
+    payment_method: 'TRANSFERENCIA' as const,
+    status: 'PENDING' as const,
+    expires_at: addDays(new Date(), 7).toISOString(),
+  };
+
+  const { data, error } = await client
+    .from('pending_payments')
+    .insert({ ...defaults, ...options })
+    .select()
+    .single();
+
+  if (error) throw new Error(`Failed to create pending payment: ${error.message}`);
+  return data;
+};
+
+interface CreateMemberIbanOptions {
+  member_id: string;
+  iban: string;
+  label?: string;
+  is_primary?: boolean;
+}
+
+export const createTestMemberIban = async (
+  client: SupabaseClient,
+  options: CreateMemberIbanOptions
+) => {
+  const defaults = {
+    label: 'Test IBAN',
+    is_primary: true,
+  };
+
+  const { data, error } = await client
+    .from('member_ibans')
+    .insert({ ...defaults, ...options })
+    .select()
+    .single();
+
+  if (error) throw new Error(`Failed to create member IBAN: ${error.message}`);
+  return data;
 };

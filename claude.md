@@ -782,19 +782,27 @@ cat USE_CASES_TEST_CASES.md | grep "UC-001"
 **Location:** `supabase/functions/`
 
 **Stripe Integration Functions:**
-- `create-checkout-session/` - Cria Stripe Checkout Session (UC-001)
-  - Validates inputs
-  - Calculates pricing (backend authority)
-  - Creates session with metadata
-  - Returns checkout URL
 - `stripe-webhook/` - Processa webhooks do Stripe (UC-006)
   - Validates Stripe signature (security)
-  - Idempotency check (UC-015, TC-015)
+  - Idempotency check (via `stripe_events` table)
+  - Handles: `checkout.session.completed`, `invoice.paid`, `invoice.payment_failed`, `customer.subscription.*`
   - Updates member status (LEAD → ATIVO)
   - Creates transactions (2 for enrollment, 1 for renewal)
-  - Increments promo code usage
+  - Reads `weekly_limit`, `modalities_count` from Payment Link metadata
+- `list-payment-links/` - Lista Payment Links activos do Stripe
+  - Returns: id, url, metadata, price_cents
+  - Used by SendPayment.tsx to show available links
+- `create-offline-invoice/` - Cria invoice para pagamentos offline (DINHEIRO/CARTAO/MBWAY)
+  - Creates `cash_transactions` entry
+  - Updates `cash_sessions` totals
+  - Activates member locally (no Stripe involvement)
 
-**Legacy/Utility Functions:**
+**Subscription Management Functions:**
+- `cancel-subscription/` - Cancela subscription no Stripe
+- `pause-subscription/` - Pausa subscription no Stripe
+- `update-subscription/` - Actualiza subscription (upgrade/downgrade)
+
+**Utility Functions:**
 - `seed-test-users/` - Creates test users for each role (OWNER, ADMIN, STAFF, PARTNER)
 - `send-notification/` - WhatsApp integration (not implemented yet)
 - `scheduled-jobs/` - Cron tasks for membership expiration and reminders (not implemented yet)
@@ -804,6 +812,44 @@ cat USE_CASES_TEST_CASES.md | grep "UC-001"
 supabase functions serve
 curl -X POST http://localhost:54321/functions/v1/seed-test-users
 ```
+
+### Deploying Edge Functions
+
+**⚠️ IMPORTANTE: Sempre fazer deploy após modificar Edge Functions!**
+
+```bash
+# Login no Supabase (se não estiver logado)
+supabase login
+
+# ⚠️ CRÍTICO: Funções que recebem webhooks externos (Stripe) DEVEM usar --no-verify-jwt
+# Caso contrário, o endpoint retorna 401 e os webhooks falham!
+
+# Deploy de webhook (SEM JWT verification - recebe requests do Stripe)
+supabase functions deploy stripe-webhook --project-ref cgdshqmqsqwgwpjfmesr --no-verify-jwt
+
+# Deploy de funções que podem ser públicas
+supabase functions deploy list-payment-links --project-ref cgdshqmqsqwgwpjfmesr --no-verify-jwt
+supabase functions deploy create-offline-invoice --project-ref cgdshqmqsqwgwpjfmesr --no-verify-jwt
+
+# Deploy de todas as funções (script - já inclui --no-verify-jwt)
+./scripts/deploy-edge-functions.sh
+
+# Ver logs de uma função
+supabase functions logs stripe-webhook
+```
+
+**Secrets necessários (configurar no Supabase Dashboard → Edge Functions → Secrets):**
+```
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+SUPABASE_URL=https://xxx.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
+```
+
+**Troubleshooting:**
+- Se webhooks não chegam → verificar `STRIPE_WEBHOOK_SECRET` matches entre `.env` e Supabase Dashboard
+- Para resetar webhook secret: `npx tsx scripts/reset-webhook-secret.ts`
+- Para verificar webhooks: `npx tsx scripts/test-webhook-delivery.ts`
 
 ## Common Pitfalls
 

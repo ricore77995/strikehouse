@@ -28,11 +28,7 @@ import {
   MapPin,
   Wallet,
   Cog,
-  FileCheck,
   Activity,
-  Calculator,
-  Dumbbell,
-  Tag,
 } from 'lucide-react';
 
 interface NavItem {
@@ -121,37 +117,8 @@ const navGroups: NavGroup[] = [
         href: '/admin/members',
         icon: Users,
       },
-      {
-        title: 'Planos',
-        href: '/admin/plans',
-        icon: CreditCard,
-        roles: ['OWNER', 'ADMIN'],
-      },
-    ],
-  },
-
-  // Precificação - OWNER & ADMIN
-  {
-    title: 'Precificacao',
-    icon: Calculator,
-    roles: ['OWNER', 'ADMIN'],
-    defaultOpen: false,
-    items: [
-      {
-        title: 'Config. Precos',
-        href: '/admin/pricing',
-        icon: Calculator,
-      },
-      {
-        title: 'Modalidades',
-        href: '/admin/modalities',
-        icon: Dumbbell,
-      },
-      {
-        title: 'Descontos',
-        href: '/admin/discounts',
-        icon: Tag,
-      },
+      // Planos removido - usar Stripe Links como source of truth
+      // Rota /admin/plans ainda existe para acesso directo se necessário
     ],
   },
 
@@ -163,14 +130,9 @@ const navGroups: NavGroup[] = [
     defaultOpen: false,
     items: [
       {
-        title: 'Pagamentos',
-        href: '/staff/payment',
-        icon: DollarSign,
-      },
-      {
-        title: 'Verificar Transf.',
-        href: '/admin/finances/verify',
-        icon: FileCheck,
+        title: 'Stripe Links',
+        href: '/admin/stripe-links',
+        icon: CreditCard,
         roles: ['OWNER', 'ADMIN'],
       },
       {

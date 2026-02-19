@@ -62,11 +62,22 @@ const MemberNew = () => {
 
       toast({
         title: 'Membro cadastrado!',
-        description: `${newMember.nome} foi cadastrado com sucesso.`,
+        description: `${newMember.nome} foi cadastrado. Continue para selecionar o plano.`,
       });
 
-      // Navigate to check-in page or payment page
-      navigate('/staff/checkin');
+      // Navigate to enrollment page with the new member to continue the flow
+      navigate('/staff/enrollment', {
+        state: {
+          member: {
+            id: newMember.id,
+            nome: newMember.nome,
+            telefone: data.telefone,
+            email: data.email || null,
+            qr_code: newMember.qr_code,
+            status: 'LEAD' as const,
+          }
+        }
+      });
     } catch (error) {
       console.error('Unexpected error:', error);
       toast({
@@ -98,7 +109,7 @@ const MemberNew = () => {
               Cadastro Rápido
             </CardTitle>
             <CardDescription>
-              Cadastre um novo membro rapidamente. Ele será criado como LEAD e poderá ativar um plano depois.
+              Cadastre um novo membro. Após criar, você continuará para selecionar o plano e modalidades.
             </CardDescription>
           </CardHeader>
           <CardContent>
