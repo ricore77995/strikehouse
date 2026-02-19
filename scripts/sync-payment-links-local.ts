@@ -56,6 +56,11 @@ async function sync() {
       amountCents += (item.price?.unit_amount || 0);
     }
 
+    const displayName = meta.display_name || link.id;
+    // Detect Family & Friends from metadata OR display name
+    const isFamilyFriends = meta.is_family_friends === 'true' ||
+      displayName.toLowerCase().includes('family') && displayName.toLowerCase().includes('friends');
+
     const record = {
       payment_link_id: link.id,
       payment_link_url: link.url,
@@ -65,9 +70,9 @@ async function sync() {
       compromisso: meta.compromisso || 'mensal',
       tags,
       includes_enrollment_fee: meta.includes_enrollment_fee === 'true',
-      is_family_friends: meta.is_family_friends === 'true',
+      is_family_friends: isFamilyFriends,
       amount_cents: amountCents,
-      display_name: meta.display_name || link.id,
+      display_name: displayName,
       ativo: true,
     };
 
