@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Pencil, Calendar, Clock, User, MapPin, Loader2, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Calendar, Clock, User, MapPin, Loader2, Trash2, LayoutGrid, CalendarDays } from 'lucide-react';
 
 interface Class {
   id: string;
@@ -107,6 +107,7 @@ const Schedule = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingClass, setEditingClass] = useState<Class | null>(null);
   const [filterModalidade, setFilterModalidade] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'calendar' | 'grid'>('calendar');
   const [formData, setFormData] = useState({
     nome: '',
     modalidade: '',
@@ -299,6 +300,24 @@ const Schedule = () => {
             </p>
           </div>
           <div className="flex gap-2">
+            <div className="flex border border-border rounded-md overflow-hidden">
+              <Button
+                variant={viewMode === 'calendar' ? 'secondary' : 'ghost'}
+                size="sm"
+                className="rounded-none"
+                onClick={() => setViewMode('calendar')}
+              >
+                <CalendarDays className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+                size="sm"
+                className="rounded-none"
+                onClick={() => setViewMode('grid')}
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+            </div>
             <Select value={filterModalidade} onValueChange={setFilterModalidade}>
               <SelectTrigger className="w-[180px] bg-secondary border-border">
                 <SelectValue placeholder="Modalidade" />
@@ -319,12 +338,96 @@ const Schedule = () => {
           </div>
         </div>
 
-        {/* Weekly Schedule Grid */}
+        {/* Weekly Schedule */}
         {isLoading ? (
           <div className="flex justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
+        ) : viewMode === 'calendar' ? (
+          /* Calendar View (Outlook-style) */
+          <Card className="bg-card border-border overflow-hidden">
+            <div className="overflow-x-auto">
+              <div className="min-w-[900px]">
+                {/* Header with days */}
+                <div className="grid grid-cols-[80px_repeat(7,1fr)] border-b border-border sticky top-0 bg-card z-10">
+                  <div className="p-3 border-r border-border" />
+                  {DIAS_SEMANA.map((dia) => {
+                    const dayClasses = filteredClasses?.filter((c) => c.dia_semana === dia.value && c.ativo) || [];
+                    return (
+                      <div key={dia.value} className="p-3 text-center border-r border-border last:border-r-0">
+                        <h3 className="font-medium text-sm uppercase tracking-wider">{dia.label}</h3>
+                        <p className="text-xs text-muted-foreground">
+                          {dayClasses.length} aula{dayClasses.length !== 1 ? 's' : ''}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Time slots */}
+                <div className="relative">
+                  {HORARIOS.map((hora) => (
+                    <div key={hora} className="grid grid-cols-[80px_repeat(7,1fr)] border-b border-border/50">
+                      {/* Time label */}
+                      <div className="p-2 text-xs text-muted-foreground text-right pr-3 border-r border-border h-16 flex items-start justify-end">
+                        {hora}
+                      </div>
+                      {/* Day columns */}
+                      {DIAS_SEMANA.map((dia) => (
+                        <div
+                          key={`${hora}-${dia.value}`}
+                          className="border-r border-border/30 last:border-r-0 h-16 relative"
+                        />
+                      ))}
+                    </div>
+                  ))}
+
+                  {/* Class blocks overlay */}
+                  <div className="absolute inset-0 pointer-events-none">
+                    <div className="grid grid-cols-[80px_repeat(7,1fr)] h-full">
+                      <div /> {/* Spacer for time column */}
+                      {DIAS_SEMANA.map((dia) => {
+                        const dayClasses = filteredClasses?.filter((c) => c.dia_semana === dia.value && c.ativo) || [];
+                        return (
+                          <div key={dia.value} className="relative">
+                            {dayClasses.map((classItem) => {
+                              const [hours, minutes] = classItem.hora_inicio.split(':').map(Number);
+                              const startHour = hours + minutes / 60;
+                              const topPosition = (startHour - 6) * 64; // 64px per hour (h-16 = 4rem = 64px)
+                              const height = (classItem.duracao_min / 60) * 64;
+
+                              return (
+                                <div
+                                  key={classItem.id}
+                                  className={`absolute left-1 right-1 rounded-md border cursor-pointer pointer-events-auto transition-all hover:scale-[1.02] hover:shadow-lg ${getModalidadeColor(classItem.modalidade)}`}
+                                  style={{
+                                    top: `${topPosition}px`,
+                                    height: `${Math.max(height - 4, 24)}px`,
+                                  }}
+                                  onClick={() => openEditDialog(classItem)}
+                                >
+                                  <div className="p-1.5 h-full overflow-hidden">
+                                    <p className="text-xs font-medium truncate leading-tight">
+                                      {classItem.nome}
+                                    </p>
+                                    <p className="text-[10px] opacity-80 truncate">
+                                      {classItem.hora_inicio.slice(0, 5)} - {classItem.external_coaches?.nome || classItem.modalidade}
+                                    </p>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
         ) : (
+          /* Grid View (original) */
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {classesByDay.map((dia) => (
               <Card key={dia.value} className="bg-card border-border">
