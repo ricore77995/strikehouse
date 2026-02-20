@@ -72,8 +72,8 @@ const MODALIDADES = [
   'Cardio Boxing',
 ];
 
-const HORARIOS = Array.from({ length: 15 }, (_, i) => {
-  const hour = 6 + i;
+const HORARIOS = Array.from({ length: 16 }, (_, i) => {
+  const hour = 7 + i; // 7:00 to 22:00
   return `${hour.toString().padStart(2, '0')}:00`;
 });
 
@@ -393,7 +393,7 @@ const Schedule = () => {
                             {dayClasses.map((classItem) => {
                               const [hours, minutes] = classItem.hora_inicio.split(':').map(Number);
                               const startHour = hours + minutes / 60;
-                              const topPosition = (startHour - 6) * 64; // 64px per hour (h-16 = 4rem = 64px)
+                              const topPosition = (startHour - 7) * 64; // 64px per hour (h-16 = 4rem = 64px), starts at 7:00
                               const height = (classItem.duracao_min / 60) * 64;
 
                               return (
