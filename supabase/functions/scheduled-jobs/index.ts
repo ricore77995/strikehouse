@@ -52,6 +52,10 @@ serve(async (req: Request) => {
       rentalReminders: 0,
       autoRenewalReminders: 0,
       autoRenewalsCreated: 0,
+      noShowsProcessed: 0,
+      bookingBlocksApplied: 0,
+      creditsDeducted: 0,
+      weeklyBookingsCreated: 0,
     };
 
     const today = now.toISOString().split("T")[0];
@@ -656,6 +660,200 @@ serve(async (req: Request) => {
             }
           }
         }
+      }
+    }
+
+    // 10. PROCESS NO-SHOWS - Mark bookings without check-in as NO_SHOW after class ends
+    // Get all BOOKED status bookings for today where the class has ended
+    const { data: bookedClassesToday, error: bookedError } = await supabase
+      .from("class_bookings")
+      .select(`
+        id,
+        member_id,
+        class_id,
+        class_date,
+        classes!inner(hora_inicio, duracao_min)
+      `)
+      .eq("class_date", today)
+      .eq("status", "BOOKED");
+
+    if (bookedError) {
+      console.error("Error fetching booked classes:", bookedError);
+    } else if (bookedClassesToday && bookedClassesToday.length > 0) {
+      for (const booking of bookedClassesToday) {
+        const classInfo = booking.classes as any;
+        if (!classInfo) continue;
+
+        // Calculate class end time
+        const [hours, minutes] = classInfo.hora_inicio.split(":").map(Number);
+        const classEndMinutes = hours * 60 + minutes + (classInfo.duracao_min || 60);
+        const classEndTime = `${Math.floor(classEndMinutes / 60).toString().padStart(2, "0")}:${(classEndMinutes % 60).toString().padStart(2, "0")}`;
+
+        // Check if class has ended
+        if (currentTime >= classEndTime) {
+          // Mark as NO_SHOW
+          const { error: updateError } = await supabase
+            .from("class_bookings")
+            .update({ status: "NO_SHOW" })
+            .eq("id", booking.id);
+
+          if (updateError) {
+            console.error(`Error marking booking ${booking.id} as NO_SHOW:`, updateError);
+            continue;
+          }
+
+          results.noShowsProcessed++;
+
+          // Get member info to determine penalty
+          const { data: member } = await supabase
+            .from("members")
+            .select("id, weekly_limit, access_type, credits_remaining, nome, email")
+            .eq("id", booking.member_id)
+            .single();
+
+          if (member) {
+            // Apply penalty based on plan type
+            if (member.weekly_limit === null && member.access_type !== "CREDITS") {
+              // Unlimited plan: block booking for 24h
+              const blockUntil = new Date(now);
+              blockUntil.setHours(blockUntil.getHours() + 24);
+
+              await supabase
+                .from("members")
+                .update({ booking_blocked_until: blockUntil.toISOString() })
+                .eq("id", member.id);
+
+              results.bookingBlocksApplied++;
+              console.log(`Applied 24h booking block to member ${member.nome}`);
+            } else if (member.access_type === "CREDITS" && member.credits_remaining && member.credits_remaining > 0) {
+              // Credits plan: deduct 1 credit
+              await supabase
+                .from("members")
+                .update({ credits_remaining: member.credits_remaining - 1 })
+                .eq("id", member.id);
+
+              results.creditsDeducted++;
+              console.log(`Deducted 1 credit from member ${member.nome} for no-show`);
+            }
+            // Note: 2x/3x plans (weekly_limit > 0) have NO penalty per business rules
+
+            // Send notification email
+            if (member.email && resend) {
+              try {
+                await resend.emails.send({
+                  from: "BoxeMaster <onboarding@resend.dev>",
+                  to: [member.email],
+                  subject: "⚠️ Ausência registrada",
+                  html: `
+                    <h1>Olá ${member.nome}!</h1>
+                    <p>Você tinha uma reserva hoje mas não compareceu à aula.</p>
+                    ${member.weekly_limit === null && member.access_type !== "CREDITS"
+                      ? `<p><strong>Penalidade:</strong> Suas reservas estão bloqueadas por 24 horas.</p>`
+                      : member.access_type === "CREDITS"
+                        ? `<p><strong>Penalidade:</strong> 1 crédito foi deduzido da sua conta.</p>`
+                        : `<p>Como você tem um plano com horário fixo, não há penalidade.</p>`
+                    }
+                    <p>Lembre-se: você pode cancelar reservas até 2 horas antes da aula.</p>
+                    <p>- Equipe BoxeMaster</p>
+                  `,
+                });
+                results.emailsSent++;
+              } catch (emailError) {
+                console.error(`Error sending no-show notification to ${member.email}:`, emailError);
+              }
+            }
+          }
+        }
+      }
+      console.log(`Processed ${results.noShowsProcessed} no-shows, applied ${results.bookingBlocksApplied} blocks, deducted ${results.creditsDeducted} credits`);
+    }
+
+    // 11. CREATE WEEKLY AUTO-BOOKINGS - Run on Sundays to create next week's bookings
+    // Check if today is Sunday (0 = Sunday)
+    const dayOfWeek = now.getDay();
+    if (dayOfWeek === 0) {
+      // Get all active fixed schedules
+      const { data: fixedSchedules, error: fixedError } = await supabase
+        .from("member_fixed_schedules")
+        .select(`
+          id,
+          member_id,
+          class_id,
+          classes!inner(id, nome, dia_semana, hora_inicio, capacidade)
+        `)
+        .eq("active", true);
+
+      if (fixedError) {
+        console.error("Error fetching fixed schedules:", fixedError);
+      } else if (fixedSchedules && fixedSchedules.length > 0) {
+        // Get bookings for next 7 days to avoid duplicates
+        const nextWeekDates: string[] = [];
+        for (let i = 1; i <= 7; i++) {
+          const date = new Date(now);
+          date.setDate(date.getDate() + i);
+          nextWeekDates.push(date.toISOString().split("T")[0]);
+        }
+
+        for (const schedule of fixedSchedules) {
+          const classInfo = schedule.classes as any;
+          if (!classInfo) continue;
+
+          // Find the date for this class in the next week
+          // dia_semana: 0=Domingo, 1=Segunda, 2=Terça, etc.
+          const classDayOfWeek = classInfo.dia_semana;
+
+          // Calculate the date for this day of week in the next week
+          const daysUntilClass = (classDayOfWeek - dayOfWeek + 7) % 7;
+          const classDate = new Date(now);
+          classDate.setDate(classDate.getDate() + (daysUntilClass === 0 ? 7 : daysUntilClass));
+          const classDateStr = classDate.toISOString().split("T")[0];
+
+          // Check if booking already exists
+          const { data: existingBooking } = await supabase
+            .from("class_bookings")
+            .select("id")
+            .eq("member_id", schedule.member_id)
+            .eq("class_id", schedule.class_id)
+            .eq("class_date", classDateStr)
+            .single();
+
+          if (existingBooking) {
+            // Booking already exists, skip
+            continue;
+          }
+
+          // Check class capacity
+          const { count: currentBookings } = await supabase
+            .from("class_bookings")
+            .select("*", { count: "exact", head: true })
+            .eq("class_id", schedule.class_id)
+            .eq("class_date", classDateStr)
+            .in("status", ["BOOKED", "CHECKED_IN"]);
+
+          const capacity = classInfo.capacidade || 30;
+          if ((currentBookings || 0) >= capacity) {
+            console.log(`Class ${classInfo.nome} on ${classDateStr} is full, skipping auto-booking for member ${schedule.member_id}`);
+            continue;
+          }
+
+          // Create the booking
+          const { error: bookingError } = await supabase
+            .from("class_bookings")
+            .insert({
+              member_id: schedule.member_id,
+              class_id: schedule.class_id,
+              class_date: classDateStr,
+              status: "BOOKED",
+              created_by: null, // System auto-booking
+            });
+
+          if (bookingError) {
+            console.error(`Error creating auto-booking for member ${schedule.member_id}:`, bookingError);
+          } else {
+            results.weeklyBookingsCreated++;
+          }
+        }
+        console.log(`Created ${results.weeklyBookingsCreated} weekly auto-bookings`);
       }
     }
 

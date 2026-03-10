@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       areas: {
@@ -353,6 +378,91 @@ export type Database = {
             columns: ["checked_in_by"]
             isOneToOne: false
             referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      class_bookings: {
+        Row: {
+          booked_at: string | null
+          cancelled_at: string | null
+          checked_in_at: string | null
+          class_date: string
+          class_id: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          member_id: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          booked_at?: string | null
+          cancelled_at?: string | null
+          checked_in_at?: string | null
+          class_date: string
+          class_id: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          member_id: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          booked_at?: string | null
+          cancelled_at?: string | null
+          checked_in_at?: string | null
+          class_date?: string
+          class_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          member_id?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_bookings_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_bookings_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_bookings_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_bookings_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "v_active_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_bookings_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "v_expiring_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_bookings_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "v_overdue_members"
             referencedColumns: ["id"]
           },
         ]
@@ -774,6 +884,89 @@ export type Database = {
           },
         ]
       }
+      member_fixed_schedules: {
+        Row: {
+          active: boolean | null
+          class_id: string
+          created_at: string | null
+          created_by: string | null
+          deactivated_at: string | null
+          deactivated_by: string | null
+          id: string
+          member_id: string
+        }
+        Insert: {
+          active?: boolean | null
+          class_id: string
+          created_at?: string | null
+          created_by?: string | null
+          deactivated_at?: string | null
+          deactivated_by?: string | null
+          id?: string
+          member_id: string
+        }
+        Update: {
+          active?: boolean | null
+          class_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          deactivated_at?: string | null
+          deactivated_by?: string | null
+          id?: string
+          member_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_fixed_schedules_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_fixed_schedules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_fixed_schedules_deactivated_by_fkey"
+            columns: ["deactivated_by"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_fixed_schedules_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_fixed_schedules_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "v_active_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_fixed_schedules_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "v_expiring_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_fixed_schedules_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "v_overdue_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       member_ibans: {
         Row: {
           created_at: string | null
@@ -888,6 +1081,7 @@ export type Database = {
         Row: {
           access_expires_at: string | null
           access_type: string | null
+          booking_blocked_until: string | null
           created_at: string | null
           credits_remaining: number | null
           current_plan_id: string | null
@@ -908,6 +1102,7 @@ export type Database = {
         Insert: {
           access_expires_at?: string | null
           access_type?: string | null
+          booking_blocked_until?: string | null
           created_at?: string | null
           credits_remaining?: number | null
           current_plan_id?: string | null
@@ -928,6 +1123,7 @@ export type Database = {
         Update: {
           access_expires_at?: string | null
           access_type?: string | null
+          booking_blocked_until?: string | null
           created_at?: string | null
           credits_remaining?: number | null
           current_plan_id?: string | null
@@ -2138,6 +2334,7 @@ export type Database = {
         Args: { p_session_date: string }
         Returns: number
       }
+      can_member_book: { Args: { p_member_id: string }; Returns: boolean }
       check_plan_sync_status: {
         Args: { p_plan_id: string }
         Returns: {
@@ -2149,6 +2346,10 @@ export type Database = {
       }
       generate_member_qr: { Args: never; Returns: string }
       generate_payment_reference: { Args: never; Returns: string }
+      get_class_booking_count: {
+        Args: { p_class_date: string; p_class_id: string }
+        Returns: number
+      }
       get_coach_id_from_auth: { Args: never; Returns: string }
       get_member_by_qr: {
         Args: { qr_code_input: string }
@@ -2319,9 +2520,10 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },
 } as const
-A new version of Supabase CLI is available: v2.75.0 (currently installed v2.67.1)
-We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli

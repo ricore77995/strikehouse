@@ -5,7 +5,126 @@
     "membership": "Membership",
     "training": "Treino",
     "contact": "Contacto",
-    "requestAccess": "Solicitar Acesso"
+    "schedule": "Horário",
+    "requestAccess": "Solicitar Acesso",
+    "experience": "Experiência",
+    "experienceFirstTime": "Primeira Vez",
+    "experienceModalities": "Modalidades",
+    "community": "Comunidade",
+    "bookNow": "Reservar Agora",
+    "buySessions": "Comprar Sessões",
+    "tryNow": "Experimenta Já",
+    "corporate": "Corporate"
+  },
+  "firstTime": {
+    "heroTitle": "Antes do teu primeiro treino",
+    "heroDescription": "Esclarece as tuas dúvidas. Respostas directas a tudo o que queres saber antes de começar.",
+    "senderYou": "Tu",
+    "senderStriker": "Striker's",
+    "q1": "Nunca treinei luta antes. Vou ficar perdido(a)?",
+    "a1": "Não.\nMuita gente começa aqui do zero.\nOs treinos são em grupo, mas há sempre orientação próxima.\nExplicamos a base, corrigimos técnica e acompanhamos de verdade.",
+    "q2": "Não faço exercício há muito tempo. Vou conseguir acompanhar?",
+    "a2": "Claro, vais no teu ritmo.\nNão existe obrigação de acompanhar quem já treina há anos.\nA intensidade é ajustada.\nO importante é começares.",
+    "q3": "Tenho medo de me magoar.",
+    "a3": "O treino é técnico e supervisionado.\nA intensidade vem depois do controlo.\nE o sparring não é obrigatório.\nSó participa quem quer e quando se sente preparado.",
+    "q4": "Não quero competir. Só quero treinar.",
+    "a4": "Tranquilo.\nA maior parte dos nossos membros não compete.\nVêm treinar, evoluir e sair melhores do que entraram.",
+    "q5": "Não gosto de ginásio. Sinto que fico sempre sozinho(a).",
+    "a5": "Aqui não entras, colocas fones e vais embora.\nTreinas em grupo, com orientação constante.\n\nCom o tempo, crias relação com quem treina ao teu lado.\nExiste ambiente de equipa.",
+    "q6": "Preciso de equipamento?",
+    "a6": "Na primeira aula apareces só com vontade de treinar.\nO resto nós tratamos.\n\nSe continuares, depois escolhemos o teu equipamento com calma.",
+    "q7": "Tem balneário?",
+    "a7": "Sim.\nTreinas, tomas banho e segues o teu dia.",
+    "ctaTitle": "Pronto para experimentar?",
+    "ctaButton": "Marca a tua primeira aula"
+  },
+  "community": {
+    "heroTitle": "Ambiente sério.\nEnergia leve.\nComunidade forte.",
+    "manifesto": "Octógono real. Estrutura de alto nível. Aberto a quem decide evoluir — do zero ao avançado.",
+    "paragraph1": "A Striker's House não é um ginásio convencional. É um espaço onde lutadores, executivos, expatriados e estudantes partilham o mesmo tatame. Vidas diferentes, uma disciplina.",
+    "paragraph2": "Não separamos pessoas por ego, idade ou origem. Unimo-las através de estrutura, respeito e consistência. Porque a verdadeira força constrói-se com o tempo.",
+    "quote": "Caminhos diferentes. Uma disciplina.",
+    "values": {
+      "discipline": {
+        "title": "Disciplina",
+        "description": "O treino é levado a sério. Sem atalhos, sem desculpas. Compromisso com o processo."
+      },
+      "respect": {
+        "title": "Respeito",
+        "description": "Todos começaram do zero. Ninguém é julgado. O respeito é a base de tudo."
+      },
+      "consistency": {
+        "title": "Consistência",
+        "description": "Resultados vêm de quem aparece. Dia após dia. Treino após treino."
+      },
+      "evolution": {
+        "title": "Evolução",
+        "description": "Do zero ao avançado. Cada um no seu ritmo, todos a evoluir."
+      }
+    },
+    "diversity": {
+      "title": "Diversidade & Inclusão",
+      "text": "Na Striker's House, estamos comprometidos em promover a diversidade e a inclusão. Acreditamos que todos devem ter a mesma oportunidade de treinar, independentemente de raça, género, orientação sexual ou capacidade.",
+      "commitment": "O nosso tatame é um lugar de igualdade. Aqui, o único critério é o respeito e a vontade de evoluir."
+    },
+    "ctaTitle": "Faz parte da comunidade",
+    "ctaButton": "Experimenta Já"
+  },
+  "corporate": {
+    "heroTitle": "Team Building &\nEventos Corporativos",
+    "heroSubtitle": "Experiências únicas de team building através de desportos de combate. Fortaleça a sua equipa num ambiente controlado e profissional.",
+    "whyTitle": "Porquê Desportos de Combate?",
+    "whySubtitle": "Desafios partilhados criam ligações mais fortes do que qualquer atividade de team building convencional.",
+    "benefits": {
+      "teamwork": {
+        "title": "Trabalho de Equipa",
+        "description": "Treinar juntos cria confiança e comunicação que se transfere directamente para o ambiente de trabalho."
+      },
+      "trust": {
+        "title": "Confiança",
+        "description": "Confiar no parceiro de treino ensina a confiar nos colegas. A vulnerabilidade partilhada une equipas."
+      },
+      "challenge": {
+        "title": "Desafio Partilhado",
+        "description": "Ultrapassar limites em conjunto cria laços mais profundos do que qualquer workshop convencional."
+      },
+      "wellness": {
+        "title": "Bem-Estar",
+        "description": "Combate o stress, melhora o foco e eleva a energia da equipa através do movimento."
+      }
+    },
+    "facilityTitle": "Porquê a Striker's House?",
+    "facilityP1": "Um espaço profissional com octógono real, equipamento de alta qualidade e treinadores com experiência internacional. Ambiente controlado e seguro para todos os níveis de experiência.",
+    "facilityP2": "Os nossos treinadores adaptam cada sessão ao grupo, garantindo que todos participam independentemente da condição física. Desde executivos a equipas de desenvolvimento, já recebemos grupos de todas as áreas.",
+    "facilityQuote": "A verdadeira liderança constrói-se no desconforto partilhado.",
+    "packagesTitle": "Serviços Corporativos",
+    "packages": {
+      "offsite": {
+        "title": "Off-Site Corporativo",
+        "description": "Meia dia ou dia completo de experiências de combate para a sua equipa.",
+        "feature1": "Sessões adaptadas ao grupo",
+        "feature2": "Briefing e debriefing incluídos",
+        "feature3": "Espaço privado e exclusivo"
+      },
+      "teamBuilding": {
+        "title": "Team Building",
+        "description": "Sessões regulares para equipas que querem treinar juntas.",
+        "feature1": "Programas semanais ou mensais",
+        "feature2": "Progressão estruturada",
+        "feature3": "Relatórios de participação"
+      },
+      "wellness": {
+        "title": "Programa Wellness",
+        "description": "Bem-estar corporativo através de artes marciais e condicionamento.",
+        "feature1": "Sessões de descompressão",
+        "feature2": "Treino funcional adaptado",
+        "feature3": "Métricas de impacto"
+      }
+    },
+    "ctaTitle": "Vamos Conversar",
+    "ctaDescription": "Cada evento é desenhado à medida. Conte-nos sobre a sua equipa e nós propomos a experiência ideal.",
+    "ctaWhatsApp": "Contactar via WhatsApp",
+    "ctaEmail": "Enviar Email"
   },
   "hero": {
     "controlled": "Controlled",
@@ -341,6 +460,8 @@
           "a3": "Segunda a Sexta das 7h às 22h, Sábados das 9h às 14h. Consulta o horário de aulas no nosso site."
         }
       },
+      "scheduleTitle": "Horário de Aulas",
+      "scheduleDescription": "Consulta o nosso horário completo e reserva a tua aula.",
       "finalCtaTitle": "Começa a Tua Transformação",
       "finalCtaDescription": "A única coisa que te separa da melhor versão de ti mesmo é o primeiro passo.",
       "freeClass": "Aula Grátis",
@@ -415,6 +536,45 @@
         "error": "Erro",
         "errorDesc": "Não foi possível processar o pedido. Por favor tenta novamente."
       }
+    }
+  },
+  "pricing": {
+    "classes": "aulas",
+    "unlimited": "Acesso ilimitado",
+    "week": "semana",
+    "sessionsMonth": "sessões/mês",
+    "validFor": "Válido por",
+    "days": "dias",
+    "registrationFee": "Inscrição",
+    "buy": "Comprar",
+    "noContracts": "Pagamento facilitado com Klarna — paga em prestações, nós recebemos à vista."
+  },
+  "tryNow": {
+    "title": "Experimenta Grátis",
+    "subtitle": "A tua primeira aula é por nossa conta. Escolhe a modalidade e marca já.",
+    "free": "Grátis",
+    "firstClass": "primeira aula",
+    "cta": "Marcar Aula Grátis",
+    "ctaYogo": "Reservar Agora",
+    "whatsappMessage": "Olá! Quero experimentar uma aula grátis de {{modality}}.",
+    "modalities": {
+      "boxing": {
+        "name": "Boxe",
+        "description": "Técnica de punhos, footwork e condicionamento. Ideal para iniciantes e praticantes avançados."
+      },
+      "muayThai": {
+        "name": "Muay Thai",
+        "description": "A arte dos 8 membros. Punhos, cotovelos, joelhos e canelas — treino completo de striking."
+      },
+      "mma": {
+        "name": "MMA",
+        "description": "Artes marciais mistas: striking + grappling. O treino mais completo para quem quer dominar tudo."
+      }
+    },
+    "features": {
+      "1": "Sem compromisso — vem experimentar sem pagar nada",
+      "2": "Equipamento disponível — só precisas de roupa desportiva",
+      "3": "Todos os níveis — do iniciante ao avançado"
     }
   }
 }

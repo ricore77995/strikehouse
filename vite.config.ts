@@ -8,6 +8,17 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    proxy: {
+      "/yogo-api": {
+        target: "https://api.yogo.dk",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/yogo-api/, ""),
+        headers: {
+          origin: "https://strikershouse.yogobooking.pt",
+          referer: "https://strikershouse.yogobooking.pt/",
+        },
+      },
+    },
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {

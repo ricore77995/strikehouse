@@ -157,6 +157,145 @@
   .nav-link {
     @apply text-xs uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors duration-300;
   }
+
+  /* Light Box - BHOUT style floating card */
+  .light-box {
+    background: linear-gradient(180deg, #ffffff 0%, #f7f7f7 50%, #ffffff 100%);
+    @apply rounded-3xl mx-4 md:mx-8 lg:mx-16 p-8 md:p-12 lg:p-16 relative overflow-hidden;
+  }
+
+  .light-box .section-line {
+    @apply bg-red-600/40;
+  }
+
+  /* YOGO Calendar Widget - Dark Theme */
+  .yogo-calendar-wrapper {
+    min-height: 400px;
+    background: #000 !important;
+  }
+
+  .yogo-calendar-wrapper:empty::after {
+    content: '';
+    display: block;
+    width: 2rem;
+    height: 2rem;
+    margin: 4rem auto;
+    border: 2px solid #222;
+    border-top-color: #c62828;
+    border-radius: 50%;
+    animation: yogoSpin 0.8s linear infinite;
+  }
+
+  @keyframes yogoSpin {
+    to { transform: rotate(360deg); }
+  }
+
+  .yogo-calendar-wrapper,
+  .yogo-calendar-wrapper *,
+  .yogo-calendar-wrapper *::before,
+  .yogo-calendar-wrapper *::after {
+    background-color: transparent !important;
+    color: #fff !important;
+    border-color: #222 !important;
+  }
+
+  .yogo-calendar-wrapper .class-items:hover,
+  .yogo-calendar-wrapper .events-group:hover,
+  .yogo-calendar-wrapper .calendar:hover,
+  .yogo-calendar-wrapper .yogo-calendar-full:hover,
+  .yogo-calendar-wrapper .yogo-calendar-list:hover {
+    background-color: transparent !important;
+  }
+
+  .yogo-calendar-wrapper .class-item:hover {
+    background-color: #fff !important;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+  }
+
+  .yogo-calendar-wrapper .class-item:hover,
+  .yogo-calendar-wrapper .class-item:hover * {
+    color: #000 !important;
+    fill: #000 !important;
+  }
+
+  .yogo-calendar-wrapper .class-has-started {
+    opacity: 0.35 !important;
+    pointer-events: none !important;
+  }
+
+  .yogo-calendar-wrapper .before-today .class-item {
+    opacity: 0.35 !important;
+    pointer-events: none !important;
+  }
+
+  .yogo-calendar-wrapper h1,
+  .yogo-calendar-wrapper h2,
+  .yogo-calendar-wrapper h3,
+  .yogo-calendar-wrapper h4,
+  .yogo-calendar-wrapper h5,
+  .yogo-calendar-wrapper strong,
+  .yogo-calendar-wrapper b {
+    color: #fff !important;
+  }
+
+  .yogo-calendar-wrapper button,
+  .yogo-calendar-wrapper .btn,
+  .yogo-calendar-wrapper [class*="btn"],
+  .yogo-calendar-wrapper input[type="submit"] {
+    background-color: #c62828 !important;
+    color: #fff !important;
+    border-color: #c62828 !important;
+    border-radius: 0 !important;
+  }
+
+  .yogo-calendar-wrapper button:hover,
+  .yogo-calendar-wrapper .btn:hover,
+  .yogo-calendar-wrapper [class*="btn"]:hover {
+    background-color: #e53935 !important;
+    color: #fff !important;
+    border-color: #e53935 !important;
+  }
+
+  .yogo-calendar-wrapper a {
+    color: #c62828 !important;
+  }
+
+  .yogo-calendar-wrapper table,
+  .yogo-calendar-wrapper th,
+  .yogo-calendar-wrapper td,
+  .yogo-calendar-wrapper tr {
+    background-color: transparent !important;
+    border-color: #1a1a1a !important;
+    color: #fff !important;
+  }
+
+  .yogo-calendar-wrapper input,
+  .yogo-calendar-wrapper select,
+  .yogo-calendar-wrapper textarea {
+    background-color: #111 !important;
+    color: #fff !important;
+    border-color: #333 !important;
+    border-radius: 0 !important;
+  }
+
+  .yogo-calendar-wrapper svg {
+    color: #aaa !important;
+    fill: #aaa !important;
+  }
+
+  .yogo-calendar-wrapper img {
+    display: none !important;
+  }
+
+  /* Scrollbar hide utility for pricing tabs */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @layer utilities {

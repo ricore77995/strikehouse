@@ -19,6 +19,9 @@ export const createdIds: {
   cashSessions: string[];
   pendingPayments: string[];
   memberIbans: string[];
+  classes: string[];
+  classBookings: string[];
+  fixedSchedules: string[];
 } = {
   coaches: [],
   areas: [],
@@ -33,6 +36,9 @@ export const createdIds: {
   cashSessions: [],
   pendingPayments: [],
   memberIbans: [],
+  classes: [],
+  classBookings: [],
+  fixedSchedules: [],
 };
 
 /**
@@ -52,6 +58,9 @@ export const resetTracking = () => {
   createdIds.cashSessions = [];
   createdIds.pendingPayments = [];
   createdIds.memberIbans = [];
+  createdIds.classes = [];
+  createdIds.classBookings = [];
+  createdIds.fixedSchedules = [];
 };
 
 /**
@@ -61,6 +70,13 @@ export const cleanupTrackedEntities = async () => {
   const client = serviceClient;
 
   // Order matters due to FK constraints
+  // Clean bookings and schedules first (they reference classes and members)
+  if (createdIds.classBookings.length > 0) {
+    await client.from('class_bookings').delete().in('id', createdIds.classBookings);
+  }
+  if (createdIds.fixedSchedules.length > 0) {
+    await client.from('member_fixed_schedules').delete().in('id', createdIds.fixedSchedules);
+  }
   if (createdIds.checkins.length > 0) {
     await client.from('check_ins').delete().in('id', createdIds.checkins);
   }
@@ -87,6 +103,9 @@ export const cleanupTrackedEntities = async () => {
   }
   if (createdIds.areas.length > 0) {
     await client.from('areas').delete().in('id', createdIds.areas);
+  }
+  if (createdIds.classes.length > 0) {
+    await client.from('classes').delete().in('id', createdIds.classes);
   }
   if (createdIds.members.length > 0) {
     await client.from('members').delete().in('id', createdIds.members);

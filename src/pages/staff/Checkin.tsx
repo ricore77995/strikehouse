@@ -20,6 +20,10 @@ interface RecentCheckin {
     nome: string;
     telefone: string;
   } | null;
+  classes: {
+    nome: string;
+    hora_inicio: string;
+  } | null;
 }
 
 const StaffCheckin = () => {
@@ -49,7 +53,8 @@ const StaffCheckin = () => {
         id,
         checked_in_at,
         result,
-        member:members(nome, telefone)
+        member:members(nome, telefone),
+        classes(nome, hora_inicio)
       `)
       .gte('checked_in_at', today.toISOString())
       .order('checked_in_at', { ascending: false })
@@ -265,6 +270,11 @@ const StaffCheckin = () => {
                         <p className="text-xs text-muted-foreground">
                           {checkin.member?.telefone}
                         </p>
+                        {checkin.classes && (
+                          <p className="text-xs text-accent mt-0.5">
+                            {checkin.classes.nome} • {checkin.classes.hora_inicio?.slice(0, 5)}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="text-right">

@@ -102,6 +102,11 @@ const navGroups: NavGroup[] = [
         icon: CalendarDays,
         roles: ['OWNER', 'ADMIN'],
       },
+      {
+        title: 'Lista de Presenças',
+        href: '/staff/class-roster',
+        icon: Users,
+      },
     ],
   },
 

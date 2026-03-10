@@ -5,7 +5,126 @@
     "membership": "Membership",
     "training": "Training",
     "contact": "Contact",
-    "requestAccess": "Request Access"
+    "schedule": "Schedule",
+    "requestAccess": "Request Access",
+    "experience": "Experience",
+    "experienceFirstTime": "First Time",
+    "experienceModalities": "Modalities",
+    "community": "Community",
+    "bookNow": "Book Now",
+    "buySessions": "Buy Sessions",
+    "tryNow": "Try Now",
+    "corporate": "Corporate"
+  },
+  "firstTime": {
+    "heroTitle": "Before your first training",
+    "heroDescription": "Clear your doubts. Straight answers to everything you want to know before you start.",
+    "senderYou": "You",
+    "senderStriker": "Striker's",
+    "q1": "I've never trained martial arts before. Will I be lost?",
+    "a1": "No.\nMany people start here from zero.\nClasses are in groups, but there's always close guidance.\nWe explain the basics, correct technique and truly follow up.",
+    "q2": "I haven't exercised in a long time. Will I be able to keep up?",
+    "a2": "Of course, you go at your own pace.\nThere's no obligation to keep up with those who've been training for years.\nIntensity is adjusted.\nThe important thing is to start.",
+    "q3": "I'm afraid of getting hurt.",
+    "a3": "Training is technical and supervised.\nIntensity comes after control.\nAnd sparring is not mandatory.\nOnly those who want to participate, when they feel ready.",
+    "q4": "I don't want to compete. I just want to train.",
+    "a4": "No worries.\nMost of our members don't compete.\nThey come to train, evolve and leave better than they came in.",
+    "q5": "I don't like gyms. I always feel alone.",
+    "a5": "Here you don't walk in, put on headphones and leave.\nYou train in a group, with constant guidance.\n\nOver time, you build relationships with those who train beside you.\nThere's a team atmosphere.",
+    "q6": "Do I need equipment?",
+    "a6": "For your first class, just show up with the will to train.\nWe take care of the rest.\n\nIf you continue, we'll choose your equipment together, no rush.",
+    "q7": "Do you have changing rooms?",
+    "a7": "Yes.\nYou train, shower and carry on with your day.",
+    "ctaTitle": "Ready to try?",
+    "ctaButton": "Book your first class"
+  },
+  "community": {
+    "heroTitle": "Serious environment.\nLight energy.\nStrong community.",
+    "manifesto": "Real octagon. High-level structure. Open to anyone who decides to evolve — from zero to advanced.",
+    "paragraph1": "Striker's House is not a conventional gym. It's a space where fighters, executives, expats and students share the same mat. Different lives, one discipline.",
+    "paragraph2": "We don't separate people by ego, age or background. We bring them together through structure, respect and consistency. Because real strength is built over time.",
+    "quote": "Different paths. One discipline.",
+    "values": {
+      "discipline": {
+        "title": "Discipline",
+        "description": "Training is taken seriously. No shortcuts, no excuses. Commitment to the process."
+      },
+      "respect": {
+        "title": "Respect",
+        "description": "Everyone started from zero. No one is judged. Respect is the foundation of everything."
+      },
+      "consistency": {
+        "title": "Consistency",
+        "description": "Results come from those who show up. Day after day. Training after training."
+      },
+      "evolution": {
+        "title": "Evolution",
+        "description": "From zero to advanced. Each at their own pace, all evolving."
+      }
+    },
+    "diversity": {
+      "title": "Diversity & Inclusion",
+      "text": "At Striker's House, we are committed to promoting diversity and inclusion. We believe everyone should have the same opportunity to train, regardless of race, gender, sexual orientation or ability.",
+      "commitment": "Our mat is a place of equality. Here, the only criteria are respect and the will to evolve."
+    },
+    "ctaTitle": "Be part of the community",
+    "ctaButton": "Try Now"
+  },
+  "corporate": {
+    "heroTitle": "Team Building &\nCorporate Events",
+    "heroSubtitle": "Unique team building experiences through combat sports. Strengthen your team in a controlled, professional environment.",
+    "whyTitle": "Why Combat Sports?",
+    "whySubtitle": "Shared challenges create stronger bonds than any conventional team building activity.",
+    "benefits": {
+      "teamwork": {
+        "title": "Teamwork",
+        "description": "Training together builds trust and communication that transfers directly to the workplace."
+      },
+      "trust": {
+        "title": "Trust",
+        "description": "Trusting your training partner teaches you to trust your colleagues. Shared vulnerability unites teams."
+      },
+      "challenge": {
+        "title": "Shared Challenge",
+        "description": "Pushing limits together creates deeper bonds than any conventional workshop."
+      },
+      "wellness": {
+        "title": "Wellness",
+        "description": "Combat stress, improve focus and elevate team energy through movement."
+      }
+    },
+    "facilityTitle": "Why Striker's House?",
+    "facilityP1": "A professional space with a real octagon, high-quality equipment and internationally experienced coaches. A controlled and safe environment for all experience levels.",
+    "facilityP2": "Our coaches adapt each session to the group, ensuring everyone participates regardless of fitness level. From executives to development teams, we've hosted groups from all industries.",
+    "facilityQuote": "True leadership is built in shared discomfort.",
+    "packagesTitle": "Corporate Services",
+    "packages": {
+      "offsite": {
+        "title": "Corporate Off-Site",
+        "description": "Half-day or full-day combat experience for your team.",
+        "feature1": "Sessions adapted to the group",
+        "feature2": "Briefing and debriefing included",
+        "feature3": "Private and exclusive space"
+      },
+      "teamBuilding": {
+        "title": "Team Building",
+        "description": "Regular sessions for teams who want to train together.",
+        "feature1": "Weekly or monthly programs",
+        "feature2": "Structured progression",
+        "feature3": "Participation reports"
+      },
+      "wellness": {
+        "title": "Wellness Program",
+        "description": "Corporate wellness through martial arts and conditioning.",
+        "feature1": "Stress relief sessions",
+        "feature2": "Adapted functional training",
+        "feature3": "Impact metrics"
+      }
+    },
+    "ctaTitle": "Let's Talk",
+    "ctaDescription": "Every event is tailor-made. Tell us about your team and we'll propose the ideal experience.",
+    "ctaWhatsApp": "Contact via WhatsApp",
+    "ctaEmail": "Send Email"
   },
   "hero": {
     "controlled": "Controlled",
@@ -341,6 +460,8 @@
           "a3": "Monday to Friday 7am to 10pm, Saturdays 9am to 2pm. Check the class schedule on our website."
         }
       },
+      "scheduleTitle": "Class Schedule",
+      "scheduleDescription": "Check our full schedule and book your class.",
       "finalCtaTitle": "Start Your Transformation",
       "finalCtaDescription": "The only thing separating you from the best version of yourself is the first step.",
       "freeClass": "Free Class",
@@ -415,6 +536,45 @@
         "error": "Error",
         "errorDesc": "Could not process the request. Please try again."
       }
+    }
+  },
+  "pricing": {
+    "classes": "classes",
+    "unlimited": "Unlimited access",
+    "week": "week",
+    "sessionsMonth": "sessions/month",
+    "validFor": "Valid for",
+    "days": "days",
+    "registrationFee": "Registration fee",
+    "buy": "Buy",
+    "noContracts": "Easy payments with Klarna — pay in installments, we receive upfront."
+  },
+  "tryNow": {
+    "title": "Try For Free",
+    "subtitle": "Your first class is on us. Choose your modality and book now.",
+    "free": "Free",
+    "firstClass": "first class",
+    "cta": "Book Free Class",
+    "ctaYogo": "Book Now",
+    "whatsappMessage": "Hi! I'd like to try a free {{modality}} class.",
+    "modalities": {
+      "boxing": {
+        "name": "Boxing",
+        "description": "Punching technique, footwork and conditioning. Ideal for beginners and advanced practitioners."
+      },
+      "muayThai": {
+        "name": "Muay Thai",
+        "description": "The art of 8 limbs. Fists, elbows, knees and shins — complete striking training."
+      },
+      "mma": {
+        "name": "MMA",
+        "description": "Mixed martial arts: striking + grappling. The most complete training for those who want to master it all."
+      }
+    },
+    "features": {
+      "1": "No commitment — come try with no charge",
+      "2": "Equipment available — just bring sportswear",
+      "3": "All levels — from beginner to advanced"
     }
   }
 }

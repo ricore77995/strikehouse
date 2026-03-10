@@ -1,6 +1,7 @@
-import { CheckCircle, XCircle, AlertTriangle, Clock, CreditCard, Lock } from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle, Clock, CreditCard, Lock, CalendarCheck, Calendar } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { CheckinResult } from '@/hooks/useCheckin';
 
@@ -47,6 +48,13 @@ const CheckinResultCard = ({ result, onDismiss }: CheckinResultCardProps) => {
           iconClass: 'text-purple-500',
           title: 'ÁREA EXCLUSIVA',
         };
+      case 'WEEKLY_LIMIT_REACHED':
+        return {
+          icon: Calendar,
+          bgClass: 'bg-orange-500/10 border-orange-500/30',
+          iconClass: 'text-orange-500',
+          title: 'LIMITE SEMANAL',
+        };
       default:
         return {
           icon: AlertTriangle,
@@ -81,6 +89,46 @@ const CheckinResultCard = ({ result, onDismiss }: CheckinResultCardProps) => {
                 Válido até: {new Date(result.member.access_expires_at).toLocaleDateString('pt-BR')}
               </p>
             )}
+          </div>
+        )}
+
+        {/* Booking Info - Show class details when member has a booking */}
+        {result.success && result.bookingInfo?.had_booking && (
+          <div className="mb-4 p-4 bg-accent/10 border border-accent/30 rounded-lg">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <CalendarCheck className="h-5 w-5 text-accent" />
+              <span className="font-semibold text-accent uppercase tracking-wider text-sm">
+                Reserva Confirmada
+              </span>
+            </div>
+            <p className="text-lg font-medium">{result.bookingInfo.class_name}</p>
+            <p className="text-sm text-muted-foreground">
+              Horário: {result.bookingInfo.class_time}
+            </p>
+          </div>
+        )}
+
+        {/* No booking warning - When member entered without a booking */}
+        {result.success && !result.bookingInfo?.had_booking && (
+          <div className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+            <div className="flex items-center justify-center gap-2">
+              <Calendar className="h-4 w-4 text-yellow-500" />
+              <span className="text-sm text-yellow-500">
+                Entrada sem reserva prévia
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Weekly limit info */}
+        {result.result === 'WEEKLY_LIMIT_REACHED' && result.weeklyLimitInfo && (
+          <div className="mb-4 p-3 bg-orange-500/10 rounded-lg">
+            <p className="text-sm font-medium">
+              Limite: {result.weeklyLimitInfo.used}/{result.weeklyLimitInfo.limit} aulas
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Próximo reset: {result.weeklyLimitInfo.nextResetDate}
+            </p>
           </div>
         )}
 

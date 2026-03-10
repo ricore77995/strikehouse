@@ -18,10 +18,12 @@ import {
 } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import { ArrowLeft, Loader2, Save, QrCode, Trash2, Plus, Receipt, Pause, Play, CalendarDays, Dumbbell, Clock, X, CreditCard, ArrowUpCircle, Ban, RotateCcw } from 'lucide-react';
 import { useMemberModalities, useSetMemberModalities } from '@/hooks/useMemberModalities';
 import { useMemberClasses, useSetMemberClasses, useClasses } from '@/hooks/useMemberClasses';
 import { useModalities } from '@/hooks/useModalities';
+import { useMemberFixedSchedules, useSetMemberFixedSchedules } from '@/hooks/useFixedSchedules';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
@@ -61,6 +63,7 @@ interface Member {
   access_type: 'SUBSCRIPTION' | 'CREDITS' | 'DAILY_PASS' | null;
   access_expires_at: string | null;
   credits_remaining: number;
+  weekly_limit: number | null;
   current_plan_id: string | null;
   current_subscription_id: string | null;
   stripe_customer_id: string | null;
@@ -128,6 +131,7 @@ const MemberForm = () => {
   const isEditing = id && id !== 'new';
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { staffId } = useAuth();
   const queryClient = useQueryClient();
 
   const [formData, setFormData] = useState({
@@ -240,10 +244,16 @@ const MemberForm = () => {
   const setMemberModalities = useSetMemberModalities();
   const setMemberClasses = useSetMemberClasses();
 
+  // Fetch member fixed schedules (for 2x/3x plans)
+  const { data: fixedSchedules, isLoading: isLoadingFixedSchedules } = useMemberFixedSchedules(isEditing ? id : null);
+  const setFixedSchedules = useSetMemberFixedSchedules();
+
   // Local state for editing modalities/classes
   const [editingModalityIds, setEditingModalityIds] = useState<string[]>([]);
   const [editingClassIds, setEditingClassIds] = useState<string[]>([]);
+  const [editingFixedClassIds, setEditingFixedClassIds] = useState<string[]>([]);
   const [isEditingTurmas, setIsEditingTurmas] = useState(false);
+  const [isEditingFixedSchedules, setIsEditingFixedSchedules] = useState(false);
 
   // Days of week in Portuguese
   const DAYS_PT = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
@@ -260,6 +270,12 @@ const MemberForm = () => {
       setEditingClassIds(memberClasses.map(c => c.class_id));
     }
   }, [memberClasses]);
+
+  useEffect(() => {
+    if (fixedSchedules) {
+      setEditingFixedClassIds(fixedSchedules.map(fs => fs.class_id));
+    }
+  }, [fixedSchedules]);
 
   // Update form when member data loads
   useEffect(() => {
@@ -833,7 +849,7 @@ const MemberForm = () => {
 
         {isEditing ? (
           <Tabs defaultValue="dados" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 max-w-lg">
+            <TabsList className={`grid w-full max-w-2xl ${member?.weekly_limit ? 'grid-cols-4' : 'grid-cols-3'}`}>
               <TabsTrigger value="dados">Dados</TabsTrigger>
               <TabsTrigger value="turmas" className="flex items-center gap-2">
                 <Dumbbell className="h-4 w-4" />
@@ -844,6 +860,17 @@ const MemberForm = () => {
                   </Badge>
                 )}
               </TabsTrigger>
+              {member?.weekly_limit && (
+                <TabsTrigger value="horarios-fixos" className="flex items-center gap-2">
+                  <CalendarDays className="h-4 w-4" />
+                  Fixos
+                  {fixedSchedules && fixedSchedules.length > 0 && (
+                    <Badge variant="secondary" className="ml-1 text-xs">
+                      {fixedSchedules.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+              )}
               <TabsTrigger value="pagamentos" className="flex items-center gap-2">
                 <Receipt className="h-4 w-4" />
                 Pagamentos
@@ -1688,6 +1715,183 @@ const MemberForm = () => {
                 </CardContent>
               </Card>
             </TabsContent>
+
+            {/* Fixed Schedules Tab - Only for 2x/3x plans */}
+            {member?.weekly_limit && (
+              <TabsContent value="horarios-fixos" className="mt-6">
+                <Card className="bg-card border-border border-accent/30">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="uppercase tracking-wider text-base flex items-center gap-2">
+                          <CalendarDays className="h-5 w-5 text-accent" />
+                          Horários Fixos
+                        </CardTitle>
+                        <CardDescription>
+                          Este membro tem plano {member.weekly_limit}x/semana. Configure os horários garantidos.
+                        </CardDescription>
+                      </div>
+                      {!isEditingFixedSchedules ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsEditingFixedSchedules(true)}
+                        >
+                          Editar
+                        </Button>
+                      ) : (
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setIsEditingFixedSchedules(false);
+                              if (fixedSchedules) {
+                                setEditingFixedClassIds(fixedSchedules.map(fs => fs.class_id));
+                              }
+                            }}
+                          >
+                            <X className="h-4 w-4 mr-1" />
+                            Cancelar
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={async () => {
+                              try {
+                                await setFixedSchedules.mutateAsync({
+                                  memberId: id!,
+                                  classIds: editingFixedClassIds,
+                                  createdBy: staffId || null,
+                                });
+                                toast({ title: 'Horários fixos atualizados!' });
+                                setIsEditingFixedSchedules(false);
+                              } catch (error) {
+                                console.error('Error saving fixed schedules:', error);
+                                toast({
+                                  title: 'Erro ao salvar',
+                                  description: error instanceof Error ? error.message : 'Tente novamente',
+                                  variant: 'destructive',
+                                });
+                              }
+                            }}
+                            disabled={setFixedSchedules.isPending}
+                          >
+                            {setFixedSchedules.isPending ? (
+                              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                            ) : (
+                              <Save className="h-4 w-4 mr-1" />
+                            )}
+                            Salvar
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Info Alert */}
+                    <Alert className="border-accent/50 bg-accent/10">
+                      <CalendarDays className="h-4 w-4 text-accent" />
+                      <AlertDescription className="text-sm">
+                        Os horários fixos são reservados automaticamente todas as semanas.
+                        O membro tem <strong>{member.weekly_limit} aula{member.weekly_limit > 1 ? 's' : ''}/semana</strong> garantidas.
+                      </AlertDescription>
+                    </Alert>
+
+                    {isLoadingFixedSchedules ? (
+                      <div className="flex justify-center py-8">
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                      </div>
+                    ) : isEditingFixedSchedules ? (
+                      <div className="space-y-3">
+                        <Label className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                          Selecione até {member.weekly_limit} aula{member.weekly_limit > 1 ? 's' : ''}:
+                        </Label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          {allClasses?.map((cls) => {
+                            const isSelected = editingFixedClassIds.includes(cls.id);
+                            const isAtLimit = editingFixedClassIds.length >= member.weekly_limit! && !isSelected;
+
+                            return (
+                              <div
+                                key={cls.id}
+                                onClick={() => {
+                                  if (isAtLimit) return;
+                                  setEditingFixedClassIds((prev) =>
+                                    prev.includes(cls.id)
+                                      ? prev.filter((id) => id !== cls.id)
+                                      : [...prev, cls.id]
+                                  );
+                                }}
+                                className={`flex items-center gap-2 p-3 border rounded-lg transition-all ${
+                                  isSelected
+                                    ? 'border-accent bg-accent/10 ring-1 ring-accent/30 cursor-pointer'
+                                    : isAtLimit
+                                    ? 'opacity-50 cursor-not-allowed'
+                                    : 'hover:border-accent/50 cursor-pointer'
+                                }`}
+                              >
+                                <Checkbox
+                                  checked={isSelected}
+                                  disabled={isAtLimit}
+                                  onCheckedChange={() => {
+                                    if (isAtLimit) return;
+                                    setEditingFixedClassIds((prev) =>
+                                      prev.includes(cls.id)
+                                        ? prev.filter((id) => id !== cls.id)
+                                        : [...prev, cls.id]
+                                    );
+                                  }}
+                                />
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium">{cls.nome || cls.modalidade}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {DAYS_PT[cls.dia_semana]} {cls.hora_inicio?.slice(0, 5)}
+                                  </p>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Selecionados: {editingFixedClassIds.length}/{member.weekly_limit}
+                        </p>
+                      </div>
+                    ) : fixedSchedules && fixedSchedules.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {fixedSchedules.map((fs) => (
+                          <div
+                            key={fs.id}
+                            className="flex items-center gap-3 p-4 bg-accent/10 border border-accent/30 rounded-lg"
+                          >
+                            <CalendarDays className="h-5 w-5 text-accent" />
+                            <div>
+                              <p className="text-sm font-medium">
+                                {fs.classes?.nome || fs.classes?.modalidade || 'Aula'}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {fs.classes ? `${DAYS_PT[fs.classes.dia_semana]} ${fs.classes.hora_inicio?.slice(0, 5)}` : ''}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <CalendarDays className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+                        <p className="text-muted-foreground">Nenhum horário fixo configurado</p>
+                        <Button
+                          variant="outline"
+                          className="mt-4"
+                          onClick={() => setIsEditingFixedSchedules(true)}
+                        >
+                          Configurar Horários
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            )}
 
             <TabsContent value="pagamentos" className="mt-6">
               <Card className="bg-card border-border">

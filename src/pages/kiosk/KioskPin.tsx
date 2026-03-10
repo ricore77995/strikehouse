@@ -14,6 +14,7 @@ const KioskPin = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
+      console.log('Redirecting to /kiosk/scan...');
       navigate('/kiosk/scan', { replace: true });
     }
   }, [isAuthenticated, navigate]);
@@ -42,28 +43,43 @@ const KioskPin = () => {
       return;
     }
 
-    const isValid = await validatePin(pin);
+    console.log('Submitting PIN for validation...');
 
-    if (!isValid) {
+    try {
+      const isValid = await validatePin(pin);
+      console.log('Validation result:', isValid);
+
+      if (!isValid) {
+        toast({
+          title: 'PIN incorreto',
+          description: 'Verifique o PIN e tente novamente',
+          variant: 'destructive',
+        });
+        setPin('');
+      }
+      // If valid, the useEffect will redirect
+    } catch (error) {
+      console.error('Error during PIN validation:', error);
       toast({
-        title: 'PIN incorreto',
-        description: 'Tente novamente',
+        title: 'Erro de conexão',
+        description: 'Não foi possível validar o PIN. Verifique sua conexão.',
         variant: 'destructive',
       });
       setPin('');
     }
-    // If valid, the useEffect will redirect
   };
 
   // Auto-submit when PIN has 6 digits
   useEffect(() => {
-    if (pin.length === 6) {
-      // Small delay to show the digit
+    if (pin.length === 6 && !isValidating && !isAuthenticated) {
+      console.log('Auto-submitting PIN...');
+      // Small delay to show the last digit
       const timeout = setTimeout(() => {
         handleSubmit();
       }, 300);
       return () => clearTimeout(timeout);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pin]);
 
   const digits = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'del'];

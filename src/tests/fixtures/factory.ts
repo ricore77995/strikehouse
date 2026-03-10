@@ -528,3 +528,93 @@ export const createTestMemberIban = async (
   if (error) throw new Error(`Failed to create member IBAN: ${error.message}`);
   return data;
 };
+
+// ============================================
+// Class Booking Factories
+// ============================================
+
+interface CreateClassOptions {
+  nome?: string;
+  modalidade?: string;
+  dia_semana: number; // 0=Sunday, 1=Monday, etc.
+  hora_inicio: string;
+  duracao_min?: number;
+  capacidade?: number;
+  ativo?: boolean;
+}
+
+export const createTestClass = async (
+  client: SupabaseClient,
+  options: CreateClassOptions
+) => {
+  const timestamp = Date.now();
+  const defaults = {
+    nome: `Test Class ${timestamp}`,
+    modalidade: 'Muay Thai',
+    duracao_min: 60,
+    capacidade: 30,
+    ativo: true,
+  };
+
+  const { data, error } = await client
+    .from('classes')
+    .insert({ ...defaults, ...options })
+    .select()
+    .single();
+
+  if (error) throw new Error(`Failed to create class: ${error.message}`);
+  return data;
+};
+
+interface CreateClassBookingOptions {
+  class_id: string;
+  member_id: string;
+  class_date: string;
+  status?: 'BOOKED' | 'CHECKED_IN' | 'CANCELLED' | 'NO_SHOW';
+  created_by?: string | null;
+}
+
+export const createTestClassBooking = async (
+  client: SupabaseClient,
+  options: CreateClassBookingOptions
+) => {
+  const defaults = {
+    status: 'BOOKED' as const,
+    created_by: null,
+  };
+
+  const { data, error } = await client
+    .from('class_bookings')
+    .insert({ ...defaults, ...options })
+    .select()
+    .single();
+
+  if (error) throw new Error(`Failed to create class booking: ${error.message}`);
+  return data;
+};
+
+interface CreateFixedScheduleOptions {
+  member_id: string;
+  class_id: string;
+  active?: boolean;
+  created_by?: string | null;
+}
+
+export const createTestFixedSchedule = async (
+  client: SupabaseClient,
+  options: CreateFixedScheduleOptions
+) => {
+  const defaults = {
+    active: true,
+    created_by: null,
+  };
+
+  const { data, error } = await client
+    .from('member_fixed_schedules')
+    .insert({ ...defaults, ...options })
+    .select()
+    .single();
+
+  if (error) throw new Error(`Failed to create fixed schedule: ${error.message}`);
+  return data;
+};

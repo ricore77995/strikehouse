@@ -14,6 +14,8 @@ import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import Index from "./pages/Index";
 import TheTeam from "./pages/TheTeam";
 import FAQ from "./pages/FAQ";
+import Comunidade from "./pages/Comunidade";
+import Corporate from "./pages/Corporate";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import MemberQR from "./pages/MemberQR";
@@ -51,6 +53,7 @@ import EnrollmentSuccess from "./pages/staff/EnrollmentSuccess";
 import StaffSales from "./pages/staff/Sales";
 import StaffCaixa from "./pages/staff/Caixa";
 import StaffMemberNew from "./pages/staff/MemberNew";
+import StaffClassRoster from "./pages/staff/ClassRoster";
 
 // Coach pages
 import CoachLogin from "./pages/coach/Login";
@@ -70,6 +73,8 @@ const StaffRoutes = () => (
       <Route path="/" element={<Index />} />
       <Route path="/team" element={<TheTeam />} />
       <Route path="/faq" element={<FAQ />} />
+      <Route path="/comunidade" element={<Comunidade />} />
+      <Route path="/corporate" element={<Corporate />} />
       <Route path="/membership" element={<Navigate to="/" replace />} />
       <Route path="/login" element={<Login />} />
       <Route path="/m/:qrCode" element={<MemberQR />} />
@@ -286,6 +291,14 @@ const StaffRoutes = () => (
         element={
           <ProtectedRoute allowedRoles={['OWNER', 'ADMIN', 'STAFF']}>
             <StaffMemberNew />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/staff/class-roster"
+        element={
+          <ProtectedRoute allowedRoles={['OWNER', 'ADMIN', 'STAFF']}>
+            <StaffClassRoster />
           </ProtectedRoute>
         }
       />

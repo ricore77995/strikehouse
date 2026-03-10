@@ -17,6 +17,14 @@ export interface MemberCheckinInfo {
   modalities_count: number | null;
 }
 
+export interface BookingInfo {
+  id: string;
+  class_id: string;
+  class_name: string;
+  class_time: string;
+  had_booking: boolean;
+}
+
 export interface CheckinResult {
   success: boolean;
   result: 'ALLOWED' | 'BLOCKED' | 'EXPIRED' | 'NO_CREDITS' | 'NOT_FOUND' | 'AREA_EXCLUSIVE' | 'WEEKLY_LIMIT_REACHED';
@@ -32,6 +40,7 @@ export interface CheckinResult {
     used: number;
     nextResetDate: string;
   };
+  bookingInfo?: BookingInfo;
 }
 
 // Mapeia resultados estendidos para valores válidos no banco de dados
@@ -196,16 +205,108 @@ export const useCheckin = () => {
     return { isLimitReached, used: usedCount, nextResetDate };
   };
 
+  /**
+   * Find active booking for member today
+   * Returns the most relevant booking (closest to current time with BOOKED status)
+   */
+  const findTodaysBooking = async (
+    memberId: string
+  ): Promise<{
+    booking: { id: string; class_id: string } | null;
+    classInfo: { nome: string; hora_inicio: string } | null;
+  }> => {
+    const today = new Date().toISOString().split('T')[0];
+    const currentTime = new Date().toTimeString().slice(0, 8);
+
+    // Find BOOKED status bookings for today, prioritizing closest to current time
+    const { data, error } = await supabase
+      .from('class_bookings')
+      .select(`
+        id,
+        class_id,
+        classes!inner(nome, hora_inicio)
+      `)
+      .eq('member_id', memberId)
+      .eq('class_date', today)
+      .eq('status', 'BOOKED')
+      .order('classes(hora_inicio)', { ascending: true });
+
+    if (error) {
+      console.error('Error finding today booking:', error);
+      return { booking: null, classInfo: null };
+    }
+
+    if (!data || data.length === 0) {
+      return { booking: null, classInfo: null };
+    }
+
+    // Find the most relevant booking:
+    // 1. If there's a class starting soon (within 30 mins), use that
+    // 2. Otherwise, use the first one of the day
+    const now = new Date();
+    let selectedBooking = data[0] as any;
+
+    for (const booking of data as any[]) {
+      const classTime = booking.classes?.hora_inicio;
+      if (classTime) {
+        const [hours, minutes] = classTime.split(':').map(Number);
+        const classStart = new Date();
+        classStart.setHours(hours, minutes, 0, 0);
+
+        const diffMinutes = (classStart.getTime() - now.getTime()) / 60000;
+
+        // If class starts within -15 to +30 minutes, it's likely the one they're checking into
+        if (diffMinutes >= -15 && diffMinutes <= 30) {
+          selectedBooking = booking;
+          break;
+        }
+      }
+    }
+
+    return {
+      booking: {
+        id: selectedBooking.id,
+        class_id: selectedBooking.class_id,
+      },
+      classInfo: selectedBooking.classes
+        ? {
+            nome: selectedBooking.classes.nome,
+            hora_inicio: selectedBooking.classes.hora_inicio,
+          }
+        : null,
+    };
+  };
+
+  /**
+   * Update booking status to CHECKED_IN
+   */
+  const markBookingCheckedIn = async (bookingId: string): Promise<boolean> => {
+    const { error } = await supabase
+      .from('class_bookings')
+      .update({
+        status: 'CHECKED_IN',
+        checked_in_at: new Date().toISOString(),
+      })
+      .eq('id', bookingId);
+
+    if (error) {
+      console.error('Error updating booking status:', error);
+      return false;
+    }
+    return true;
+  };
+
   const performCheckin = async (
     member: MemberCheckinInfo,
-    staffId: string | null
+    staffId: string | null,
+    selectedClassId?: string // Optional: when provided from kiosk
   ): Promise<CheckinResult> => {
     setIsLoading(true);
 
     try {
       // First check for exclusive area rentals
       const exclusiveCheck = await checkExclusiveAreaRental();
-      
+
       if (exclusiveCheck.isBlocked && exclusiveCheck.rental) {
         // Register blocked check-in for auditing
         await supabase.from('check_ins').insert({
@@ -257,12 +358,73 @@ export const useCheckin = () => {
 
       const validation = validateAccess(member);
 
+      // Determine class_id and booking info
+      let effectiveClassId: string | null = null;
+      let booking: { id: string; class_id: string } | null = null;
+      let classInfo: { nome: string; hora_inicio: string } | null = null;
+
+      if (selectedClassId) {
+        // Kiosk mode: use the selected class
+        effectiveClassId = selectedClassId;
+
+        // Get class info for display
+        const { data: selectedClassInfo } = await supabase
+          .from('classes')
+          .select('nome, hora_inicio')
+          .eq('id', selectedClassId)
+          .single();
+
+        if (selectedClassInfo) {
+          classInfo = selectedClassInfo;
+        }
+
+        // Check if member already has a booking for this class today
+        const today = new Date().toISOString().split('T')[0];
+        const { data: existingBooking } = await supabase
+          .from('class_bookings')
+          .select('id, class_id')
+          .eq('member_id', member.id)
+          .eq('class_id', selectedClassId)
+          .eq('class_date', today)
+          .single();
+
+        if (existingBooking) {
+          booking = existingBooking;
+        } else if (validation.success) {
+          // Create a booking on-the-fly for this check-in
+          const { data: newBooking } = await supabase
+            .from('class_bookings')
+            .insert({
+              member_id: member.id,
+              class_id: selectedClassId,
+              class_date: today,
+              status: 'CHECKED_IN',
+              checked_in_at: new Date().toISOString(),
+              created_by: staffId,
+            })
+            .select('id, class_id')
+            .single();
+
+          if (newBooking) {
+            booking = newBooking;
+          }
+        }
+      } else {
+        // Normal mode: find existing booking
+        const foundBooking = await findTodaysBooking(member.id);
+        booking = foundBooking.booking;
+        classInfo = foundBooking.classInfo;
+        effectiveClassId = booking?.class_id || null;
+      }
+
       // Register check-in regardless of result (for auditing)
+      // Include class_id from selected class or existing booking
       const { error: checkinError } = await supabase.from('check_ins').insert({
         member_id: member.id,
         type: 'MEMBER',
         result: mapToDatabaseResult(validation.result),
         checked_in_by: staffId,
+        class_id: effectiveClassId,
       });
 
       if (checkinError) {
@@ -280,6 +442,12 @@ export const useCheckin = () => {
         };
       }
 
+      // If check-in allowed and has existing booking (not created on-the-fly), mark as checked in
+      // Note: In kiosk mode with selectedClassId, we already create booking with CHECKED_IN status
+      if (validation.success && booking && !selectedClassId) {
+        await markBookingCheckedIn(booking.id);
+      }
+
       // If access allowed and member has credits, decrement
       if (validation.success && member.access_type === 'CREDITS') {
         const { error: updateError } = await supabase
@@ -292,7 +460,22 @@ export const useCheckin = () => {
         }
       }
 
-      return validation;
+      // Build booking info for result
+      const bookingInfo: BookingInfo | undefined =
+        booking && classInfo
+          ? {
+              id: booking.id,
+              class_id: booking.class_id,
+              class_name: classInfo.nome,
+              class_time: classInfo.hora_inicio.slice(0, 5),
+              had_booking: true,
+            }
+          : undefined;
+
+      return {
+        ...validation,
+        bookingInfo,
+      };
     } catch (error) {
       console.error('Check-in error:', error);
       return {
@@ -308,7 +491,8 @@ export const useCheckin = () => {
 
   const processQRCode = async (
     qrCode: string,
-    staffId: string | null
+    staffId: string | null,
+    classId?: string // Optional: when provided from kiosk, use this class
   ): Promise<CheckinResult> => {
     setIsLoading(true);
 
@@ -344,7 +528,7 @@ export const useCheckin = () => {
         };
       }
 
-      return performCheckin(member, staffId);
+      return performCheckin(member, staffId, classId);
     } catch (error) {
       console.error('QR processing error:', error);
       return {
