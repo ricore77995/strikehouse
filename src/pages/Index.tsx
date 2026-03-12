@@ -82,8 +82,7 @@ const Index = () => {
               </Button>
               <Button
                 size="lg"
-                variant="outline"
-                className="text-base px-8 rounded-full border-foreground/40 text-foreground hover:bg-red-600 hover:text-white hover:border-red-600"
+                className="text-base px-8 rounded-full bg-red-600 text-white border border-red-600 hover:bg-transparent hover:text-red-600"
                 onClick={() =>
                   document.getElementById("planos")?.scrollIntoView({ behavior: "smooth" })
                 }

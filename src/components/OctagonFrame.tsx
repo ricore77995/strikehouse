@@ -10,7 +10,7 @@ const OctagonFrame = ({ className = "", strokeWidth = 1, showInner = true, strok
   return (
     <svg
       viewBox="0 0 100 100"
-      className={className}
+      className={`pointer-events-none ${className}`}
       fill="none"
       preserveAspectRatio="xMidYMid meet"
     >
