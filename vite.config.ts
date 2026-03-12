@@ -9,10 +9,10 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
     proxy: {
-      "/yogo-api": {
+      "/api/yogo": {
         target: "https://api.yogo.dk",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/yogo-api/, ""),
+        rewrite: (path) => path.replace(/^\/api\/yogo/, ""),
         headers: {
           origin: "https://strikershouse.yogobooking.pt",
           referer: "https://strikershouse.yogobooking.pt/",

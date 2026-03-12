@@ -124,9 +124,9 @@ function buildPurchaseUrl(
 
 // --- API fetchers ---
 
-// Vite proxy forwards /yogo-api → api.yogo.dk with correct origin header.
-// For production, configure your hosting to do the same proxy/rewrite.
-const API_BASE = "/yogo-api";
+// Dev: Vite proxy forwards /api/yogo → api.yogo.dk with correct origin header.
+// Prod: Vercel serverless function at api/yogo/[...path].ts proxies with headers.
+const API_BASE = "/api/yogo";
 
 async function fetchPriceGroups(): Promise<YogoPriceGroupRaw[]> {
   const res = await fetch(
