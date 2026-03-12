@@ -351,26 +351,13 @@
   },
   "tryNow": {
     "title": "Experimenta Grátis",
-    "subtitle": "A tua primeira aula é por nossa conta. Escolhe a modalidade e marca já.",
+    "subtitle": "A tua primeira aula é por nossa conta. Envia-nos mensagem e marca já.",
     "free": "Grátis",
     "firstClass": "primeira aula",
+    "cardTitle": "Aula Experimental",
+    "cardDescription": "Experimenta qualquer modalidade — Boxe, Muay Thai ou MMA. Sem compromisso.",
     "cta": "Marcar Aula Grátis",
-    "ctaYogo": "Reservar Agora",
-    "whatsappMessage": "Olá! Quero experimentar uma aula grátis de {{modality}}.",
-    "modalities": {
-      "boxing": {
-        "name": "Boxe",
-        "description": "Técnica de punhos, footwork e condicionamento. Ideal para iniciantes e praticantes avançados."
-      },
-      "muayThai": {
-        "name": "Muay Thai",
-        "description": "A arte dos 8 membros. Punhos, cotovelos, joelhos e canelas — treino completo de striking."
-      },
-      "mma": {
-        "name": "MMA",
-        "description": "Artes marciais mistas: striking + grappling. O treino mais completo para quem quer dominar tudo."
-      }
-    },
+    "whatsappMessage": "Olá! Quero experimentar uma aula grátis na Striker's House.",
     "features": {
       "1": "Sem compromisso — vem experimentar sem pagar nada",
       "2": "Equipamento disponível — só precisas de roupa desportiva",

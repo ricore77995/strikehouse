@@ -351,26 +351,13 @@
   },
   "tryNow": {
     "title": "Try For Free",
-    "subtitle": "Your first class is on us. Choose your modality and book now.",
+    "subtitle": "Your first class is on us. Send us a message and book now.",
     "free": "Free",
     "firstClass": "first class",
+    "cardTitle": "Trial Class",
+    "cardDescription": "Try any modality — Boxing, Muay Thai or MMA. No commitment.",
     "cta": "Book Free Class",
-    "ctaYogo": "Book Now",
-    "whatsappMessage": "Hi! I'd like to try a free {{modality}} class.",
-    "modalities": {
-      "boxing": {
-        "name": "Boxing",
-        "description": "Punching technique, footwork and conditioning. Ideal for beginners and advanced practitioners."
-      },
-      "muayThai": {
-        "name": "Muay Thai",
-        "description": "The art of 8 limbs. Fists, elbows, knees and shins — complete striking training."
-      },
-      "mma": {
-        "name": "MMA",
-        "description": "Mixed martial arts: striking + grappling. The most complete training for those who want to master it all."
-      }
-    },
+    "whatsappMessage": "Hi! I'd like to try a free class at Striker's House.",
     "features": {
       "1": "No commitment — come try with no charge",
       "2": "Equipment available — just bring sportswear",
