@@ -360,7 +360,7 @@
     "whatsappMessage": "Olá! Quero experimentar uma aula grátis na Striker's House.",
     "features": {
       "1": "Sem compromisso — vem experimentar sem pagar nada",
-      "2": "Equipamento disponível — só precisas de roupa desportiva",
+      "2": "Equipamento disponível — só precisas de <a href='/#faq-chat'>roupa desportiva</a>",
       "3": "Todos os níveis — do iniciante ao avançado"
     }
   },

@@ -360,7 +360,7 @@
     "whatsappMessage": "Hi! I'd like to try a free class at Striker's House.",
     "features": {
       "1": "No commitment — come try with no charge",
-      "2": "Equipment available — just bring sportswear",
+      "2": "Equipment available — just bring <a href='/#faq-chat'>sportswear</a>",
       "3": "All levels — from beginner to advanced"
     }
   },

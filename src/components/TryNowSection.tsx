@@ -51,7 +51,7 @@ export default function TryNowSection() {
                 {[1, 2, 3].map((n) => (
                   <div key={n} className="flex items-center gap-2 text-sm text-muted-foreground">
                     <span className="w-1.5 h-1.5 rounded-full bg-red-600 flex-shrink-0" />
-                    {t(`tryNow.features.${n}`)}
+                    <span dangerouslySetInnerHTML={{ __html: t(`tryNow.features.${n}`) }} className="[&_a]:text-red-600 [&_a]:underline [&_a]:hover:text-red-700" />
                   </div>
                 ))}
               </div>
