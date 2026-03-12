@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Instagram } from "lucide-react";
+import { WHATSAPP_URL } from "@/constants/contact";
 
 // WhatsApp icon component
 const WhatsAppIcon = ({ className }: { className?: string }) => (
@@ -17,7 +18,7 @@ const Footer = () => {
       {/* Map Section */}
       <div className="w-full h-[300px] md:h-[400px]">
         <iframe
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3114.5735200358586!2d-9.332699823984026!3d38.68166835940425!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd1ec8dc6b8f548f%3A0x5f750a9b57923b01!2sR.%20It%C3%A1lia%202a%201%20andar%20sala%20G%2C%202775-604%20Carcavelos!5e0!3m2!1sen!2spt!4v1768486945464!5m2!1sen!2spt"
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3114.5735200358586!2d-9.3301353!3d38.6816667!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd1ec9d93faed0c3%3A0xfb89e2a5c9ad9a8f!2sStriker%E2%80%99s%20House%20%E2%80%93%20Muay%20Thai%20%26%20MMA%20Cascais%20(Carcavelos)!5e0!3m2!1spt!2spt"
           width="100%"
           height="100%"
           style={{ border: 0 }}
@@ -48,7 +49,7 @@ const Footer = () => {
               </p>
               <div className="text-sm font-light leading-relaxed">
                 <a
-                  href="https://maps.app.goo.gl/DSA4ELchDnkmHdRB6"
+                  href="https://maps.app.goo.gl/a2LGEsUZM14tUJWU9"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-accent transition-colors"
@@ -71,7 +72,7 @@ const Footer = () => {
                   admin@strikershouse.com
                 </a>
                 <a
-                  href="https://wa.me/351913378459"
+                  href={WHATSAPP_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 text-muted-foreground hover:text-accent transition-colors"
@@ -98,6 +99,9 @@ const Footer = () => {
                 <Instagram className="w-4 h-4" />
                 {t('footer.instagram')}
               </a>
+              <Link to="/politica-de-privacidade" className="text-xs text-muted-foreground hover:text-foreground transition-colors tracking-wider">
+                {t('footer.privacy')}
+              </Link>
               <Link to="/login" className="text-xs text-muted-foreground hover:text-foreground transition-colors tracking-wider uppercase">
                 Área Restrita
               </Link>

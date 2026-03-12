@@ -4,8 +4,9 @@ import { Users, Shield, Flame, Heart, Building2, Dumbbell } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import OctagonFrame from "@/components/OctagonFrame";
+import { WHATSAPP_NUMBER } from "@/constants/contact";
 
-const WHATSAPP_URL = "https://wa.me/351913378459?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20eventos%20corporativos.";
+const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20eventos%20corporativos.`;
 
 const Corporate = () => {
   const { t } = useTranslation();

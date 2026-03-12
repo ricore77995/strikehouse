@@ -1,14 +1,7 @@
 {
   "header": {
-    "philosophy": "Philosophy",
-    "team": "For Athletes",
-    "membership": "Membership",
-    "training": "Training",
-    "contact": "Contact",
     "schedule": "Schedule",
-    "requestAccess": "Request Access",
     "experience": "Experience",
-    "experienceFirstTime": "First Time",
     "experienceModalities": "Modalities",
     "community": "Community",
     "bookNow": "Book Now",
@@ -126,27 +119,6 @@
     "ctaWhatsApp": "Contact via WhatsApp",
     "ctaEmail": "Send Email"
   },
-  "hero": {
-    "controlled": "Controlled",
-    "chaos": "Chaos",
-    "subtitle1": "Train with purpose.",
-    "subtitle2": "A private space for those who take discipline seriously.",
-    "bookVisit": "Book a Visit",
-    "explore": "Explore",
-    "scroll": "Scroll"
-  },
-  "philosophy": {
-    "subtitle": "Our Philosophy",
-    "title": "Discipline Creates Freedom",
-    "description1": "We are not a gym. We are a training space for those who understand that martial arts is a practice, not a performance.",
-    "description2": "Fighters, executives, expats, students. Different lives, same mat. Respect the space. Respect each other.",
-    "focus": "Focus",
-    "focusSub": "Sharp mind",
-    "respect": "Respect",
-    "respectSub": "For all",
-    "growth": "Growth",
-    "growthSub": "Every day"
-  },
   "whyDifferent": {
     "subtitle": "Our Approach",
     "title": "Why Striker's House is Different",
@@ -158,16 +130,6 @@
     "description2a": "We bring them together through structure, respect and consistency.",
     "closing": "Because real strength is built over time."
   },
-  "training": {
-    "subtitle": "Training Programs",
-    "title": "Three Paths. One Purpose.",
-    "striking": "Striking",
-    "strikingDesc": "Boxing. Kickboxing. Muay Thai. Precision over power.",
-    "grappling": "Grappling",
-    "grapplingDesc": "Brazilian Jiu-Jitsu. Wrestling. Control through technique.",
-    "mma": "MMA",
-    "mmaDesc": "The complete discipline. For those ready to integrate all arts."
-  },
   "kids": {
     "subtitle": "Kids Program",
     "title1": "Discipline First.",
@@ -175,184 +137,21 @@
     "description1": "At Striker's House Kids, martial arts is a tool for growth.",
     "description2": "Through structured training, children develop focus, respect, coordination, and self-control in a safe and disciplined environment."
   },
-  "coaches": {
-    "subtitle": "The Team",
-    "title": "World-Class Coaches",
-    "marcus": {
-      "role": "Head Coach — MMA",
-      "bio": "Former professional fighter with 15+ years of competitive experience. Specializes in developing well-rounded fighters."
-    },
-    "elena": {
-      "role": "Kickboxing & Muay Thai",
-      "bio": "World champion kickboxer. Known for her technical precision and ability to elevate students of all levels."
-    },
-    "rafael": {
-      "role": "Brazilian Jiu-Jitsu",
-      "bio": "3rd degree black belt under legendary lineage. Focuses on fundamental technique and competition preparation."
-    },
-    "dmitri": {
-      "role": "Strength & Conditioning",
-      "bio": "Elite performance coach specializing in fighter-specific training. Builds explosive power and endurance for competition."
-    }
-  },
-  "gallery": {
-    "subtitle": "The Space",
-    "title": "Where Champions Train"
-  },
-  "testimonials": {
-    "subtitle": "The Community",
-    "title": "In Their Words",
-    "david": {
-      "quote": "I have trained at gyms across three continents. This is the first place that felt like home.",
-      "detail": "Member since 2022"
-    },
-    "sarah": {
-      "quote": "The coaches here see what others miss. My technique transformed in ways I did not think possible.",
-      "detail": "Competitive Fighter"
-    },
-    "marcus": {
-      "quote": "No ego. No drama. Just people committed to getting better every single day.",
-      "detail": "Member since 2021"
-    }
-  },
-  "cta": {
-    "quote": "\"This place is different.\"",
-    "quoteAttribution": "— What we want you to feel",
-    "description": "Your first session is complimentary. Visit the space. Meet the community. See if this fits your life.",
-    "namePlaceholder": "Name",
-    "emailPlaceholder": "Email",
-    "phonePlaceholder": "Phone (optional)",
-    "messagePlaceholder": "Tell us about your training goals...",
-    "submit": "Request Your Visit",
-    "submitting": "Sending...",
-    "responseTime": "We respond within 24 hours",
-    "successTitle": "Request received",
-    "successDescription": "We'll be in touch within 24 hours to schedule your visit.",
-    "validation": {
-      "nameRequired": "Name is required",
-      "nameMax": "Name must be less than 100 characters",
-      "emailInvalid": "Please enter a valid email",
-      "emailMax": "Email must be less than 255 characters",
-      "phoneMax": "Phone must be less than 20 characters",
-      "messageRequired": "Message is required",
-      "messageMax": "Message must be less than 1000 characters"
-    }
-  },
   "footer": {
     "description": "A private training space for those who take the art seriously.",
     "location": "Location",
     "city": "R. Itália 2a 1 andar sala G, 2775-604 Carcavelos",
     "contact": "Contact",
     "copyright": "© 2026 Striker's House. All rights reserved.",
-    "instagram": "Instagram"
-  },
-  "team": {
-    "backHome": "Back to Home",
-    "subtitle": "Student Athletes",
-    "title": "Train to Compete. Compete to Grow.",
-    "description": "Our athlete program is for those who want more than training — they want to test themselves in competition while continuing their personal and professional development.",
-    "athletesSubtitle": "Our Athletes",
-    "athletesTitle": "Fighting Under Our Flag",
-    "athletes": {
-      "joao": {
-        "discipline": "MMA — Lightweight",
-        "achievements": "Portuguese National Champion 2024. 3x tournament winner. Rising star in the European circuit.",
-        "quote": "The team pushes me to be better every single day."
-      },
-      "ana": {
-        "discipline": "Kickboxing — Featherweight",
-        "achievements": "European Bronze Medalist. Multiple national titles. Known for technical precision.",
-        "quote": "Here I found a family that believes in my potential."
-      },
-      "miguel": {
-        "discipline": "Brazilian Jiu-Jitsu — Black Belt",
-        "achievements": "IBJJF European Champion. Multiple NAGA gold medals. Competition-focused instructor.",
-        "quote": "The level of training here is unmatched in Portugal."
-      }
-    },
-    "becomeSubtitle": "The Path",
-    "becomeTitle": "How to Become a Striker's House Athlete",
-    "becomeDescription": "Becoming a student athlete means committing to a higher level of training while balancing your studies or career. It's not about being the best — it's about being ready to grow through competition.",
-    "pathway": {
-      "step1": {
-        "title": "Train Consistently",
-        "description": "Start as a regular member. Show dedication, discipline, and a genuine love for the sport."
-      },
-      "step2": {
-        "title": "Coach Evaluation",
-        "description": "Our coaches identify potential athletes based on skill, attitude, and commitment to growth."
-      },
-      "step3": {
-        "title": "Competition Track",
-        "description": "Join our competition preparation classes. Intensified training with sparring and conditioning."
-      },
-      "step4": {
-        "title": "Represent the Team",
-        "description": "Compete under the Striker's House flag with full coach support and team backing."
-      }
-    },
-    "requirementsSubtitle": "What We Look For",
-    "requirementsTitle": "Requirements to Join the Team",
-    "requirements": {
-      "req1": "Minimum 6 months of consistent training at Striker's House",
-      "req2": "Demonstrated technical proficiency and understanding of fundamentals",
-      "req3": "Strong work ethic and positive attitude towards training partners",
-      "req4": "Ability to balance competition preparation with work or studies",
-      "req5": "Commitment to representing the team values inside and outside the gym"
-    },
-    "ctaTitle": "Ready to Take the Next Step?",
-    "ctaDescription": "If you feel you have what it takes to compete, speak with your coach about joining the athlete program. Every champion started with a single decision.",
-    "ctaButton": "Contact Us"
+    "instagram": "Instagram",
+    "privacy": "Privacy Policy"
   },
   "membership": {
-    "subtitle": "Join the Family",
-    "title": "Membership",
-    "description": "Joining Striker's House is a statement of intent. Our membership options are designed to meet the needs of modern lifestyles, here to support your goals and ambitions on terms that suit you.",
-    "plansTitle": "Membership Options",
-    "popular": "Most Popular",
-    "enquire": "Enquire Now",
-    "plans": {
-      "full": {
-        "name": "Full Access",
-        "description": "Complete access to all facilities and classes",
-        "feature1": "Unlimited gym floor access",
-        "feature2": "All group classes included",
-        "feature3": "Open mat sessions",
-        "feature4": "Member events access"
-      },
-      "offPeak": {
-        "name": "Off-Peak",
-        "description": "Train during quieter hours at a reduced rate",
-        "feature1": "Weekdays 9AM - 5PM",
-        "feature2": "Weekends 2PM - Close",
-        "feature3": "Selected classes included"
-      },
-      "student": {
-        "name": "Student",
-        "description": "Full membership at a discounted rate",
-        "feature1": "Valid student ID required",
-        "feature2": "Full gym access",
-        "feature3": "All classes included"
-      }
-    },
-    "benefitsTitle": "Member Benefits",
-    "benefitsDescription": "Every membership includes access to world-class facilities, expert coaching, and a community of dedicated practitioners.",
-    "benefits": {
-      "benefit1": "Expert coaching team",
-      "benefit2": "Premium equipment",
-      "benefit3": "Locker rooms & showers",
-      "benefit4": "Member community events",
-      "benefit5": "Guest passes available",
-      "benefit6": "Flexible freeze options"
-    },
-    "ctaTitle": "Ready to Start?",
-    "ctaDescription": "Book a tour of our facilities and discover why Striker's House is the choice of those who take their training seriously.",
-    "ctaButton": "Book a Visit",
     "page": {
       "heroTagline": "Striker's House",
-      "heroTitle1": "Train like a fighter.",
-      "heroTitle2": "Live like yourself.",
-      "heroDescription": "We are for everyone. No judgments, no egos. Just quality training and a community that will push you to be better.",
+      "heroTitle1": "Controlled.",
+      "heroTitle2": "Chaos.",
+      "heroDescription": "Train like a fighter.\nLive like yourself.",
       "trialCta": "Free Trial Class",
       "viewPlans": "View Plans",
       "benefits": {
@@ -547,6 +346,7 @@
     "days": "days",
     "registrationFee": "Registration fee",
     "buy": "Buy",
+    "comingSoon": "Coming Soon",
     "noContracts": "Easy payments with Klarna — pay in installments, we receive upfront."
   },
   "tryNow": {
@@ -575,6 +375,94 @@
       "1": "No commitment — come try with no charge",
       "2": "Equipment available — just bring sportswear",
       "3": "All levels — from beginner to advanced"
+    }
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated: March 2026",
+    "entity": "Striker's House – Associação Desportiva",
+    "address": "R. Itália 2A, 1º andar, sala G\n2775-604 Carcavelos, Cascais, Portugal",
+    "s1": {
+      "title": "1. Who We Are",
+      "p1": "Striker's House – Associação Desportiva (hereinafter \"Striker's House\") is the entity responsible for processing personal data collected in the context of its activities, including:",
+      "items": ["Website", "Mobile application", "Registration forms", "Social media", "In-person contact", "Member management platforms"],
+      "p2": "We comply with the General Data Protection Regulation (GDPR) and all applicable Portuguese legislation."
+    },
+    "s2": {
+      "title": "2. What Data We Collect",
+      "identification": {
+        "title": "Identification Data",
+        "items": ["Full name", "Date of birth", "Gender"]
+      },
+      "contact": {
+        "title": "Contact Data",
+        "items": ["Email", "Phone number", "Address"]
+      },
+      "tax": {
+        "title": "Tax Data",
+        "items": ["Tax Identification Number (for invoicing purposes)"]
+      },
+      "payment": {
+        "title": "Payment Data",
+        "items": ["Payment history", "Subscription plan", "Subscription status"],
+        "note": "Card details are not stored by Striker's House when payments are processed via third-party providers."
+      },
+      "health": {
+        "title": "Health Data (when applicable)",
+        "items": ["Medical information relevant to safe sports practice"],
+        "note": "Only with explicit consent."
+      },
+      "usage": {
+        "title": "Usage Data",
+        "items": ["Class history", "Attendance", "Bookings", "Feedback"]
+      }
+    },
+    "s3": {
+      "title": "3. Purpose of Data Processing",
+      "p1": "We process your data for the following purposes:",
+      "items": ["Managing registrations and memberships", "Invoicing and compliance with tax obligations", "Communication regarding schedules, updates, and events", "Booking management", "Marketing (with consent)", "Insurance management in case of accident", "Compliance with legal obligations", "Operation of the mobile application"],
+      "p2": "Your data will never be used for purposes incompatible with those for which it was collected."
+    },
+    "s4": {
+      "title": "4. Legal Basis",
+      "p1": "Processing is based on:",
+      "items": ["Performance of a contract", "Compliance with legal obligations", "Legitimate interest", "Consent (marketing and health data)"],
+      "p2": "You may withdraw your consent at any time."
+    },
+    "s5": {
+      "title": "5. Data Retention",
+      "items": ["Active members: for the duration of the contractual relationship", "Tax data: 10 years", "Marketing data: until consent is withdrawn", "Applicants (e.g. instructors): up to 1 year", "Inactive members: up to 2 years after termination"]
+    },
+    "s6": {
+      "title": "6. Data Sharing",
+      "p1": "Data may be shared, when necessary, with:",
+      "items": ["Member management platforms (e.g., YogoBooking or equivalent)", "Payment processors (e.g., Stripe or equivalent)", "Accountant", "Insurance provider", "Public authorities (when legally required)"],
+      "p2": "Some providers may be located outside the European Economic Area. In such cases, appropriate safeguards are applied.",
+      "p3": "We never sell personal data."
+    },
+    "s7": {
+      "title": "7. Security",
+      "p1": "We implement appropriate technical and organizational measures, including:",
+      "items": ["Restricted access", "HTTPS encryption", "Permission controls", "Internal confidentiality procedures"]
+    },
+    "s8": {
+      "title": "8. Data Subject Rights",
+      "p1": "You have the right to:",
+      "items": ["Access", "Rectification", "Erasure", "Restriction", "Objection", "Portability", "Withdraw consent"],
+      "contact": "Contact: admin@strikershouse.com",
+      "p2": "You may lodge a complaint with the Portuguese Data Protection Authority (CNPD – www.cnpd.pt)."
+    },
+    "s9": {
+      "title": "9. Minors",
+      "p1": "Services are not intended for individuals under 16 years old without parental or legal guardian consent."
+    },
+    "s10": {
+      "title": "10. Cookies",
+      "p1": "The website may use essential, performance, and marketing cookies (subject to consent)."
+    },
+    "s11": {
+      "title": "11. Changes",
+      "p1": "We reserve the right to update this Policy whenever necessary. The most recent version will always be available on our website."
     }
   }
 }

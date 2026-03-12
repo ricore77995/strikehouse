@@ -3,18 +3,14 @@ import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { Gift, MessageCircle } from "lucide-react";
 import { useYogoTrialPlans, type PricingItem } from "@/hooks/useYogoPricing";
-import glovesImg from "@/assets/gloves-detail.jpg";
-import trainingImg from "@/assets/training-calm.jpg";
-import mmaImg from "@/assets/mma.jpg";
-
-const WHATSAPP_NUMBER = "351913378459";
+import { WHATSAPP_NUMBER } from "@/constants/contact";
 
 // --- WhatsApp fallback (when no 0€ plans exist in YOGO) ---
 
 const fallbackModalities = [
-  { key: "boxing", image: glovesImg },
-  { key: "muayThai", image: trainingImg },
-  { key: "mma", image: mmaImg },
+  { key: "boxing" },
+  { key: "muayThai" },
+  { key: "mma" },
 ];
 
 function WhatsAppFallback() {
@@ -57,15 +53,13 @@ function WhatsAppFallback() {
             transition={{ duration: 0.25 }}
             className="bg-card border border-border rounded-2xl overflow-hidden shadow-xl"
           >
-            <div className="relative h-52 overflow-hidden">
-              <img src={current.image} alt={name} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
-              <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-                <Gift className="w-3.5 h-3.5" />
-                {t("tryNow.free")}
-              </div>
-            </div>
             <div className="p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="inline-flex items-center gap-1.5 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                  <Gift className="w-3.5 h-3.5" />
+                  {t("tryNow.free")}
+                </span>
+              </div>
               <h3 className="text-xl font-semibold mb-2">{name}</h3>
               <p className="text-muted-foreground text-sm leading-relaxed mb-6">{description}</p>
               <div className="space-y-2 mb-6">
@@ -136,19 +130,6 @@ function YogoTrialCards({ plans }: { plans: PricingItem[] }) {
             transition={{ duration: 0.25 }}
             className="bg-card border border-border rounded-2xl overflow-hidden shadow-xl"
           >
-            {/* Image */}
-            {current.imageUrl && (
-              <div className="relative h-52 overflow-hidden">
-                <img
-                  src={current.imageUrl}
-                  alt={current.name}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
-              </div>
-            )}
-
             <div className="p-6">
               {/* Free badge */}
               <div className="flex items-center gap-2 mb-3">
@@ -206,7 +187,8 @@ export default function TryNowSection() {
   const { t } = useTranslation();
   const { data: trialPlans, isLoading } = useYogoTrialPlans();
 
-  const hasYogoTrials = !isLoading && trialPlans && trialPlans.length > 0;
+  const yogoEnabled = import.meta.env.VITE_YOGO_ENABLED === "true";
+  const hasYogoTrials = yogoEnabled && !isLoading && trialPlans && trialPlans.length > 0;
 
   return (
     <section id="try-now" className="py-20 bg-background">

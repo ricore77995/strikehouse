@@ -46,6 +46,8 @@ const Header = () => {
     setIsMobileExperienceOpen(false);
   };
 
+  const yogoEnabled = import.meta.env.VITE_YOGO_ENABLED === "true";
+
   // Dropdown sub-items
   const experienceItems = [
     {
@@ -152,9 +154,11 @@ const Header = () => {
               </SmartLink>
 
               <LanguageSwitcher />
-              <a href="https://strikershouse.yogobooking.pt/frontend/index.html#/my-profile" target="_blank" rel="noopener noreferrer" className="text-xs uppercase tracking-[0.12em] text-foreground/60 hover:text-foreground transition-colors">
-                Login
-              </a>
+              {import.meta.env.VITE_YOGO_ENABLED === "true" && (
+                <a href="https://strikershouse.yogobooking.pt/frontend/index.html#/my-profile" target="_blank" rel="noopener noreferrer" className="text-xs uppercase tracking-[0.12em] text-foreground/60 hover:text-foreground transition-colors">
+                  Login
+                </a>
+              )}
             </div>
 
             {/* Mobile menu button */}
@@ -276,15 +280,17 @@ const Header = () => {
 
               <div className="mt-6 flex flex-col items-center gap-5">
                 <LanguageSwitcher />
-                <a
-                  href="https://strikershouse.yogobooking.pt/frontend/index.html#/my-profile"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={handleLinkClick}
-                  className="text-base tracking-[0.2em] uppercase font-light text-white/50 hover:text-white transition-colors"
-                >
-                  Login
-                </a>
+                {import.meta.env.VITE_YOGO_ENABLED === "true" && (
+                  <a
+                    href="https://strikershouse.yogobooking.pt/frontend/index.html#/my-profile"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={handleLinkClick}
+                    className="text-base tracking-[0.2em] uppercase font-light text-white/50 hover:text-white transition-colors"
+                  >
+                    Login
+                  </a>
+                )}
               </div>
             </nav>
           </div>

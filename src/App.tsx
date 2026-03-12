@@ -2,7 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import { AuthProvider } from "@/hooks/useAuth";
 import { CoachAuthProvider } from "@/hooks/useCoachAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -16,6 +17,7 @@ import TheTeam from "./pages/TheTeam";
 import FAQ from "./pages/FAQ";
 import Comunidade from "./pages/Comunidade";
 import Corporate from "./pages/Corporate";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import MemberQR from "./pages/MemberQR";
@@ -65,6 +67,18 @@ import KioskCheckin from "./pages/kiosk/KioskCheckin";
 
 const queryClient = new QueryClient();
 
+function ScrollToTop() {
+  const { pathname, hash } = useLocation();
+  useEffect(() => {
+    if (hash) {
+      const el = document.querySelector(hash);
+      if (el) { el.scrollIntoView({ behavior: "smooth" }); return; }
+    }
+    window.scrollTo(0, 0);
+  }, [pathname, hash]);
+  return null;
+}
+
 // Wrapper for staff/admin routes that need AuthProvider
 const StaffRoutes = () => (
   <AuthProvider>
@@ -75,6 +89,7 @@ const StaffRoutes = () => (
       <Route path="/faq" element={<FAQ />} />
       <Route path="/comunidade" element={<Comunidade />} />
       <Route path="/corporate" element={<Corporate />} />
+      <Route path="/politica-de-privacidade" element={<PrivacyPolicy />} />
       <Route path="/membership" element={<Navigate to="/" replace />} />
       <Route path="/login" element={<Login />} />
       <Route path="/m/:qrCode" element={<MemberQR />} />
@@ -339,6 +354,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ScrollToTop />
         <GoogleAnalytics />
         <Routes>
           {/* Coach routes - completely separate auth context (NOT wrapped by AuthProvider) */}

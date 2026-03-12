@@ -4,40 +4,7 @@ import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import OctagonFrame from "@/components/OctagonFrame";
-
-interface ChatBubbleProps {
-  message: string;
-  sender: "user" | "striker";
-  index: number;
-}
-
-const ChatBubble = ({ message, sender, index }: ChatBubbleProps) => {
-  const isUser = sender === "user";
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20, x: isUser ? -20 : 20 }}
-      whileInView={{ opacity: 1, y: 0, x: 0 }}
-      viewport={{ once: true, margin: "-50px" }}
-      transition={{ duration: 0.5, delay: (index % 2) * 0.15 }}
-      className={`flex ${isUser ? "justify-start" : "justify-end"} mb-4`}
-    >
-      <div
-        className={`max-w-[85%] md:max-w-[70%] px-5 py-4 ${
-          isUser
-            ? "bg-card text-foreground rounded-2xl rounded-bl-sm"
-            : "bg-accent/90 text-white rounded-2xl rounded-br-sm"
-        }`}
-      >
-        {message.split("\n").map((line, i) => (
-          <p key={i} className={`text-sm font-light leading-relaxed ${line === "" ? "h-2" : ""}`}>
-            {line}
-          </p>
-        ))}
-      </div>
-    </motion.div>
-  );
-};
+import ChatBubble from "@/components/ChatBubble";
 
 const PrimeiraVez = () => {
   const { t } = useTranslation();
@@ -117,8 +84,8 @@ const PrimeiraVez = () => {
             {/* Conversation bubbles */}
             {conversations.map((conv, i) => (
               <div key={i} className="mb-10">
-                <ChatBubble message={conv.q} sender="user" index={i * 2} />
-                <ChatBubble message={conv.a} sender="striker" index={i * 2 + 1} />
+                <ChatBubble message={conv.q} sender="user" index={i * 2} variant="dark" />
+                <ChatBubble message={conv.a} sender="striker" index={i * 2 + 1} variant="dark" />
               </div>
             ))}
           </div>

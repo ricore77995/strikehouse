@@ -5,10 +5,13 @@ import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import OctagonFrame from "@/components/OctagonFrame";
+import SectionHeader from "@/components/SectionHeader";
+import ChatBubble from "@/components/ChatBubble";
 import WhyDifferent from "@/components/WhyDifferent";
 import Kids from "@/components/Kids";
 import PricingSection from "@/components/PricingSection";
 import TryNowSection from "@/components/TryNowSection";
+import { WHATSAPP_URL } from "@/constants/contact";
 import heroImage from "@/assets/hero-editorial.jpg";
 import trainingImg from "@/assets/training-calm.jpg";
 import glovesImg from "@/assets/gloves-detail.jpg";
@@ -47,7 +50,7 @@ const Index = () => {
       <Header />
 
       {/* Hero Section */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-24">
+      <section className="relative min-h-[90vh] flex items-start overflow-hidden pt-32 md:pt-40">
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: `url(${heroImage})` }}
@@ -58,32 +61,29 @@ const Index = () => {
           strokeWidth={0.5}
         />
 
-        <div className="relative z-10 container mx-auto px-6 text-center">
+        <div className="relative z-10 container mx-auto px-6">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="max-w-4xl mx-auto"
+            className="max-w-2xl"
           >
-            <p className="text-xs tracking-[0.4em] text-accent uppercase mb-6">
-              {t("membership.page.heroTagline")}
-            </p>
-            <h1 className="text-4xl md:text-5xl lg:text-7xl font-light tracking-[0.1em] mb-8 leading-tight">
+            <h1 className="text-3xl md:text-[3rem] md:leading-[1] lg:text-[4.4rem] lg:leading-[1] font-light tracking-[0.08em] mb-8">
               {t("membership.page.heroTitle1")}
               <br />
               <span className="text-accent">{t("membership.page.heroTitle2")}</span>
             </h1>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed mb-10">
+            <p className="text-base md:text-lg text-muted-foreground font-light leading-relaxed mb-10 whitespace-pre-line">
               {t("membership.page.heroDescription")}
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4">
               <Button size="lg" className="text-base px-8 rounded-full" onClick={scrollToTryNow}>
                 {t("membership.page.trialCta")}
               </Button>
               <Button
                 size="lg"
                 variant="outline"
-                className="text-base px-8 rounded-full"
+                className="text-base px-8 rounded-full border-foreground/40 text-foreground hover:bg-red-600 hover:text-white hover:border-red-600"
                 onClick={() =>
                   document.getElementById("planos")?.scrollIntoView({ behavior: "smooth" })
                 }
@@ -133,21 +133,12 @@ const Index = () => {
             showInner={false}
             strokeColor="#c9a84c"
           />
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-16"
-          >
-            <div className="section-line mx-auto mb-4" />
-            <h2 className="text-3xl md:text-4xl font-light tracking-[0.1em] mb-4 text-black">
-              {t("membership.page.modalitiesTitle")}
-            </h2>
-            <p className="text-gray-600 max-w-xl mx-auto">
-              {t("membership.page.modalitiesDescription")}
-            </p>
-          </motion.div>
+          <SectionHeader
+            title={t("membership.page.modalitiesTitle")}
+            description={t("membership.page.modalitiesDescription")}
+            titleClassName="text-black"
+            descriptionClassName="text-gray-600"
+          />
 
           <div className="grid md:grid-cols-3 gap-6">
             {modalities.map((mod, index) => (
@@ -219,21 +210,12 @@ const Index = () => {
             strokeColor="#c9a84c"
             innerStrokeColor="#d4a843"
           />
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-16"
-          >
-            <div className="section-line mx-auto mb-4" />
-            <h2 className="text-3xl md:text-4xl font-light tracking-[0.1em] mb-4 text-red-600">
-              {t("membership.page.plansTitle")}
-            </h2>
-            <p className="text-gray-600 max-w-xl mx-auto">
-              {t("membership.page.plansDescription")}
-            </p>
-          </motion.div>
+          <SectionHeader
+            title={t("membership.page.plansTitle")}
+            description={t("membership.page.plansDescription")}
+            titleClassName="text-red-600"
+            descriptionClassName="text-gray-600"
+          />
           <PricingSection />
         </div>
       </section>
@@ -241,28 +223,17 @@ const Index = () => {
       {/* Schedule - YOGO Calendar */}
       <section id="horario" className="py-20 bg-background relative overflow-hidden">
         <div className="container mx-auto px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-16"
-          >
-            <div className="section-line mx-auto mb-4" />
-            <h2 className="text-3xl md:text-4xl font-light tracking-[0.1em] mb-4">
-              {t("membership.page.scheduleTitle")}
-            </h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">
-              {t("membership.page.scheduleDescription")}
-            </p>
-          </motion.div>
+          <SectionHeader
+            title={t("membership.page.scheduleTitle")}
+            description={t("membership.page.scheduleDescription")}
+          />
         </div>
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="yogo-calendar-wrapper"
+          className={`yogo-calendar-wrapper${import.meta.env.VITE_YOGO_ENABLED !== "true" ? " yogo-booking-hidden" : ""}`}
         >
           <div className="yogo-calendar"></div>
         </motion.div>
@@ -296,7 +267,7 @@ const Index = () => {
               </Button>
               <Button size="lg" variant="outline" className="px-8 rounded-full" asChild>
                 <a
-                  href="https://wa.me/351913378459"
+                  href={WHATSAPP_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -365,40 +336,10 @@ const Index = () => {
             </div>
 
             {/* Chat bubbles */}
-            {[1, 2, 3, 4, 5, 6, 7].map((n, i) => (
+            {[1, 2, 3, 4, 5, 6, 7].map((n) => (
               <div key={n} className="mb-8">
-                {/* Question (user) */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20, x: -20 }}
-                  whileInView={{ opacity: 1, y: 0, x: 0 }}
-                  viewport={{ once: true, margin: "-50px" }}
-                  transition={{ duration: 0.5 }}
-                  className="flex justify-start mb-3"
-                >
-                  <div className="max-w-[85%] md:max-w-[70%] px-5 py-4 bg-gray-100 text-gray-800 rounded-2xl rounded-bl-sm">
-                    {String(t(`firstTime.q${n}`)).split("\n").map((line, j) => (
-                      <p key={j} className={`text-sm font-light leading-relaxed ${line === "" ? "h-2" : ""}`}>
-                        {line}
-                      </p>
-                    ))}
-                  </div>
-                </motion.div>
-                {/* Answer (Striker's) */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20, x: 20 }}
-                  whileInView={{ opacity: 1, y: 0, x: 0 }}
-                  viewport={{ once: true, margin: "-50px" }}
-                  transition={{ duration: 0.5, delay: 0.15 }}
-                  className="flex justify-end"
-                >
-                  <div className="max-w-[85%] md:max-w-[70%] px-5 py-4 bg-red-600 text-white rounded-2xl rounded-br-sm">
-                    {String(t(`firstTime.a${n}`)).split("\n").map((line, j) => (
-                      <p key={j} className={`text-sm font-light leading-relaxed ${line === "" ? "h-2" : ""}`}>
-                        {line}
-                      </p>
-                    ))}
-                  </div>
-                </motion.div>
+                <ChatBubble message={String(t(`firstTime.q${n}`))} sender="user" index={n * 2} />
+                <ChatBubble message={String(t(`firstTime.a${n}`))} sender="striker" index={n * 2 + 1} />
               </div>
             ))}
           </div>

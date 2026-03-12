@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, Repeat, Zap, Loader2 } from "lucide-react";
 import { useYogoPricing, type PricingItem, type PriceGroup } from "@/hooks/useYogoPricing";
 
+const yogoEnabled = import.meta.env.VITE_YOGO_ENABLED === "true";
+
 function PricingCard({ item }: { item: PricingItem }) {
   const { t } = useTranslation();
   const hasMultipleOptions = item.paymentOptions.length > 1;
@@ -112,15 +114,21 @@ function PricingCard({ item }: { item: PricingItem }) {
       {/* CTA — single option */}
       {!hasMultipleOptions && (
         <div className="px-6 pb-6">
-          <a
-            href={item.paymentOptions[0].purchaseUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            data-yogo-parsed="true"
-            className="block w-full text-center py-3 bg-black text-white rounded-full text-sm font-medium uppercase tracking-wider hover:bg-gray-800 transition-colors"
-          >
-            {t("pricing.buy")}
-          </a>
+          {yogoEnabled ? (
+            <a
+              href={item.paymentOptions[0].purchaseUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-yogo-parsed="true"
+              className="block w-full text-center py-3 bg-black text-white rounded-full text-sm font-medium uppercase tracking-wider hover:bg-gray-800 transition-colors"
+            >
+              {t("pricing.buy")}
+            </a>
+          ) : (
+            <span className="block w-full text-center py-3 bg-gray-300 text-gray-500 rounded-full text-sm font-medium uppercase tracking-wider cursor-not-allowed">
+              {t("pricing.comingSoon")}
+            </span>
+          )}
         </div>
       )}
 
@@ -128,17 +136,27 @@ function PricingCard({ item }: { item: PricingItem }) {
       {hasMultipleOptions && (
         <div className="px-6 pb-6 space-y-2">
           {item.paymentOptions.map((opt) => (
-            <a
-              key={opt.id}
-              href={opt.purchaseUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              data-yogo-parsed="true"
-              className="flex items-center justify-between w-full px-4 py-2.5 border border-gray-200 rounded-full text-sm hover:border-red-600 hover:bg-red-50 transition-colors group"
-            >
-              <span className="text-gray-700 group-hover:text-black">{opt.name}</span>
-              <span className="font-semibold text-red-600">{opt.price}€</span>
-            </a>
+            yogoEnabled ? (
+              <a
+                key={opt.id}
+                href={opt.purchaseUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-yogo-parsed="true"
+                className="flex items-center justify-between w-full px-4 py-2.5 border border-gray-200 rounded-full text-sm hover:border-red-600 hover:bg-red-50 transition-colors group"
+              >
+                <span className="text-gray-700 group-hover:text-black">{opt.name}</span>
+                <span className="font-semibold text-red-600">{opt.price}€</span>
+              </a>
+            ) : (
+              <div
+                key={opt.id}
+                className="flex items-center justify-between w-full px-4 py-2.5 border border-gray-200 rounded-full text-sm cursor-not-allowed opacity-60"
+              >
+                <span className="text-gray-500">{opt.name}</span>
+                <span className="font-semibold text-gray-400">{opt.price}€</span>
+              </div>
+            )
           ))}
         </div>
       )}
