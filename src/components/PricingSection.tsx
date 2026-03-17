@@ -126,7 +126,7 @@ function PricingCard({ item }: { item: PricingItem }) {
             </a>
           ) : (
             <span className="block w-full text-center py-3 bg-gray-300 text-gray-500 rounded-full text-sm font-medium uppercase tracking-wider cursor-not-allowed">
-              {t("pricing.comingSoon")}
+              {t("pricing.buy")}
             </span>
           )}
         </div>
