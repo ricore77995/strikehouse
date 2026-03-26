@@ -1,13 +1,11 @@
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
-import { Gift, MessageCircle } from "lucide-react";
-import { WHATSAPP_NUMBER } from "@/constants/contact";
+import { Gift } from "lucide-react";
+
+const TRIAL_URL = "https://strikershouse.yogobooking.pt/frontend/index.html?itemType=class_pass_type&itemId=14172#/login-with-cart";
 
 export default function TryNowSection() {
   const { t } = useTranslation();
-
-  const whatsappMessage = encodeURIComponent(t("tryNow.whatsappMessage"));
-  const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappMessage}`;
 
   return (
     <section id="try-now" className="py-20 bg-background">
@@ -60,12 +58,12 @@ export default function TryNowSection() {
                 <span className="text-sm text-muted-foreground">{t("tryNow.firstClass")}</span>
               </div>
               <a
-                href={whatsappUrl}
+                href={TRIAL_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full py-3.5 bg-[#25D366] text-white rounded-full text-sm font-medium uppercase tracking-wider hover:bg-[#1fb855] transition-colors"
+                data-yogo-parsed="true"
+                className="flex items-center justify-center gap-2 w-full py-3.5 bg-black text-white rounded-full text-sm font-medium uppercase tracking-wider hover:bg-gray-800 transition-colors"
               >
-                <MessageCircle className="w-4 h-4" />
                 {t("tryNow.cta")}
               </a>
             </div>

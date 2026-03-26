@@ -232,7 +232,7 @@ const Index = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className={`yogo-calendar-wrapper${import.meta.env.VITE_YOGO_ENABLED !== "true" ? " yogo-booking-hidden" : ""}`}
+          className="yogo-calendar-wrapper"
         >
           <div className="yogo-calendar"></div>
         </motion.div>

@@ -257,14 +257,6 @@
     border-color: #e53935 !important;
   }
 
-  /* Hide YOGO booking/buy buttons when YOGO integration is disabled */
-  .yogo-booking-hidden button,
-  .yogo-booking-hidden .btn,
-  .yogo-booking-hidden [class*="btn"],
-  .yogo-booking-hidden input[type="submit"] {
-    display: none !important;
-  }
-
   .yogo-calendar-wrapper a {
     color: #c62828 !important;
   }

@@ -43,6 +43,8 @@ interface YogoClassPassType {
   for_sale: number;
   price_groups?: { id: number; name: string }[];
   sort_in_price_group: number;
+  image_id: number | null;
+  image?: YogoImage | null;
 }
 
 interface YogoPriceGroupRaw {
@@ -148,7 +150,7 @@ async function fetchMembershipTypes(): Promise<YogoMembershipType[]> {
 
 async function fetchClassPassTypes(): Promise<YogoClassPassType[]> {
   const res = await fetch(
-    `${API_BASE}/class-pass-types?populate[]=price_groups`,
+    `${API_BASE}/class-pass-types?populate[]=price_groups&populate[]=image`,
     { headers: getApiHeaders() }
   );
   if (!res.ok) throw new Error(`YOGO class-pass-types: ${res.status}`);
@@ -220,7 +222,7 @@ function buildPriceGroups(
           type: "class_pass",
           name: fullPass.name,
           description: fullPass.description || "",
-          imageUrl: null,
+          imageUrl: buildImageUrl(fullPass.image),
           paymentOptions: [{
             id: fullPass.id,
             name: "",
@@ -325,7 +327,7 @@ export function useYogoTrialPlans() {
           type: "class_pass",
           name: cp.name,
           description: cp.description || "",
-          imageUrl: null,
+          imageUrl: buildImageUrl(cp.image),
           paymentOptions: [{
             id: cp.id,
             name: "",
