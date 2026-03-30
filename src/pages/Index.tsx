@@ -185,10 +185,10 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Welcome New Striker */}
-      <section className="bg-[#0c0c1a] py-20 relative overflow-hidden">
-        <div className="container mx-auto px-6">
-          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+      {/* Welcome New Striker - Light Box */}
+      <section className="py-20 bg-background">
+        <div className="light-box">
+          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -196,26 +196,26 @@ const Index = () => {
               transition={{ duration: 0.7 }}
               className="flex-1 max-w-xl"
             >
-              <p className="text-white/40 text-sm tracking-wider mb-3">
+              <p className="text-gray-400 text-sm tracking-wider mb-3">
                 {t("welcome.subtitle")}
               </p>
-              <h2 className="text-4xl md:text-5xl text-white leading-tight mb-6 font-light">
+              <h2 className="text-4xl md:text-5xl text-black leading-tight mb-6 font-light">
                 {t("welcome.title")}{" "}
                 <span className="font-bold">{t("welcome.titleBold")}</span>
               </h2>
-              <p className="text-white/60 text-lg leading-relaxed mb-8">
+              <p className="text-gray-600 text-lg leading-relaxed mb-8">
                 {t("welcome.description")}
               </p>
               <div className="flex flex-wrap gap-4">
                 <a
                   href={isHomePage ? "#try-now" : "/#try-now"}
-                  className="px-6 py-3 bg-white text-black rounded-full text-xs font-semibold uppercase tracking-wider hover:bg-white/90 transition-colors"
+                  className="px-6 py-3 bg-black text-white rounded-full text-xs font-semibold uppercase tracking-wider hover:bg-gray-800 transition-colors"
                 >
                   {t("welcome.ctaTry")}
                 </a>
                 <a
                   href={isHomePage ? "#faq-chat" : "/#faq-chat"}
-                  className="px-6 py-3 border border-white/30 text-white rounded-full text-xs font-semibold uppercase tracking-wider hover:border-white/60 transition-colors"
+                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-full text-xs font-semibold uppercase tracking-wider hover:border-gray-500 transition-colors"
                 >
                   {t("welcome.ctaExpect")}
                 </a>
@@ -228,11 +228,8 @@ const Index = () => {
               transition={{ duration: 0.7, delay: 0.2 }}
               className="flex-shrink-0"
             >
-              <div className="relative">
-                <div className="absolute -inset-4 bg-blue-500/10 rounded-3xl blur-2xl" />
-                <div className="relative w-[300px] h-[350px] md:w-[380px] md:h-[430px] rounded-2xl overflow-hidden border border-white/10">
-                  <img src={coachImg} alt="Coach" className="w-full h-full object-cover" />
-                </div>
+              <div className="relative w-[300px] h-[350px] md:w-[380px] md:h-[430px] rounded-2xl overflow-hidden shadow-xl">
+                <img src={coachImg} alt="Coach" className="w-full h-full object-cover" />
               </div>
             </motion.div>
           </div>
