@@ -208,13 +208,13 @@ const Index = () => {
               </p>
               <div className="flex flex-wrap gap-4">
                 <a
-                  href={isHomePage ? "#try-now" : "/#try-now"}
+                  href="#try-now"
                   className="px-6 py-3 bg-black text-white rounded-full text-xs font-semibold uppercase tracking-wider hover:bg-gray-800 transition-colors"
                 >
                   {t("welcome.ctaTry")}
                 </a>
                 <a
-                  href={isHomePage ? "#faq-chat" : "/#faq-chat"}
+                  href="#faq-chat"
                   className="px-6 py-3 border border-gray-300 text-gray-700 rounded-full text-xs font-semibold uppercase tracking-wider hover:border-gray-500 transition-colors"
                 >
                   {t("welcome.ctaExpect")}
