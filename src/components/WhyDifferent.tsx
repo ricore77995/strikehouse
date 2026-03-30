@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
-import whyDifferentImage from "@/assets/why-different.png";
+import logoImage from "@/assets/logo.jpg";
 import OctagonFrame from "./OctagonFrame";
 
 const WhyDifferent = () => {
@@ -27,8 +27,8 @@ const WhyDifferent = () => {
             <div className="relative">
               <div className="absolute -inset-4 bg-red/10 blur-2xl rounded-full" />
               <img
-                src={whyDifferentImage}
-                alt="Striker's House coach"
+                src={logoImage}
+                alt="Striker's House"
                 className="relative w-full max-w-md mx-auto lg:max-w-none grayscale hover:grayscale-0 transition-all duration-700"
               />
             </div>

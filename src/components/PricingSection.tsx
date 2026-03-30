@@ -97,20 +97,6 @@ function PricingCard({ item }: { item: PricingItem }) {
           )}
         </div>
 
-        {/* Sessions info */}
-        <div className="space-y-1 mb-5">
-          {sessionsPerMonth && (
-            <p className={`text-sm font-semibold ${popular ? "text-black" : "text-white"}`}>
-              {sessionsPerMonth} {t("pricing.sessionsMonth")}
-            </p>
-          )}
-          {pricePerSession && (
-            <p className={`text-xs ${popular ? "text-gray-500" : "text-white/50"}`}>
-              a {pricePerSession}€/{t("pricing.perSession")}
-            </p>
-          )}
-        </div>
-
         {/* Description */}
         {item.description && (
           <p className={`text-sm whitespace-pre-line ${popular ? "text-gray-500" : "text-white/50"}`}>

@@ -387,7 +387,13 @@
   },
   "app": {
     "title": "Download the app",
-    "description": "At Striker's House you manage your experience. Book your classes and manage your plans in our app."
+    "description": "At Striker's House you manage your experience. Book your classes and manage your plans in our app.",
+    "steps": {
+      "download": "Download the app",
+      "profile": "Create your profile",
+      "plan": "Choose your plan",
+      "pay": "Pay and start training"
+    }
   },
   "privacy": {
     "title": "Privacy Policy",

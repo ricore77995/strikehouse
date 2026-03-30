@@ -387,7 +387,13 @@
   },
   "app": {
     "title": "Faz download da app",
-    "description": "Na Striker's House quem gere a tua experiência és tu. Marca as tuas aulas e gere os teus planos na nossa app."
+    "description": "Na Striker's House quem gere a tua experiência és tu. Marca as tuas aulas e gere os teus planos na nossa app.",
+    "steps": {
+      "download": "Faz download da app",
+      "profile": "Cria o teu perfil",
+      "plan": "Escolhe o teu plano",
+      "pay": "Paga e começa a treinar"
+    }
   },
   "privacy": {
     "title": "Política de Privacidade",

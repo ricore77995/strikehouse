@@ -15,9 +15,10 @@ import AppDownloadSection from "@/components/AppDownloadSection";
 import { WHATSAPP_URL } from "@/constants/contact";
 import heroImage from "@/assets/hero-editorial.jpg";
 import trainingImg from "@/assets/training-calm.jpg";
+import muayThaiImg from "@/assets/istockphoto-1620896814-612x612.jpg";
 import glovesImg from "@/assets/gloves-detail.jpg";
 import mmaImg from "@/assets/mma.jpg";
-import coachImg from "@/assets/coach-tank.jpg";
+import athleteImg from "@/assets/athlete-portrait.jpg";
 
 const scrollToTryNow = () =>
   document.getElementById("try-now")?.scrollIntoView({ behavior: "smooth" });
@@ -37,7 +38,7 @@ const Index = () => {
       key: "muayThai",
       name: t("membership.page.modalities.muayThai.name"),
       description: t("membership.page.modalities.muayThai.description"),
-      image: trainingImg,
+      image: muayThaiImg,
     },
     {
       key: "mma",
@@ -185,59 +186,53 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Welcome New Striker - Light Box */}
-      <section className="py-20 bg-background">
+      {/* Welcome + Try Now - Light Box Grid */}
+      <section id="try-now" className="py-20 bg-background">
         <div className="light-box">
-          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+            {/* Left — Welcome */}
             <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.7 }}
-              className="flex-1 max-w-xl"
+              transition={{ duration: 0.6 }}
+              className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start"
             >
-              <p className="text-gray-400 text-sm tracking-wider mb-3">
-                {t("welcome.subtitle")}
-              </p>
-              <h2 className="text-4xl md:text-5xl text-black leading-tight mb-6 font-light">
-                {t("welcome.title")}{" "}
-                <span className="font-bold">{t("welcome.titleBold")}</span>
-              </h2>
-              <p className="text-gray-600 text-lg leading-relaxed mb-8">
-                {t("welcome.description")}
-              </p>
-              <div className="flex flex-wrap gap-4">
-                <a
-                  href="#try-now"
-                  className="px-6 py-3 bg-black text-white rounded-full text-xs font-semibold uppercase tracking-wider hover:bg-gray-800 transition-colors"
-                >
-                  {t("welcome.ctaTry")}
-                </a>
+              <div>
+                <p className="text-black text-sm font-bold tracking-wider uppercase mb-3">
+                  {t("welcome.subtitle")}
+                </p>
+                <h2 className="text-3xl md:text-4xl text-black leading-tight mb-4 font-light">
+                  {t("welcome.title")}{" "}
+                  <span className="font-bold text-red-600">{t("welcome.titleBold")}</span>
+                </h2>
+                <p className="text-gray-600 leading-relaxed mb-6">
+                  {t("welcome.description")}
+                </p>
                 <a
                   href="#faq-chat"
-                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-full text-xs font-semibold uppercase tracking-wider hover:border-gray-500 transition-colors"
+                  className="inline-block px-5 py-2.5 bg-black text-white rounded-full text-xs font-semibold uppercase tracking-wider hover:bg-gray-800 transition-colors"
                 >
                   {t("welcome.ctaExpect")}
                 </a>
               </div>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, delay: 0.2 }}
-              className="flex-shrink-0"
-            >
-              <div className="relative w-[300px] h-[350px] md:w-[380px] md:h-[430px] rounded-2xl overflow-hidden shadow-xl">
-                <img src={coachImg} alt="Coach" className="w-full h-full object-cover" />
+              <div className="rounded-xl overflow-hidden shadow-lg">
+                <img src={athleteImg} alt="Athlete" className="w-full h-[400px] object-cover" />
               </div>
+            </motion.div>
+
+            {/* Right — Try Now */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.15 }}
+            >
+              <TryNowSection />
             </motion.div>
           </div>
         </div>
       </section>
-
-      {/* Try Now Section */}
-      <TryNowSection />
 
       {/* App Download */}
       <AppDownloadSection />

@@ -1,160 +1,57 @@
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import trainingImg from "@/assets/training-calm.jpg";
+import coachImg from "@/assets/WhatsApp Image 2026-03-30 at 14.20.16.jpeg";
 
 const TRIAL_URL = "https://strikershouse.yogobooking.pt/frontend/index.html?itemType=class_pass_type&itemId=14172#/login-with-cart";
-const APP_SCHEDULE_URL = "https://strikershouse.yogobooking.pt/frontend/index.html#/schedule";
 
 export default function TryNowSection() {
   const { t } = useTranslation();
 
   return (
-    <section id="try-now" className="relative bg-background overflow-hidden">
+    <div className="relative rounded-2xl overflow-hidden bg-[#0a0a14] min-h-[500px] flex flex-col justify-center">
       {/* Background image with overlay */}
       <div className="absolute inset-0">
-        <img
-          src={trainingImg}
-          alt=""
-          className="w-full h-full object-cover opacity-30"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/60" />
+        <img src={trainingImg} alt="" className="w-full h-full object-cover opacity-30" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a14] via-[#0a0a14]/80 to-[#0a0a14]/60" />
       </div>
 
-      <div className="container mx-auto px-6 relative z-10 py-20">
-        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
-          {/* Left — Text content */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-            className="flex-1 max-w-xl"
+      <div className="relative z-10 p-8 md:p-10 grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+        {/* Left — Text + button */}
+        <div>
+          <h2 className="text-3xl md:text-4xl font-light text-white leading-tight mb-4">
+            {t("tryNow.heroTitle")}{" "}
+            <span className="font-bold text-red-500">{t("tryNow.heroPrice")}</span>
+            <br />
+            <span className="font-bold text-white">{t("tryNow.heroUrgency")}</span>
+          </h2>
+          <p className="text-white/60 leading-relaxed mb-6">
+            {t("tryNow.heroDescription")}
+          </p>
+          <a
+            href={TRIAL_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-yogo-parsed="true"
+            className="inline-block px-6 py-3 bg-red-600 text-white rounded-full text-xs font-semibold uppercase tracking-wider hover:bg-red-700 transition-colors"
           >
-            <h2 className="text-4xl md:text-5xl font-light text-white leading-tight mb-6">
-              {t("tryNow.heroTitle")}{" "}
-              <span className="font-bold text-red-500">{t("tryNow.heroPrice")}</span>
-              <br />
-              <span className="font-bold text-white">{t("tryNow.heroUrgency")}</span>
-            </h2>
-            <p className="text-white/60 text-lg mb-8 leading-relaxed">
-              {t("tryNow.heroDescription")}
-            </p>
-            <a
-              href={TRIAL_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              data-yogo-parsed="true"
-              className="inline-block px-8 py-4 bg-red-600 text-white rounded-full text-sm font-semibold uppercase tracking-wider hover:bg-red-700 transition-colors"
-            >
-              {t("tryNow.cta")}
-            </a>
-          </motion.div>
+            {t("tryNow.cta")}
+          </a>
+        </div>
 
-          {/* Right — Phone mockup with app screenshot */}
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7, delay: 0.2 }}
-            className="flex-shrink-0"
-          >
-            <div className="relative">
-              {/* Glow behind phone */}
-              <div className="absolute -inset-8 bg-red-600/10 rounded-full blur-3xl" />
-
-              {/* Phone frame */}
-              <div className="relative w-[280px] h-[580px] bg-black rounded-[3rem] p-3 shadow-2xl border border-white/10">
-                {/* Notch */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-black rounded-b-2xl z-20" />
-
-                {/* Screen */}
-                <div className="w-full h-full rounded-[2.4rem] overflow-hidden bg-white">
-                  {/* Status bar */}
-                  <div className="bg-gray-100 px-6 pt-10 pb-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-semibold text-gray-800">Schedule</span>
-                      <div className="flex gap-1">
-                        <div className="w-3 h-3 rounded bg-gray-300" />
-                        <div className="w-3 h-3 rounded bg-gray-300" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Day header */}
-                  <div className="bg-gray-700 px-4 py-2">
-                    <span className="text-[10px] font-semibold text-white">Monday, 30 Mar</span>
-                  </div>
-
-                  {/* Class items */}
-                  {[
-                    { name: "GIRL POWER", time: "08:30", coach: "Head Coach (Marcelo)", tags: "Muay Thai \u2022 Kick Boxing \u2022 Fitness", accent: "bg-pink-500" },
-                    { name: "STRIKING", time: "19:00", coach: "Head Coach (Marcelo)", tags: "Muay Thai \u2022 Kick Boxing \u2022 MMA", accent: "bg-gray-800" },
-                    { name: "STRIKING", time: "20:00", coach: "Head Coach (Marcelo)", tags: "Muay Thai \u2022 Kick Boxing \u2022 MMA", accent: "bg-gray-800" },
-                  ].map((cls, i) => (
-                    <div key={i} className="px-4 py-3 border-b border-gray-100">
-                      <div className="flex items-center gap-1 mb-0.5">
-                        <span className="text-[8px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">Carcavelos</span>
-                      </div>
-                      <div className="text-[8px] text-gray-400 mb-0.5">{cls.coach}</div>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="text-[11px] font-bold text-gray-900">{cls.name}</div>
-                          <div className="text-[7px] text-gray-400">{cls.tags}</div>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] font-medium text-gray-600">{cls.time}</span>
-                          <div className={`w-1 h-6 rounded-full ${cls.accent}`} />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Tuesday header */}
-                  <div className="bg-gray-700 px-4 py-2">
-                    <span className="text-[10px] font-semibold text-white">Tuesday, 31 Mar</span>
-                  </div>
-
-                  <div className="px-4 py-3">
-                    <div className="flex items-center gap-1 mb-0.5">
-                      <span className="text-[8px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">Carcavelos</span>
-                    </div>
-                    <div className="text-[8px] text-gray-400 mb-0.5">Head Coach (Marcelo)</div>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-[11px] font-bold text-gray-900">STRIKING</div>
-                        <div className="text-[7px] text-gray-400">Muay Thai &#8226; Kick Boxing &#8226; MMA</div>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-medium text-gray-600">08:00</span>
-                        <div className="w-1 h-6 rounded-full bg-gray-800" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Bottom nav */}
-                  <div className="absolute bottom-3 left-3 right-3">
-                    <div className="bg-white border-t border-gray-200 rounded-b-[2.4rem] flex justify-around py-2 px-2">
-                      {[
-                        { label: "Schedule", active: true },
-                        { label: "Events", active: false },
-                        { label: "Prices", active: false },
-                        { label: "Profile", active: false },
-                      ].map((tab) => (
-                        <div key={tab.label} className="flex flex-col items-center gap-0.5">
-                          <div className={`w-4 h-4 rounded ${tab.active ? "bg-red-500" : "bg-gray-300"}`} />
-                          <span className={`text-[7px] ${tab.active ? "text-red-500 font-semibold" : "text-gray-400"}`}>
-                            {tab.label}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+        {/* Right — Phone mockup */}
+        <div className="flex justify-center">
+          <div className="relative">
+            <div className="absolute -inset-6 bg-red-600/10 rounded-full blur-3xl" />
+            <div className="relative w-[220px] h-[440px] bg-black rounded-[2.5rem] p-2.5 shadow-2xl border border-white/10">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-5 bg-black rounded-b-xl z-20" />
+              <div className="w-full h-full rounded-[2rem] overflow-hidden">
+                <img src={coachImg} alt="Coach" className="w-full h-full object-cover" />
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 }
