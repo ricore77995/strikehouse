@@ -240,8 +240,14 @@ function buildPriceGroups(
         });
       }
 
-      // Sort items within group
-      items.sort((a, b) => a.sortInGroup - b.sortInGroup);
+      // Sort items within group (fallback to price ascending when sort values are equal)
+      items.sort((a, b) => {
+        const sortDiff = a.sortInGroup - b.sortInGroup;
+        if (sortDiff !== 0) return sortDiff;
+        const priceA = a.paymentOptions[0]?.price ?? 0;
+        const priceB = b.paymentOptions[0]?.price ?? 0;
+        return priceA - priceB;
+      });
 
       return {
         id: group.id,

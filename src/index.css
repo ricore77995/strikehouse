@@ -288,6 +288,75 @@
     display: none !important;
   }
 
+  /* YOGO Products Widget - Dark Theme */
+  .yogo-products-wrapper {
+    min-height: 200px;
+  }
+
+  .yogo-products-wrapper:has(.yogo-products:empty)::after {
+    content: '';
+    display: block;
+    width: 2rem;
+    height: 2rem;
+    margin: 4rem auto;
+    border: 2px solid #222;
+    border-top-color: #c62828;
+    border-radius: 50%;
+    animation: yogoSpin 0.8s linear infinite;
+  }
+
+  .yogo-products-wrapper,
+  .yogo-products-wrapper *,
+  .yogo-products-wrapper *::before,
+  .yogo-products-wrapper *::after {
+    background-color: transparent !important;
+    color: #fff !important;
+    border-color: #222 !important;
+  }
+
+  .yogo-products-wrapper h1,
+  .yogo-products-wrapper h2,
+  .yogo-products-wrapper h3,
+  .yogo-products-wrapper h4,
+  .yogo-products-wrapper strong,
+  .yogo-products-wrapper b {
+    color: #fff !important;
+  }
+
+  .yogo-products-wrapper button,
+  .yogo-products-wrapper .btn,
+  .yogo-products-wrapper [class*="btn"],
+  .yogo-products-wrapper input[type="submit"] {
+    background-color: #c62828 !important;
+    color: #fff !important;
+    border-color: #c62828 !important;
+    border-radius: 0 !important;
+  }
+
+  .yogo-products-wrapper button:hover,
+  .yogo-products-wrapper .btn:hover,
+  .yogo-products-wrapper [class*="btn"]:hover {
+    background-color: #e53935 !important;
+    color: #fff !important;
+    border-color: #e53935 !important;
+  }
+
+  .yogo-products-wrapper a {
+    color: #c62828 !important;
+  }
+
+  .yogo-products-wrapper input,
+  .yogo-products-wrapper select,
+  .yogo-products-wrapper textarea {
+    background-color: #111 !important;
+    color: #fff !important;
+    border-color: #333 !important;
+  }
+
+  .yogo-products-wrapper img {
+    border-radius: 0.5rem;
+  }
+
   /* Scrollbar hide utility for pricing tabs */
   .scrollbar-hide {
     -ms-overflow-style: none;

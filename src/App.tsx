@@ -22,6 +22,7 @@ import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import MemberQR from "./pages/MemberQR";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
+import Shop from "./pages/Shop";
 
 // Owner pages
 import OwnerDashboard from "./pages/owner/Dashboard";
@@ -94,6 +95,7 @@ const StaffRoutes = () => (
       <Route path="/login" element={<Login />} />
       <Route path="/m/:qrCode" element={<MemberQR />} />
       <Route path="/checkout/success" element={<CheckoutSuccess />} />
+      <Route path="/lojafisica" element={<Shop />} />
 
       {/* Owner routes */}
       <Route
