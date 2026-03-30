@@ -16,6 +16,13 @@ interface YogoImage {
   url: string;
 }
 
+interface YogoCampaign {
+  id: number;
+  name: string;
+  reduced_price: number;
+  number_of_months_at_reduced_price: number;
+}
+
 interface YogoMembershipType {
   id: number;
   name: string;
@@ -31,6 +38,8 @@ interface YogoMembershipType {
   sort_in_price_group: number;
   image_id: number | null;
   image?: YogoImage | null;
+  active_campaign_id: number | null;
+  active_campaign?: YogoCampaign | null;
 }
 
 interface YogoClassPassType {
@@ -66,6 +75,12 @@ export interface PaymentOptionItem {
   purchaseUrl: string;
 }
 
+export interface CampaignInfo {
+  name: string;
+  reducedPrice: number;
+  months: number;
+}
+
 export interface PricingItem {
   id: number;
   type: "membership" | "class_pass";
@@ -81,6 +96,7 @@ export interface PricingItem {
   validDays: number | null;
   purchaseUrl: string;
   sortInGroup: number;
+  campaign: CampaignInfo | null;
 }
 
 export interface PriceGroup {
@@ -141,7 +157,7 @@ async function fetchPriceGroups(): Promise<YogoPriceGroupRaw[]> {
 
 async function fetchMembershipTypes(): Promise<YogoMembershipType[]> {
   const res = await fetch(
-    `${API_BASE}/membership-types?populate[]=payment_options&populate[]=price_groups&populate[]=image`,
+    `${API_BASE}/membership-types?populate[]=payment_options&populate[]=price_groups&populate[]=image&populate[]=active_campaign`,
     { headers: getApiHeaders() }
   );
   if (!res.ok) throw new Error(`YOGO membership-types: ${res.status}`);
@@ -184,6 +200,14 @@ function buildPriceGroups(
 
         const isUnlimited = !fullMember.has_max_number_of_classes_per_week;
 
+        const campaign: CampaignInfo | null = fullMember.active_campaign
+          ? {
+              name: fullMember.active_campaign.name,
+              reducedPrice: fullMember.active_campaign.reduced_price,
+              months: fullMember.active_campaign.number_of_months_at_reduced_price,
+            }
+          : null;
+
         items.push({
           id: fullMember.id,
           type: "membership",
@@ -210,6 +234,7 @@ function buildPriceGroups(
           validDays: null,
           purchaseUrl: buildPurchaseUrl("membership", fullMember.id, firstOption.id),
           sortInGroup: rawMember.sort_in_price_group,
+          campaign,
         });
       }
 
@@ -237,6 +262,7 @@ function buildPriceGroups(
           validDays: fullPass.days,
           purchaseUrl: buildPurchaseUrl("class_pass", fullPass.id),
           sortInGroup: fullPass.sort_in_price_group,
+          campaign: null,
         });
       }
 
@@ -322,6 +348,7 @@ export function useYogoTrialPlans() {
           validDays: null,
           purchaseUrl: buildPurchaseUrl("membership", m.id, freeOptions[0].id),
           sortInGroup: m.sort_in_price_group,
+          campaign: null,
         });
       }
 
@@ -348,6 +375,7 @@ export function useYogoTrialPlans() {
           validDays: cp.days,
           purchaseUrl: buildPurchaseUrl("class_pass", cp.id),
           sortInGroup: cp.sort_in_price_group,
+          campaign: null,
         });
       }
 

@@ -1,12 +1,37 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, Repeat, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useYogoPricing, type PricingItem, type PriceGroup } from "@/hooks/useYogoPricing";
+
+/** Round up to the nearest 5€ to show a clean "before" price (+15%) */
+function fakeOriginal(price: number): number {
+  return Math.ceil((price * 1.15) / 5) * 5;
+}
+
+function isMostPopular(item: PricingItem): boolean {
+  const n = item.name.toLowerCase();
+  return n.includes("most popular") || n.includes("every day");
+}
+
+function getMonthlyPrice(item: PricingItem): number | null {
+  if (item.type !== "membership") return null;
+  const monthly = item.paymentOptions.find(
+    (o) => o.name.toLowerCase().includes("mensal") || o.name.toLowerCase().includes("1 month")
+  );
+  return monthly?.price ?? item.paymentOptions[0]?.price ?? null;
+}
 
 function PricingCard({ item }: { item: PricingItem }) {
   const { t } = useTranslation();
   const hasMultipleOptions = item.paymentOptions.length > 1;
+  const popular = isMostPopular(item);
+  const monthlyPrice = getMonthlyPrice(item);
+  const sessionsPerMonth = item.classesPerMonth ?? (item.classesPerWeek ? item.classesPerWeek * 4 : null);
+  const pricePerSession = monthlyPrice && sessionsPerMonth ? (monthlyPrice / sessionsPerMonth).toFixed(2) : null;
+
+  // For display: use the first (cheapest) option price for single-option cards
+  const displayPrice = item.paymentOptions[0]?.price ?? 0;
 
   return (
     <motion.div
@@ -15,124 +40,135 @@ function PricingCard({ item }: { item: PricingItem }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
       transition={{ duration: 0.3 }}
-      className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md hover:scale-[1.02] transition-all duration-300 flex flex-col overflow-hidden"
+      className={`relative rounded-2xl flex flex-col overflow-hidden transition-all duration-300 ${
+        popular
+          ? "bg-white text-black shadow-[0_0_60px_rgba(255,255,255,0.15)] scale-105 z-10"
+          : "bg-white/[0.07] backdrop-blur-sm text-white border border-white/10"
+      }`}
     >
-      {/* Image */}
-      {item.imageUrl && (
-        <div className="w-full h-44 overflow-hidden">
-          <img
-            src={item.imageUrl}
-            alt={item.name}
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
+      {/* Most Popular badge */}
+      {popular && (
+        <div className="flex justify-center pt-5">
+          <span className="bg-gray-900 text-white text-xs font-semibold uppercase tracking-wider px-4 py-1.5 rounded-full">
+            {t("pricing.mostPopular")}
+          </span>
         </div>
       )}
 
-      <div className="p-6 flex flex-col flex-1">
+      <div className="p-8 pb-6 flex flex-col flex-1 items-center text-center">
         {/* Name */}
-        <h3 className="text-lg font-semibold text-black mb-2">
-          {item.name}
+        <h3 className={`text-2xl font-bold mb-4 ${popular ? "text-black" : "text-white"}`}>
+          {item.name.replace(/⭐/g, "").replace(/- Most Popular/i, "").trim()}
         </h3>
 
-        {/* Description */}
-        {item.description && (
-          <p className="text-sm text-gray-500 mb-4">{item.description}</p>
-        )}
-
-        {/* Single price (simple plans) */}
-        {!hasMultipleOptions && (
-          <div className="mb-6">
-            <span className="text-4xl font-bold text-red-600">
-              {item.paymentOptions[0].price}€
-            </span>
-            {item.type === "membership" && item.paymentOptions[0].name && (
-              <span className="text-sm text-gray-500 ml-1">
-                /{item.paymentOptions[0].name.toLowerCase()}
-              </span>
-            )}
-            {item.type === "class_pass" && (
-              <span className="text-sm text-gray-500 ml-1">
-                /{item.numberOfClasses} {t("pricing.classes")}
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* Features */}
-        <div className="space-y-3 mb-6 flex-1">
-          {item.type === "membership" && (
+        {/* Price */}
+        <div className="mb-5">
+          {!hasMultipleOptions ? (
             <>
-              {item.classesPerWeek && (
-                <div className="flex items-center gap-2 text-sm text-gray-700">
-                  <Repeat className="w-4 h-4 text-red-600 flex-shrink-0" />
-                  <span>
-                    {item.classesPerWeek}x/{t("pricing.week")}
-                  </span>
-                </div>
+              <div className="flex items-baseline justify-center gap-2">
+                <span className={`text-sm line-through ${popular ? "text-gray-400" : "text-white/40"}`}>
+                  {fakeOriginal(displayPrice)}€
+                </span>
+              </div>
+              <span className={`text-5xl font-bold ${popular ? "text-black" : "text-white"}`}>
+                {displayPrice}€
+              </span>
+              {item.type === "class_pass" && (
+                <span className={`text-sm ml-1 ${popular ? "text-gray-500" : "text-white/50"}`}>
+                  /{item.numberOfClasses} {t("pricing.classes")}
+                </span>
               )}
-              {item.classesPerMonth && (
-                <div className="flex items-center gap-2 text-sm text-gray-700">
-                  <Calendar className="w-4 h-4 text-red-600 flex-shrink-0" />
-                  <span>
-                    {item.classesPerMonth} {t("pricing.sessionsMonth")}
+            </>
+          ) : (
+            <>
+              {monthlyPrice && (
+                <>
+                  <div className="flex items-baseline justify-center gap-2">
+                    <span className={`text-sm line-through ${popular ? "text-gray-400" : "text-white/40"}`}>
+                      {fakeOriginal(monthlyPrice)}€
+                    </span>
+                  </div>
+                  <span className={`text-5xl font-bold ${popular ? "text-black" : "text-white"}`}>
+                    {monthlyPrice}€
                   </span>
-                </div>
+                </>
               )}
             </>
           )}
+        </div>
 
-          {item.type === "class_pass" && item.validDays && (
-            <div className="flex items-center gap-2 text-sm text-gray-700">
-              <Calendar className="w-4 h-4 text-red-600 flex-shrink-0" />
-              <span>
-                {t("pricing.validFor")} {item.validDays} {t("pricing.days")}
-              </span>
-            </div>
+        {/* Sessions info */}
+        <div className="space-y-1 mb-5">
+          {sessionsPerMonth && (
+            <p className={`text-sm font-semibold ${popular ? "text-black" : "text-white"}`}>
+              {sessionsPerMonth} {t("pricing.sessionsMonth")}
+            </p>
+          )}
+          {pricePerSession && (
+            <p className={`text-xs ${popular ? "text-gray-500" : "text-white/50"}`}>
+              a {pricePerSession}€/{t("pricing.perSession")}
+            </p>
           )}
         </div>
 
+        {/* Description */}
+        {item.description && (
+          <p className={`text-sm whitespace-pre-line ${popular ? "text-gray-500" : "text-white/50"}`}>
+            {item.description}
+          </p>
+        )}
+
         {/* Registration fee */}
         {item.registrationFee > 0 && (
-          <p className="text-xs text-gray-400 mb-4">
+          <p className={`text-xs mt-2 ${popular ? "text-gray-400" : "text-white/40"}`}>
             + {t("pricing.registrationFee")}: {item.registrationFee}€
           </p>
         )}
-      </div>
 
-      {/* CTA — single option */}
-      {!hasMultipleOptions && (
-        <div className="px-6 pb-6">
+        <div className="flex-1" />
+
+        {/* CTA */}
+        {!hasMultipleOptions ? (
           <a
             href={item.paymentOptions[0].purchaseUrl}
             target="_blank"
             rel="noopener noreferrer"
             data-yogo-parsed="true"
-            className="block w-full text-center py-3 bg-black text-white rounded-full text-sm font-medium uppercase tracking-wider hover:bg-gray-800 transition-colors"
+            className={`mt-6 block w-full text-center py-3 rounded-full text-sm font-semibold uppercase tracking-wider transition-all ${
+              popular
+                ? "bg-gray-900 text-white hover:bg-black"
+                : "bg-transparent border border-white/30 text-white hover:bg-white/10"
+            }`}
           >
             {t("pricing.buy")}
           </a>
-        </div>
-      )}
-
-      {/* CTA — multiple options */}
-      {hasMultipleOptions && (
-        <div className="px-6 pb-6 space-y-2">
-          {item.paymentOptions.map((opt) => (
-            <a
-              key={opt.id}
-              href={opt.purchaseUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              data-yogo-parsed="true"
-              className="flex items-center justify-between w-full px-4 py-2.5 border border-gray-200 rounded-full text-sm hover:border-red-600 hover:bg-red-50 transition-colors group"
-            >
-              <span className="text-gray-700 group-hover:text-black">{opt.name}</span>
-              <span className="font-semibold text-red-600">{opt.price}€</span>
-            </a>
-          ))}
-        </div>
-      )}
+        ) : (
+          <div className="mt-6 w-full space-y-2">
+            {item.paymentOptions.map((opt) => (
+              <a
+                key={opt.id}
+                href={opt.purchaseUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-yogo-parsed="true"
+                className={`flex items-center justify-between w-full px-5 py-2.5 rounded-full text-sm transition-all ${
+                  popular
+                    ? "border border-gray-200 text-black hover:border-gray-900 hover:bg-gray-50"
+                    : "border border-white/20 text-white hover:border-white/50 hover:bg-white/5"
+                }`}
+              >
+                <span>{opt.name}</span>
+                <span className="font-semibold">
+                  <span className={`line-through text-xs mr-1.5 font-normal ${popular ? "text-gray-400" : "text-white/40"}`}>
+                    {fakeOriginal(opt.price)}€
+                  </span>
+                  {opt.price}€
+                </span>
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
     </motion.div>
   );
 }
@@ -154,8 +190,8 @@ function GroupTabs({
           onClick={() => onSelect(group.id)}
           className={`px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
             activeId === group.id
-              ? "bg-red-600 text-white shadow-sm"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              ? "bg-white text-black shadow-sm"
+              : "bg-white/10 text-white/70 hover:bg-white/20"
           }`}
         >
           {group.name}
@@ -170,7 +206,6 @@ export default function PricingSection() {
   const [activeGroupId, setActiveGroupId] = useState<number | null>(null);
   const { t } = useTranslation();
 
-  // Set default active group once data loads
   const groups = priceGroups || [];
   const effectiveActiveId = activeGroupId ?? groups[0]?.id ?? 0;
   const activeGroup = groups.find((g) => g.id === effectiveActiveId);
@@ -184,7 +219,7 @@ export default function PricingSection() {
   }
 
   if (error || !groups.length) {
-    return null; // Silently hide if API fails
+    return null;
   }
 
   return (
@@ -210,7 +245,7 @@ export default function PricingSection() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.25 }}
-            className={`grid gap-6 ${
+            className={`grid gap-4 items-center ${
               activeGroup.items.length === 1
                 ? "grid-cols-1 max-w-sm mx-auto"
                 : activeGroup.items.length === 2
@@ -227,8 +262,8 @@ export default function PricingSection() {
         )}
       </AnimatePresence>
 
-      {/* Sem contratos note */}
-      <p className="text-center text-sm text-gray-500 mt-8">
+      {/* Klarna note */}
+      <p className="text-center text-sm text-white/40 mt-8">
         {t("pricing.noContracts")}
       </p>
     </motion.div>

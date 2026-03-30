@@ -58,6 +58,11 @@ const Header = () => {
       label: t('header.schedule'),
       isAnchor: isHomePage,
     },
+    {
+      href: "https://apps.apple.com/dk/app/strikers-house/id6760544356",
+      label: t('header.downloadApp'),
+      isAnchor: true,
+    },
   ];
 
   const SmartLink = ({ href, isAnchor, onClick, className, children }: {
@@ -153,7 +158,7 @@ const Header = () => {
 
               <LanguageSwitcher />
               <a href="https://strikershouse.yogobooking.pt/frontend/index.html#/my-profile" target="_blank" rel="noopener noreferrer" className="text-xs uppercase tracking-[0.12em] text-foreground/60 hover:text-foreground transition-colors">
-                Login
+                {t('header.myAccount')}
               </a>
             </div>
 
@@ -283,7 +288,7 @@ const Header = () => {
                   onClick={handleLinkClick}
                   className="text-base tracking-[0.2em] uppercase font-light text-white/50 hover:text-white transition-colors"
                 >
-                  Login
+                  {t('header.myAccount')}
                 </a>
               </div>
             </nav>

@@ -7,7 +7,9 @@
     "bookNow": "Book Now",
     "buySessions": "Buy Sessions",
     "tryNow": "Try Now",
-    "corporate": "Corporate"
+    "corporate": "Corporate",
+    "downloadApp": "Download App",
+    "myAccount": "My Account"
   },
   "firstTime": {
     "heroTitle": "Before your first training",
@@ -347,7 +349,14 @@
     "registrationFee": "Registration fee",
     "buy": "Buy",
     "comingSoon": "Coming Soon",
-    "noContracts": "Easy payments with Klarna — pay in installments, we receive upfront."
+    "noContracts": "Easy payments with Klarna — pay in installments, we receive upfront.",
+    "month": "month",
+    "months": "months",
+    "for": "for",
+    "mostPopular": "Most Popular",
+    "perSession": "session",
+    "noContractsShort": "No contracts",
+    "orLoyalty": "or loyalty"
   },
   "tryNow": {
     "title": "Try For Free",
@@ -358,11 +367,27 @@
     "cardDescription": "Try any modality — Boxing, Muay Thai or MMA. No commitment.",
     "cta": "Book Free Class",
     "whatsappMessage": "Hi! I'd like to try a free class at Striker's House.",
+    "heroTitle": "Try for",
+    "heroPrice": "free.",
+    "heroUrgency": "Limited spots.",
+    "heroDescription": "Book your trial class and experience Boxing, Muay Thai or MMA. No commitment, no equipment needed.",
     "features": {
       "1": "No commitment — come try with no charge",
       "2": "<a href='/#faq-chat'>Equipment available</a> — just bring sportswear",
       "3": "All levels — from beginner to advanced"
     }
+  },
+  "welcome": {
+    "subtitle": "Welcome, new Striker!",
+    "title": "First time?",
+    "titleBold": "We've got you.",
+    "description": "At Striker's House there's no reception desk. Walk in like it's your home and check yourself in — it's quick and easy. Your coach will have gloves ready and will show you everything you need to know.",
+    "ctaTry": "Try Now",
+    "ctaExpect": "What to Expect"
+  },
+  "app": {
+    "title": "Download the app",
+    "description": "At Striker's House you manage your experience. Book your classes and manage your plans in our app."
   },
   "privacy": {
     "title": "Privacy Policy",

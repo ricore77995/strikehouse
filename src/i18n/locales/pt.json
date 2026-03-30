@@ -7,7 +7,9 @@
     "bookNow": "Reservar Agora",
     "buySessions": "Comprar Sessões",
     "tryNow": "Experimenta Já",
-    "corporate": "Corporate"
+    "corporate": "Corporate",
+    "downloadApp": "Download da App",
+    "myAccount": "A Minha Conta"
   },
   "firstTime": {
     "heroTitle": "Antes do teu primeiro treino",
@@ -347,7 +349,14 @@
     "registrationFee": "Inscrição",
     "buy": "Comprar",
     "comingSoon": "Em Breve",
-    "noContracts": "Pagamento facilitado com Klarna — paga em prestações, nós recebemos à vista."
+    "noContracts": "Pagamento facilitado com Klarna — paga em prestações, nós recebemos à vista.",
+    "month": "mês",
+    "months": "meses",
+    "for": "durante",
+    "mostPopular": "Mais Vendido",
+    "perSession": "sessão",
+    "noContractsShort": "Sem contratos",
+    "orLoyalty": "ou fidelização"
   },
   "tryNow": {
     "title": "Experimenta Grátis",
@@ -358,11 +367,27 @@
     "cardDescription": "Experimenta qualquer modalidade — Boxe, Muay Thai ou MMA. Sem compromisso.",
     "cta": "Marcar Aula Grátis",
     "whatsappMessage": "Olá! Quero experimentar uma aula grátis na Striker's House.",
+    "heroTitle": "Experimenta",
+    "heroPrice": "grátis.",
+    "heroUrgency": "Vagas limitadas.",
+    "heroDescription": "Inscreve-te na aula experimental e experimenta Boxe, Muay Thai ou MMA. Sem compromisso, sem equipamento.",
     "features": {
       "1": "Sem compromisso — vem experimentar sem pagar nada",
       "2": "<a href='/#faq-chat'>Equipamento disponível</a> — só precisas de roupa desportiva",
       "3": "Todos os níveis — do iniciante ao avançado"
     }
+  },
+  "welcome": {
+    "subtitle": "Bem-vindo, novo Striker!",
+    "title": "Primeira vez?",
+    "titleBold": "Nós ajudamos.",
+    "description": "Na Striker's House não há recepção. Entra como se fosse a tua casa e faz o teu próprio check-in na app — é simples e rápido. O coach terá umas luvas para ti e vai explicar-te como tudo funciona.",
+    "ctaTry": "Experimenta Já",
+    "ctaExpect": "O Que Esperar"
+  },
+  "app": {
+    "title": "Faz download da app",
+    "description": "Na Striker's House quem gere a tua experiência és tu. Marca as tuas aulas e gere os teus planos na nossa app."
   },
   "privacy": {
     "title": "Política de Privacidade",

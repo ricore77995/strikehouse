@@ -11,11 +11,13 @@ import WhyDifferent from "@/components/WhyDifferent";
 import Kids from "@/components/Kids";
 import PricingSection from "@/components/PricingSection";
 import TryNowSection from "@/components/TryNowSection";
+import AppDownloadSection from "@/components/AppDownloadSection";
 import { WHATSAPP_URL } from "@/constants/contact";
 import heroImage from "@/assets/hero-editorial.jpg";
 import trainingImg from "@/assets/training-calm.jpg";
 import glovesImg from "@/assets/gloves-detail.jpg";
 import mmaImg from "@/assets/mma.jpg";
+import coachImg from "@/assets/coach-tank.jpg";
 
 const scrollToTryNow = () =>
   document.getElementById("try-now")?.scrollIntoView({ behavior: "smooth" });
@@ -170,54 +172,24 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Try Now Section */}
-      <TryNowSection />
-
-      {/* Plans Section - Light Box */}
-      <section id="planos" className="py-20 bg-background">
-        <div className="light-box">
-          <OctagonFrame
-            className="absolute -left-32 top-1/4 w-[400px] h-[400px] opacity-20 -rotate-12"
-            strokeWidth={0.5}
-            showInner={true}
-            strokeColor="#c9a84c"
-            innerStrokeColor="#d4a843"
-          />
-          <OctagonFrame
-            className="absolute -right-20 top-10 w-[300px] h-[300px] opacity-20 rotate-6"
-            strokeWidth={0.4}
-            showInner={false}
-            strokeColor="#c9a84c"
-          />
-          <OctagonFrame
-            className="absolute left-1/3 -bottom-16 w-[250px] h-[250px] opacity-20 rotate-45"
-            strokeWidth={0.3}
-            showInner={true}
-            strokeColor="#d4a843"
-            innerStrokeColor="#c9a84c"
-          />
-          <OctagonFrame
-            className="absolute left-1/2 top-8 w-[180px] h-[180px] opacity-20 -rotate-[20deg]"
-            strokeWidth={0.3}
-            showInner={false}
-            strokeColor="#c9a84c"
-          />
-          <OctagonFrame
-            className="absolute right-10 bottom-20 w-[130px] h-[130px] opacity-20 rotate-[15deg]"
-            strokeWidth={0.25}
-            showInner={true}
-            strokeColor="#c9a84c"
-            innerStrokeColor="#d4a843"
-          />
+      {/* Plans Section - Dark */}
+      <section id="planos" className="py-20 bg-[#0a0a14] relative overflow-hidden">
+        <div className="container mx-auto px-6 relative z-10">
           <SectionHeader
             title={t("membership.page.plansTitle")}
             description={t("membership.page.plansDescription")}
             titleClassName="text-red-600"
-            descriptionClassName="text-gray-600"
+            descriptionClassName="text-white/60"
           />
           <PricingSection />
         </div>
       </section>
+
+      {/* Try Now Section */}
+      <TryNowSection />
+
+      {/* App Download */}
+      <AppDownloadSection />
 
       {/* Schedule - YOGO Calendar */}
       <section id="horario" className="py-20 bg-background relative overflow-hidden">
@@ -275,6 +247,67 @@ const Index = () => {
               </Button>
             </div>
           </motion.div>
+        </div>
+      </section>
+
+      {/* Welcome New Striker */}
+      <section className="bg-[#0c0c1a] py-20 relative overflow-hidden">
+        <div className="container mx-auto px-6">
+          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+            {/* Left — Text */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7 }}
+              className="flex-1 max-w-xl"
+            >
+              <p className="text-white/40 text-sm tracking-wider mb-3">
+                {t("welcome.subtitle")}
+              </p>
+              <h2 className="text-4xl md:text-5xl text-white leading-tight mb-6 font-light">
+                {t("welcome.title")}{" "}
+                <span className="font-bold">{t("welcome.titleBold")}</span>
+              </h2>
+              <p className="text-white/60 text-lg leading-relaxed mb-8">
+                {t("welcome.description")}
+              </p>
+              <div className="flex flex-wrap gap-4">
+                <a
+                  href={isHomePage ? "#try-now" : "/#try-now"}
+                  className="px-6 py-3 bg-white text-black rounded-full text-xs font-semibold uppercase tracking-wider hover:bg-white/90 transition-colors"
+                >
+                  {t("welcome.ctaTry")}
+                </a>
+                <a
+                  href={isHomePage ? "#faq-chat" : "/#faq-chat"}
+                  className="px-6 py-3 border border-white/30 text-white rounded-full text-xs font-semibold uppercase tracking-wider hover:border-white/60 transition-colors"
+                >
+                  {t("welcome.ctaExpect")}
+                </a>
+              </div>
+            </motion.div>
+
+            {/* Right — Coach image */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+              className="flex-shrink-0"
+            >
+              <div className="relative">
+                <div className="absolute -inset-4 bg-blue-500/10 rounded-3xl blur-2xl" />
+                <div className="relative w-[300px] h-[350px] md:w-[380px] md:h-[430px] rounded-2xl overflow-hidden border border-white/10">
+                  <img
+                    src={coachImg}
+                    alt="Coach"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+            </motion.div>
+          </div>
         </div>
       </section>
 
