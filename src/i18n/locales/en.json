@@ -395,6 +395,21 @@
       "pay": "Pay and start training"
     }
   },
+  "stats": {
+    "modalities": "Modalities",
+    "classesWeek": "Classes / week",
+    "members": "Active members",
+    "googleRating": "Google Rating"
+  },
+  "reviewsSection": {
+    "reviews": {
+      "1": "Incredible atmosphere and coach Marcelo is amazing. You feel at home from day one.",
+      "2": "Never thought I'd love Muay Thai this much. Classes are intense but super fun!",
+      "3": "Best martial arts gym in Cascais. Quality equipment and great people.",
+      "4": "Started with zero experience and in 2 months I feel like a different person. Highly recommend!",
+      "5": "Been training here for 6 months. The energy in classes is addictive, can't stop."
+    }
+  },
   "privacy": {
     "title": "Privacy Policy",
     "lastUpdated": "Last updated: March 2026",

@@ -84,6 +84,15 @@ const Footer = () => {
             </div>
           </div>
 
+          {/* Payment methods */}
+          <div className="flex flex-wrap items-center justify-center gap-4 mb-8 opacity-40">
+            {["Visa", "Mastercard", "Apple Pay", "Google Pay", "Klarna"].map((m) => (
+              <span key={m} className="text-[10px] uppercase tracking-wider text-muted-foreground border border-border rounded px-3 py-1.5 font-medium">
+                {m}
+              </span>
+            ))}
+          </div>
+
           {/* Bottom */}
           <div className="pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-xs text-muted-foreground tracking-wider">

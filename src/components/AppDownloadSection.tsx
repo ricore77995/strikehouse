@@ -29,7 +29,7 @@ export default function AppDownloadSection() {
   const { t } = useTranslation();
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-[#c9a84c] via-[#b8943f] to-[#a07e30]">
+    <section className="relative overflow-hidden bg-gradient-to-b from-[#c9a84c] via-[#8a6d2f] to-[#0a0a0a]">
       <div className="container mx-auto px-6 py-16">
         {/* Header */}
         <motion.div
@@ -63,7 +63,7 @@ export default function AppDownloadSection() {
                 {i + 1}
               </div>
               <PhoneMockup img={step.img} alt={t(`app.steps.${step.key}`)} />
-              <p className="mt-4 text-sm font-semibold text-gray-900">
+              <p className="mt-4 text-sm font-semibold text-white">
                 {t(`app.steps.${step.key}`)}
               </p>
             </motion.div>
