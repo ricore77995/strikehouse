@@ -162,23 +162,14 @@ const Header = () => {
               </a>
             </div>
 
-            {/* Mobile CTA + menu button */}
-            <div className="lg:hidden flex items-center gap-2">
-              <SmartLink
-                href={isHomePage ? "#try-now" : "/#try-now"}
-                isAnchor={isHomePage}
-                className="px-4 py-1.5 bg-foreground text-background rounded-full text-[9px] uppercase tracking-[0.12em] font-medium hover:bg-foreground/90 transition-colors"
-              >
-                {t('header.tryNow')}
-              </SmartLink>
-              <button
-                className="text-foreground p-2"
-                aria-label="Open menu"
-                onClick={() => setIsMenuOpen(true)}
-              >
-                <Menu className="w-6 h-6" />
-              </button>
-            </div>
+            {/* Mobile menu button */}
+            <button
+              className="lg:hidden text-foreground p-2"
+              aria-label="Open menu"
+              onClick={() => setIsMenuOpen(true)}
+            >
+              <Menu className="w-6 h-6" />
+            </button>
           </nav>
         </div>
 

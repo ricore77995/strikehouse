@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
-import { Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { Star, ChevronLeft, ChevronRight, Quote } from "lucide-react";
+import logoImg from "@/assets/logo.jpg";
 
 const reviews = [
-  { name: "Miguel S.", text: "reviewsSection.reviews.1", rating: 5, date: "2026-03" },
-  { name: "Ana R.", text: "reviewsSection.reviews.2", rating: 5, date: "2026-02" },
-  { name: "João P.", text: "reviewsSection.reviews.3", rating: 5, date: "2026-01" },
-  { name: "Sofia M.", text: "reviewsSection.reviews.4", rating: 5, date: "2025-12" },
-  { name: "Ricardo L.", text: "reviewsSection.reviews.5", rating: 5, date: "2026-03" },
+  { name: "Miguel S.", text: "reviewsSection.reviews.1", rating: 5 },
+  { name: "Ana R.", text: "reviewsSection.reviews.2", rating: 5 },
+  { name: "João P.", text: "reviewsSection.reviews.3", rating: 5 },
+  { name: "Sofia M.", text: "reviewsSection.reviews.4", rating: 5 },
+  { name: "Ricardo L.", text: "reviewsSection.reviews.5", rating: 5 },
 ];
 
 function GoogleIcon({ className }: { className?: string }) {
@@ -39,80 +40,101 @@ export default function ReviewsSection() {
   return (
     <section className="py-16 bg-background">
       <div className="container mx-auto px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center"
-        >
-          {/* Google badge */}
-          <div className="flex items-center justify-center gap-3 mb-8">
-            <GoogleIcon className="w-8 h-8" />
-            <div className="flex items-center gap-1">
-              {[1, 2, 3, 4, 5].map((s) => (
-                <Star key={s} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-              ))}
-            </div>
-            <span className="text-2xl font-bold text-foreground">5.0</span>
-            <span className="text-sm text-muted-foreground">Google</span>
-          </div>
+        <div className="light-box">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+            {/* Left — Logo + Google badge */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="text-center lg:text-left"
+            >
+              <img
+                src={logoImg}
+                alt="Striker's House"
+                className="w-32 h-32 rounded-2xl mx-auto lg:mx-0 mb-6 object-cover shadow-lg"
+              />
+              <div className="flex items-center gap-2 justify-center lg:justify-start mb-3">
+                <GoogleIcon className="w-6 h-6" />
+                <div className="flex gap-0.5">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <Star key={s} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                  ))}
+                </div>
+                <span className="text-2xl font-bold text-black">5.0</span>
+              </div>
+              <p className="text-gray-500 text-sm">
+                {t("reviewsSection.subtitle")}
+              </p>
+            </motion.div>
 
-          {/* Review carousel */}
-          <div className="relative max-w-2xl mx-auto">
-            <div className="min-h-[140px] flex items-center justify-center">
-              <motion.div
-                key={current}
-                initial={{ opacity: 0, x: 30 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -30 }}
-                transition={{ duration: 0.3 }}
-                className="text-center"
-              >
-                <p className="text-lg md:text-xl text-foreground/90 italic leading-relaxed mb-4">
-                  "{t(reviews[current].text)}"
-                </p>
-                <div className="flex items-center justify-center gap-2">
-                  <div className="flex gap-0.5">
-                    {[1, 2, 3, 4, 5].map((s) => (
-                      <Star key={s} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+            {/* Right — Review carousel */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.15 }}
+            >
+              <div className="relative">
+                <Quote className="w-10 h-10 text-red-600/20 mb-4" />
+
+                <div className="min-h-[120px]">
+                  <motion.div
+                    key={current}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <p className="text-lg md:text-xl text-gray-800 leading-relaxed mb-4 italic">
+                      "{t(reviews[current].text)}"
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center text-white font-bold text-sm">
+                        {reviews[current].name.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">{reviews[current].name}</p>
+                        <div className="flex gap-0.5">
+                          {[1, 2, 3, 4, 5].map((s) => (
+                            <Star key={s} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                </div>
+
+                {/* Navigation */}
+                <div className="flex items-center gap-3 mt-6">
+                  <button
+                    onClick={prev}
+                    className="p-2 rounded-full border border-gray-200 text-gray-400 hover:text-gray-800 hover:border-gray-400 transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <div className="flex gap-2">
+                    {reviews.map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setCurrent(i)}
+                        className={`w-2 h-2 rounded-full transition-all ${
+                          i === current ? "bg-red-600 w-6" : "bg-gray-300"
+                        }`}
+                      />
                     ))}
                   </div>
-                  <span className="text-sm font-medium text-foreground">
-                    {reviews[current].name}
-                  </span>
-                </div>
-              </motion.div>
-            </div>
-
-            {/* Navigation */}
-            <div className="flex items-center justify-center gap-4 mt-6">
-              <button
-                onClick={prev}
-                className="p-2 rounded-full border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <div className="flex gap-2">
-                {reviews.map((_, i) => (
                   <button
-                    key={i}
-                    onClick={() => setCurrent(i)}
-                    className={`w-2 h-2 rounded-full transition-colors ${
-                      i === current ? "bg-red-600" : "bg-muted-foreground/30"
-                    }`}
-                  />
-                ))}
+                    onClick={next}
+                    className="p-2 rounded-full border border-gray-200 text-gray-400 hover:text-gray-800 hover:border-gray-400 transition-colors"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-              <button
-                onClick={next}
-                className="p-2 rounded-full border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
+            </motion.div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

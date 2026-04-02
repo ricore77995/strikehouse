@@ -107,31 +107,6 @@ const Index = () => {
         </motion.div>
       </section>
 
-      {/* Stats Counter */}
-      <section className="py-10 bg-[#0a0a14]">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            {[
-              { value: "3", label: t("stats.modalities") },
-              { value: "6+", label: t("stats.classesWeek") },
-              { value: "50+", label: t("stats.members") },
-              { value: "5.0", label: t("stats.googleRating") },
-            ].map((stat, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: i * 0.1 }}
-              >
-                <div className="text-3xl md:text-4xl font-bold text-red-600">{stat.value}</div>
-                <div className="text-xs uppercase tracking-wider text-white/50 mt-1">{stat.label}</div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Modalities Section - Light Box */}
       <section id="modalities" className="py-20 bg-background">
         <div className="light-box">
