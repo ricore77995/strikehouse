@@ -43,7 +43,7 @@ export default function AppDownloadSection() {
             {t("app.title")}{" "}
             <span className="font-bold">Striker's House.</span>
           </h2>
-          <p className="text-gray-800/80 text-lg max-w-2xl mx-auto">
+          <p className="text-white mx-auto" style={{ fontSize: "1.7rem", lineHeight: "1.70rem", maxWidth: "43rem" }}>
             {t("app.description")}
           </p>
         </motion.div>

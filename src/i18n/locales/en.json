@@ -9,7 +9,8 @@
     "tryNow": "Try Now",
     "corporate": "Corporate",
     "downloadApp": "Download App",
-    "myAccount": "My Account"
+    "myAccount": "My Account",
+    "locations": "Locations"
   },
   "firstTime": {
     "heroTitle": "Before your first training",
@@ -394,6 +395,9 @@
       "plan": "Choose your plan",
       "pay": "Pay and start training"
     }
+  },
+  "gallery": {
+    "title": "Where We Belong"
   },
   "stats": {
     "modalities": "Modalities",

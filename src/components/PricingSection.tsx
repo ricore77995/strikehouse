@@ -11,7 +11,7 @@ function fakeOriginal(price: number): number {
 
 function isMostPopular(item: PricingItem): boolean {
   const n = item.name.toLowerCase();
-  return n.includes("most popular") || n.includes("every day");
+  return n.includes("most popular") || n.includes("every day") || item.paymentOptions.length > 1;
 }
 
 function getMonthlyPrice(item: PricingItem): number | null {
@@ -42,7 +42,7 @@ function PricingCard({ item }: { item: PricingItem }) {
       transition={{ duration: 0.3 }}
       className={`relative rounded-2xl flex flex-col overflow-hidden transition-all duration-300 ${
         popular
-          ? "bg-white text-black shadow-[0_0_60px_rgba(255,255,255,0.15)] scale-105 z-10"
+          ? "bg-white text-black border-2 border-white shadow-[0_0_30px_rgba(255,255,255,0.3),0_0_60px_rgba(255,255,255,0.15)] scale-105 z-10"
           : "bg-white/[0.07] backdrop-blur-sm text-white border border-white/10"
       }`}
     >

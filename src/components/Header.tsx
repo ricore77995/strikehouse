@@ -112,6 +112,22 @@ const Header = () => {
                 )}
               </li>
 
+              {/* Unidades dropdown */}
+              <li className="relative group">
+                <button className="flex items-center gap-1 text-xs uppercase tracking-[0.15em] text-foreground/80 hover:text-foreground transition-colors py-2">
+                  {t('header.locations')}
+                  <ChevronDown className="w-3 h-3" />
+                </button>
+                <div className="absolute top-full left-0 mt-1 min-w-[180px] bg-background/95 backdrop-blur-sm border border-border py-2 shadow-lg hidden group-hover:block">
+                  <a
+                    href="#contact"
+                    className="block px-4 py-2.5 text-xs uppercase tracking-[0.12em] text-muted-foreground hover:text-foreground hover:bg-muted/20 transition-colors"
+                  >
+                    Carcavelos
+                  </a>
+                </div>
+              </li>
+
               {/* Comunidade */}
               <li>
                 <Link to="/comunidade" className="text-xs uppercase tracking-[0.15em] text-foreground/80 hover:text-foreground transition-colors py-2">
@@ -232,6 +248,15 @@ const Header = () => {
                   </div>
                 )}
               </div>
+
+              {/* Unidades */}
+              <a
+                href="#contact"
+                onClick={handleLinkClick}
+                className="text-2xl tracking-[0.2em] uppercase font-light text-white/80 hover:text-white transition-colors"
+              >
+                {t('header.locations')}
+              </a>
 
               {/* Comunidade */}
               <Link

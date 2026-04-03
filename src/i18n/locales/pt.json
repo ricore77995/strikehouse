@@ -9,7 +9,8 @@
     "tryNow": "Experimenta Já",
     "corporate": "Corporate",
     "downloadApp": "Download da App",
-    "myAccount": "A Minha Conta"
+    "myAccount": "A Minha Conta",
+    "locations": "Unidades"
   },
   "firstTime": {
     "heroTitle": "Antes do teu primeiro treino",
@@ -394,6 +395,9 @@
       "plan": "Escolhe o teu plano",
       "pay": "Paga e começa a treinar"
     }
+  },
+  "gallery": {
+    "title": "Where We Belong"
   },
   "stats": {
     "modalities": "Modalidades",

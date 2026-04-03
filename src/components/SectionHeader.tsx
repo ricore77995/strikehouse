@@ -4,6 +4,7 @@ interface SectionHeaderProps {
   title: string;
   description?: string;
   titleClassName?: string;
+  titleStyle?: React.CSSProperties;
   descriptionClassName?: string;
   className?: string;
 }
@@ -12,6 +13,7 @@ export default function SectionHeader({
   title,
   description,
   titleClassName = "",
+  titleStyle,
   descriptionClassName = "text-muted-foreground",
   className = "mb-16",
 }: SectionHeaderProps) {
@@ -26,6 +28,7 @@ export default function SectionHeader({
       <div className="section-line mx-auto mb-4" />
       <h2
         className={`text-3xl md:text-4xl font-light tracking-[0.1em] mb-4 ${titleClassName}`}
+        style={titleStyle}
       >
         {title}
       </h2>

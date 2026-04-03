@@ -13,6 +13,7 @@ import PricingSection from "@/components/PricingSection";
 import TryNowSection from "@/components/TryNowSection";
 import AppDownloadSection from "@/components/AppDownloadSection";
 import ReviewsSection from "@/components/ReviewsSection";
+import GalleryCarousel from "@/components/GalleryCarousel";
 import { WHATSAPP_URL } from "@/constants/contact";
 import heroImage from "@/assets/hero-editorial.jpg";
 import trainingImg from "@/assets/training-calm.jpg";
@@ -175,12 +176,16 @@ const Index = () => {
       </section>
 
       {/* Plans Section - Dark */}
+      {/* Gallery Carousel */}
+      <GalleryCarousel />
+
       <section id="planos" className="py-20 bg-[#0a0a14] relative overflow-hidden">
         <div className="container mx-auto px-6 relative z-10">
           <SectionHeader
             title={t("membership.page.plansTitle")}
             description={t("membership.page.plansDescription")}
             titleClassName="text-red-600"
+            titleStyle={{ fontSize: "3.25rem" }}
             descriptionClassName="text-white/60"
           />
           <PricingSection />
