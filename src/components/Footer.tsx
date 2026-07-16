@@ -122,6 +122,12 @@ const Footer = () => {
               <Link to="/politica-de-privacidade" className="text-xs text-muted-foreground hover:text-foreground transition-colors tracking-wider">
                 {t('footer.privacy')}
               </Link>
+              <Link to="/termos-gerais" className="text-xs text-muted-foreground hover:text-foreground transition-colors tracking-wider">
+                {t('footer.terms')}
+              </Link>
+              <Link to="/termos-subscricao" className="text-xs text-muted-foreground hover:text-foreground transition-colors tracking-wider">
+                {t('footer.subscriptionTerms')}
+              </Link>
               <Link to="/login" className="text-xs text-muted-foreground hover:text-foreground transition-colors tracking-wider uppercase">
                 Área Restrita
               </Link>

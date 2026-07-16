@@ -18,6 +18,8 @@ import FAQ from "./pages/FAQ";
 import Comunidade from "./pages/Comunidade";
 import Corporate from "./pages/Corporate";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import Terms from "./pages/Terms";
+import SubscriptionTerms from "./pages/SubscriptionTerms";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import MemberQR from "./pages/MemberQR";
@@ -91,6 +93,8 @@ const StaffRoutes = () => (
       <Route path="/comunidade" element={<Comunidade />} />
       <Route path="/corporate" element={<Corporate />} />
       <Route path="/politica-de-privacidade" element={<PrivacyPolicy />} />
+      <Route path="/termos-gerais" element={<Terms />} />
+      <Route path="/termos-subscricao" element={<SubscriptionTerms />} />
       <Route path="/membership" element={<Navigate to="/" replace />} />
       <Route path="/login" element={<Login />} />
       <Route path="/m/:qrCode" element={<MemberQR />} />

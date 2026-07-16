@@ -37,7 +37,7 @@ function ListSection({
   );
 }
 
-export default function PrivacyPolicy() {
+export default function SubscriptionTerms() {
   const { t } = useTranslation();
 
   // Helper to safely get arrays from i18n
@@ -60,12 +60,12 @@ export default function PrivacyPolicy() {
           >
             <div className="section-line mx-auto mb-4" />
             <h1 className="text-3xl md:text-4xl font-light tracking-[0.1em] mb-6">
-              {t("privacy.title")}
+              {t("subscriptionTerms.title")}
             </h1>
             <p className="text-sm text-muted-foreground font-light whitespace-pre-line">
-              {t("privacy.entity")}
+              {t("subscriptionTerms.entity")}
               {"\n"}
-              {t("privacy.address")}
+              {t("subscriptionTerms.address")}
             </p>
           </motion.div>
         </div>
@@ -75,177 +75,162 @@ export default function PrivacyPolicy() {
       <section className="py-16 md:py-24 bg-background">
         <div className="container mx-auto px-6">
           <div className="max-w-3xl mx-auto space-y-12">
-            {/* 1. Who We Are */}
+            {/* 1. Object */}
             <div>
               <h2 className="text-xl md:text-2xl font-light tracking-[0.08em] mb-4 border-b border-border pb-2">
-                {t("privacy.s1.title")}
+                {t("subscriptionTerms.s1.title")}
               </h2>
               <p className="text-muted-foreground text-sm leading-relaxed mb-3">
-                {t("privacy.s1.p1")}
+                {t("subscriptionTerms.s1.p1")}
               </p>
-              <ul className="list-disc list-inside space-y-1 text-muted-foreground text-sm leading-relaxed mb-3">
-                {items("privacy.s1.items").map((item, i) => (
-                  <li key={i}>{item}</li>
-                ))}
-              </ul>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                {t("privacy.s1.p2")}
+                {t("subscriptionTerms.s1.p2")}
               </p>
             </div>
 
-            {/* 2. What Data We Collect */}
+            {/* 2. Monthly Plan */}
             <div>
               <h2 className="text-xl md:text-2xl font-light tracking-[0.08em] mb-4 border-b border-border pb-2">
-                {t("privacy.s2.title")}
+                {t("subscriptionTerms.s2.title")}
               </h2>
               <p className="text-muted-foreground text-sm leading-relaxed mb-3">
-                {t("privacy.s2.p1")}
+                {t("subscriptionTerms.s2.p1")}
               </p>
               {(
                 [
-                  "identification",
-                  "contact",
-                  "tax",
-                  "payment",
-                  "health",
-                  "usage",
+                  "renewal",
+                  "debit",
+                  "cancellationRequest",
+                  "noticePeriod",
+                  "noticeAccess",
+                  "noRefund",
+                  "noCommitment",
+                  "pause",
                 ] as const
               ).map((sub) => (
                 <ListSection
                   key={sub}
-                  title={t(`privacy.s2.${sub}.title`)}
-                  items={items(`privacy.s2.${sub}.items`)}
+                  items={items(`subscriptionTerms.s2.${sub}.items`)}
+                  intro={
+                    t(`subscriptionTerms.s2.${sub}.intro`, { defaultValue: "" }) ||
+                    undefined
+                  }
                   note={
-                    t(`privacy.s2.${sub}.note`, { defaultValue: "" }) ||
+                    t(`subscriptionTerms.s2.${sub}.note`, { defaultValue: "" }) ||
                     undefined
                   }
                 />
               ))}
             </div>
 
-            {/* 3. Purpose of Data Processing */}
+            {/* 3. Plan Change */}
             <div>
               <h2 className="text-xl md:text-2xl font-light tracking-[0.08em] mb-4 border-b border-border pb-2">
-                {t("privacy.s3.title")}
+                {t("subscriptionTerms.s3.title")}
               </h2>
               <p className="text-muted-foreground text-sm leading-relaxed mb-3">
-                {t("privacy.s3.p1")}
+                {t("subscriptionTerms.s3.p1")}
               </p>
               <ul className="list-disc list-inside space-y-1 text-muted-foreground text-sm leading-relaxed mb-3">
-                {items("privacy.s3.items").map((item, i) => (
+                {items("subscriptionTerms.s3.items").map((item, i) => (
                   <li key={i}>{item}</li>
                 ))}
               </ul>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                {t("privacy.s3.p2")}
+                {t("subscriptionTerms.s3.p2")}
               </p>
             </div>
 
-            {/* 4. Legal Basis */}
+            {/* 4. Pass Packages */}
             <div>
               <h2 className="text-xl md:text-2xl font-light tracking-[0.08em] mb-4 border-b border-border pb-2">
-                {t("privacy.s4.title")}
+                {t("subscriptionTerms.s4.title")}
               </h2>
               <p className="text-muted-foreground text-sm leading-relaxed mb-3">
-                {t("privacy.s4.p1")}
+                {t("subscriptionTerms.s4.p1")}
               </p>
+              {(
+                [
+                  "prepaid",
+                  "changeRequest",
+                  "upgrade",
+                  "downgrade",
+                  "charge",
+                ] as const
+              ).map((sub) => (
+                <ListSection
+                  key={sub}
+                  title={t(`subscriptionTerms.s4.${sub}.title`)}
+                  intro={
+                    t(`subscriptionTerms.s4.${sub}.intro`, { defaultValue: "" }) ||
+                    undefined
+                  }
+                  items={items(`subscriptionTerms.s4.${sub}.items`)}
+                  note={
+                    t(`subscriptionTerms.s4.${sub}.note`, { defaultValue: "" }) ||
+                    undefined
+                  }
+                />
+              ))}
+            </div>
+
+            {/* 5. Quarterly Plan */}
+            <div>
+              <h2 className="text-xl md:text-2xl font-light tracking-[0.08em] mb-4 border-b border-border pb-2">
+                {t("subscriptionTerms.s5.title")}
+              </h2>
               <ul className="list-disc list-inside space-y-1 text-muted-foreground text-sm leading-relaxed mb-3">
-                {items("privacy.s4.items").map((item, i) => (
+                {items("subscriptionTerms.s5.items").map((item, i) => (
                   <li key={i}>{item}</li>
                 ))}
               </ul>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                {t("privacy.s4.p2")}
+                {t("subscriptionTerms.s5.p1")}
               </p>
             </div>
 
-            {/* 5. Data Retention */}
+            {/* 6. Klarna / External Financing */}
             <div>
               <h2 className="text-xl md:text-2xl font-light tracking-[0.08em] mb-4 border-b border-border pb-2">
-                {t("privacy.s5.title")}
+                {t("subscriptionTerms.s6.title")}
               </h2>
-              <ul className="list-disc list-inside space-y-1 text-muted-foreground text-sm leading-relaxed">
-                {items("privacy.s5.items").map((item, i) => (
-                  <li key={i}>{item}</li>
-                ))}
-              </ul>
-            </div>
-
-            {/* 6. Data Sharing */}
-            <div>
-              <h2 className="text-xl md:text-2xl font-light tracking-[0.08em] mb-4 border-b border-border pb-2">
-                {t("privacy.s6.title")}
-              </h2>
-              <p className="text-muted-foreground text-sm leading-relaxed mb-3">
-                {t("privacy.s6.p1")}
-              </p>
               <ul className="list-disc list-inside space-y-1 text-muted-foreground text-sm leading-relaxed mb-3">
-                {items("privacy.s6.items").map((item, i) => (
+                {items("subscriptionTerms.s6.items").map((item, i) => (
                   <li key={i}>{item}</li>
                 ))}
               </ul>
-              <p className="text-muted-foreground text-sm leading-relaxed font-medium">
-                {t("privacy.s6.p2")}
-              </p>
             </div>
 
-            {/* 7. Security */}
+            {/* 7. Medical Exception */}
             <div>
               <h2 className="text-xl md:text-2xl font-light tracking-[0.08em] mb-4 border-b border-border pb-2">
-                {t("privacy.s7.title")}
+                {t("subscriptionTerms.s7.title")}
               </h2>
-              <p className="text-muted-foreground text-sm leading-relaxed mb-3">
-                {t("privacy.s7.p1")}
-              </p>
               <ul className="list-disc list-inside space-y-1 text-muted-foreground text-sm leading-relaxed mb-3">
-                {items("privacy.s7.items").map((item, i) => (
+                {items("subscriptionTerms.s7.items").map((item, i) => (
                   <li key={i}>{item}</li>
                 ))}
               </ul>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                {t("privacy.s7.p2")}
-              </p>
             </div>
 
-            {/* 8. Data Subject Rights */}
-            <div>
-              <h2 className="text-xl md:text-2xl font-light tracking-[0.08em] mb-4 border-b border-border pb-2">
-                {t("privacy.s8.title")}
-              </h2>
-              <p className="text-muted-foreground text-sm leading-relaxed mb-3">
-                {t("privacy.s8.p1")}
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-muted-foreground text-sm leading-relaxed mb-4">
-                {items("privacy.s8.items").map((item, i) => (
-                  <li key={i}>{item}</li>
-                ))}
-              </ul>
-              <p className="text-muted-foreground text-sm leading-relaxed mb-2">
-                {t("privacy.s8.contact")}
-              </p>
-              <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-line">
-                {t("privacy.s8.p2")}
-              </p>
-            </div>
-
-            {/* 9-11: Simple paragraph/list sections */}
-            {([9, 10, 11] as const).map((n) => (
+            {/* 8-14: Simple paragraph/list sections */}
+            {([8, 9, 10, 11, 12, 13, 14] as const).map((n) => (
               <div key={n}>
                 <h2 className="text-xl md:text-2xl font-light tracking-[0.08em] mb-4 border-b border-border pb-2">
-                  {t(`privacy.s${n}.title`)}
+                  {t(`subscriptionTerms.s${n}.title`)}
                 </h2>
                 <p className="text-muted-foreground text-sm leading-relaxed mb-3">
-                  {t(`privacy.s${n}.p1`)}
+                  {t(`subscriptionTerms.s${n}.p1`)}
                 </p>
-                {items(`privacy.s${n}.items`).length > 0 && (
+                {items(`subscriptionTerms.s${n}.items`).length > 0 && (
                   <ul className="list-disc list-inside space-y-1 text-muted-foreground text-sm leading-relaxed mb-3">
-                    {items(`privacy.s${n}.items`).map((item, i) => (
+                    {items(`subscriptionTerms.s${n}.items`).map((item, i) => (
                       <li key={i}>{item}</li>
                     ))}
                   </ul>
                 )}
                 <p className="text-muted-foreground text-sm leading-relaxed">
-                  {t(`privacy.s${n}.p2`)}
+                  {t(`subscriptionTerms.s${n}.p2`)}
                 </p>
               </div>
             ))}

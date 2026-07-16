@@ -159,7 +159,9 @@
     "contact": "Contacto",
     "copyright": "© 2026 Striker's House. Todos os direitos reservados.",
     "instagram": "Instagram",
-    "privacy": "Política de Privacidade"
+    "privacy": "Política de Privacidade",
+    "terms": "Termos Gerais",
+    "subscriptionTerms": "Termos de Subscrição"
   },
   "membership": {
     "page": {
@@ -435,11 +437,12 @@
     "s1": {
       "title": "1. Quem Somos",
       "p1": "A Striker's House – Associação Desportiva (doravante \"Striker's House\") é a entidade responsável pelo tratamento dos dados pessoais recolhidos no âmbito da sua atividade, incluindo:",
-      "items": ["Website", "Aplicação móvel", "Formulários de inscrição", "Redes sociais", "Contacto presencial", "Plataformas de gestão de membros"],
+      "items": ["Website", "Formulários de inscrição", "Redes sociais", "Contacto presencial", "Plataformas de gestão (ex: software de membros)"],
       "p2": "Cumprimos o Regulamento Geral sobre a Proteção de Dados (RGPD) e demais legislação aplicável em Portugal."
     },
     "s2": {
       "title": "2. Que Dados Recolhemos",
+      "p1": "Podemos recolher as seguintes categorias de dados:",
       "identification": {
         "title": "Dados de Identificação",
         "items": ["Nome completo", "Data de nascimento", "Género"]
@@ -454,8 +457,7 @@
       },
       "payment": {
         "title": "Dados de Pagamento",
-        "items": ["Histórico de pagamentos", "Plano subscrito", "Estado da subscrição"],
-        "note": "Os dados de cartão não são armazenados pela Striker's House quando o pagamento é efetuado através de processadores externos."
+        "items": ["Histórico de pagamentos", "Plano subscrito"]
       },
       "health": {
         "title": "Dados de Saúde (quando aplicável)",
@@ -464,43 +466,43 @@
       },
       "usage": {
         "title": "Dados de Utilização",
-        "items": ["Histórico de aulas", "Presenças", "Reservas", "Feedback"]
+        "items": ["Histórico de aulas", "Presenças", "Feedback"]
       }
     },
     "s3": {
-      "title": "3. Finalidades do Tratamento",
+      "title": "3. Para Que Finalidades Utilizamos os Seus Dados",
       "p1": "Tratamos os seus dados para:",
-      "items": ["Gestão de inscrições e planos", "Faturação e cumprimento de obrigações fiscais", "Comunicação sobre horários, alterações e eventos", "Gestão de reservas", "Marketing (mediante consentimento)", "Gestão de seguros em caso de acidente", "Cumprimento de obrigações legais", "Funcionamento da aplicação móvel"],
+      "items": ["Gestão de inscrições e planos", "Faturação e cumprimento de obrigações fiscais", "Comunicação sobre horários, alterações e eventos", "Gestão de reservas", "Marketing (mediante consentimento)", "Gestão de seguros em caso de acidente", "Cumprimento de obrigações legais"],
       "p2": "Os seus dados nunca serão utilizados para finalidades incompatíveis com aquelas para as quais foram recolhidos."
     },
     "s4": {
       "title": "4. Fundamento Legal",
       "p1": "O tratamento baseia-se em:",
-      "items": ["Execução de contrato", "Cumprimento de obrigação legal", "Interesse legítimo", "Consentimento (marketing e dados de saúde)"],
+      "items": ["Execução de contrato (inscrição e prestação de serviços)", "Cumprimento de obrigação legal", "Interesse legítimo (organização da atividade da academia)", "Consentimento (marketing e dados de saúde)"],
       "p2": "Pode retirar o consentimento a qualquer momento."
     },
     "s5": {
-      "title": "5. Conservação dos Dados",
-      "items": ["Membros ativos: enquanto durar a relação contratual", "Dados fiscais: 10 anos", "Marketing: até retirada de consentimento", "Candidatos: até 1 ano", "Membros inativos: até 2 anos após cessação"]
+      "title": "5. Durante Quanto Tempo Conservamos os Dados",
+      "items": ["Dados de membros ativos: enquanto durar a relação contratual", "Dados fiscais: 10 anos (obrigação legal)", "Dados para marketing: até retirar consentimento", "Dados de candidatos (ex: instrutores): até 1 ano"]
     },
     "s6": {
       "title": "6. Partilha de Dados",
-      "p1": "Os dados podem ser partilhados, quando necessário, com:",
-      "items": ["Plataforma de gestão de membros (ex: YogoBooking ou equivalente)", "Processadores de pagamento (ex: Stripe ou equivalente)", "Contabilista", "Seguradora", "Autoridades públicas"],
-      "p2": "Alguns prestadores podem estar fora do Espaço Económico Europeu, sendo aplicadas salvaguardas adequadas.",
-      "p3": "Nunca vendemos dados pessoais."
+      "p1": "Podemos partilhar dados apenas quando necessário com:",
+      "items": ["Software de gestão de membros", "Processadores de pagamento", "Contabilista", "Seguradora (em caso de acidente)", "Autoridades públicas (quando legalmente exigido)"],
+      "p2": "Nunca vendemos dados pessoais."
     },
     "s7": {
       "title": "7. Segurança",
       "p1": "Implementamos medidas técnicas e organizativas adequadas, incluindo:",
-      "items": ["Acesso restrito", "Encriptação HTTPS", "Controlo de permissões", "Procedimentos internos de confidencialidade"]
+      "items": ["Acesso restrito a dados", "Encriptação em trânsito (HTTPS)", "Controlo de permissões", "Procedimentos internos de confidencialidade"],
+      "p2": "Apesar disso, nenhum sistema é absolutamente inviolável."
     },
     "s8": {
       "title": "8. Direitos dos Titulares",
-      "p1": "Pode exercer:",
-      "items": ["Acesso", "Retificação", "Apagamento", "Limitação", "Oposição", "Portabilidade", "Retirada de consentimento"],
-      "contact": "Contacto: admin@strikershouse.com",
-      "p2": "Pode apresentar reclamação à CNPD (www.cnpd.pt)."
+      "p1": "Enquanto titular dos dados, pode exercer:",
+      "items": ["Direito de acesso", "Direito de retificação", "Direito ao apagamento", "Direito à limitação", "Direito de oposição", "Direito à portabilidade", "Direito de retirar consentimento"],
+      "contact": "Para exercer qualquer direito:\n📩 Email: geral@strikershouse.pt",
+      "p2": "Pode ainda apresentar reclamação à:\nComissão Nacional de Proteção de Dados (CNPD)\nwww.cnpd.pt"
     },
     "s9": {
       "title": "9. Dados de Menores",
@@ -508,11 +510,196 @@
     },
     "s10": {
       "title": "10. Cookies",
-      "p1": "O website pode utilizar cookies essenciais, de desempenho e de marketing (mediante consentimento)."
+      "p1": "O website pode utilizar:",
+      "items": ["Cookies essenciais", "Cookies de desempenho", "Cookies de marketing (mediante consentimento)"],
+      "p2": "Pode gerir as preferências no seu navegador."
     },
     "s11": {
       "title": "11. Alterações",
-      "p1": "Reservamo-nos o direito de atualizar esta Política sempre que necessário."
+      "p1": "Reservamo-nos o direito de atualizar esta Política sempre que necessário.",
+      "p2": "A versão mais recente estará sempre disponível no website."
+    }
+  },
+  "terms": {
+    "title": "Termos Gerais",
+    "lastUpdated": "Última atualização: Julho 2026",
+    "entity": "Striker's House – Associação Desportiva",
+    "address": "R. Itália 2A, 1º andar, sala G\n2775-604 Carcavelos, Cascais, Portugal",
+    "s1": {
+      "title": "1. Âmbito e Aceitação",
+      "p1": "Os presentes Termos Gerais regulam a utilização dos serviços da Striker's House – Associação Desportiva (doravante \"Striker's House\"). Ao inscrever-se, aceder às instalações ou utilizar qualquer serviço, o utilizador confirma que leu, compreendeu e aceita estes termos.",
+      "items": ["Estes termos aplicam-se a todos os membros, alunos e visitantes.", "A Striker's House reserva-se o direito de recusar admissão ou cancelar acessos em caso de incumprimento.", "Os menores de 16 anos necessitam de autorização dos encarregados de educação."]
+    },
+    "s2": {
+      "title": "2. Acesso e Instalações",
+      "p1": "O acesso às instalações está sujeito às regras seguintes:",
+      "eligibility": {
+        "title": "Elegibilidade",
+        "items": ["Ser maior de 16 anos ou ter autorização parental.", "Estar em condições de saúde compatíveis com a prática desportiva.", "Respeitar as regras de segurança e higiene do espaço."]
+      },
+      "checkIn": {
+        "title": "Check-in",
+        "items": ["Todos os membros devem efetuar check-in à entrada.", "O acesso pode ser negado em caso de plano expirado, bloqueado ou área exclusiva."]
+      },
+      "hours": {
+        "title": "Horário",
+        "items": ["As aulas e horários de funcionamento são publicados no website e aplicável.", "A Striker's House pode alterar horários mediante aviso prévio."]
+      },
+      "conduct": {
+        "title": "Conduta",
+        "items": ["É proibido o consumo de álcool, drogas ou substâncias nocivas nas instalações.", "Deve-se respeitar instrutores, staff e outros praticantes.", "O uso adequado do equipamento é da responsabilidade de cada utilizador."]
+      }
+    },
+    "s3": {
+      "title": "3. Planos e Pagamentos",
+      "p1": "Os planos de treino, modalidades e preços estão disponíveis no website e sujeitos a alteração. Ao adquirir um plano, o membro concorda com as seguintes condições:",
+      "items": ["Os pagamentos devem ser efetuados dentro dos prazos acordados.", "Planos ativos são pessoais e intransferíveis, salvo autorização expressa.", "A Striker's House pode suspender o acesso em caso de pagamento em atraso.", "Taxas de matrícula e outras tarifas específicas são informadas no momento da inscrição."],
+      "p2": "Todos os valores são apresentados em euros (EUR) e incluem IVA quando aplicável."
+    },
+    "s4": {
+      "title": "4. Cancelamentos e Reembolsos",
+      "p1": "As condições de cancelamento são as seguintes:",
+      "items": ["O membro pode cancelar a sua subscrição mediante aviso prévio de 30 dias.", "Não são efetuados reembolsos de planos já iniciados, salvo caso de força maior e avaliação da direção.", "Aulas experimentais canceladas com menos de 24 horas de antecedência podem não ser reagendadas."],
+      "p2": "A Striker's House pode rescindir unilateralmente a relação contratual em caso de violação grave destes termos."
+    },
+    "s5": {
+      "title": "5. Saúde e Segurança",
+      "p1": "A prática de artes marciais e desportos de contacto implica riscos inerentes. Ao participar, o membro declara:",
+      "items": ["Estar em boas condições de saúde para a prática desportiva.", "Ter informado a Striker's House de qualquer condição médica relevante.", "Aceitar que a Striker's House não se responsabiliza por lesões resultantes de negligência própria ou de terceiros."],
+      "p2": "Recomenda-se a realização de avaliação médica antes do início da atividade."
+    },
+    "s6": {
+      "title": "6. Responsabilidade",
+      "p1": "A Striker's House compromete-se a manter as instalações em condições seguras e a supervisionar as atividades de forma adequada. No entanto:",
+      "items": ["A Striker's House não é responsável por objetos pessoais perdidos ou danificados.", "O membro é responsável pelos danos que cause intencionalmente às instalações ou equipamento.", "A participação em competições ou eventos externos é da responsabilidade do participante."]
+    },
+    "s7": {
+      "title": "7. Alterações aos Termos",
+      "p1": "A Striker's House pode atualizar estes Termos Gerais a qualquer momento. A versão mais recente estará sempre disponível no website e a sua utilização continuada dos serviços implica aceitação."
+    },
+    "s8": {
+      "title": "8. Contacto",
+      "p1": "Para questões relacionadas com estes Termos Gerais, contacte-nos através de:",
+      "items": ["Email: admin@strikershouse.com", "Telefone: +351 913 378 459", "Morada: R. Itália 2A, 1º andar, sala G, 2775-604 Carcavelos, Cascais, Portugal"],
+      "p2": "Para questões relacionadas com dados pessoais, consulte a nossa Política de Privacidade."
+    }
+  },
+  "subscriptionTerms": {
+    "title": "Termos de Subscrição e Planos Pré-Pagos",
+    "lastUpdated": "Última atualização: Março 2026",
+    "entity": "Striker's House – Associação Desportiva",
+    "address": "R. Itália 2A, 1º andar, sala G\n2775-604 Carcavelos, Cascais, Portugal",
+    "s1": {
+      "title": "1. Objeto",
+      "p1": "Os presentes Termos regulam a adesão aos planos disponibilizados pela Striker's House, incluindo planos de subscrição mensal recorrente, planos pré-pagos de passes e planos pagos através de financiamento externo.",
+      "p2": "Ao aderir a qualquer plano, o aluno declara que leu, compreendeu e aceita estes Termos."
+    },
+    "s2": {
+      "title": "2. Plano Mensal (Subscrição Recorrente Flexível)",
+      "p1": "O Plano Mensal funciona em regime de renovação automática a cada 30 dias, contados a partir da data do último pagamento efetuado.",
+      "renewal": {
+        "items": ["O Plano Mensal funciona em regime de renovação automática a cada 30 dias, contados a partir da data do último pagamento efetuado."]
+      },
+      "debit": {
+        "items": ["O valor é debitado automaticamente no meio de pagamento indicado."]
+      },
+      "cancellationRequest": {
+        "items": ["O aluno pode solicitar o cancelamento da subscrição a qualquer momento através do sistema ou por comunicação escrita à Striker's House."]
+      },
+      "noticePeriod": {
+        "items": ["O cancelamento está sujeito a um prazo de aviso prévio obrigatório de 30 dias (1 mês).", "Este prazo começa a contar imediatamente a partir da data em que o pedido de cancelamento é efetuado."]
+      },
+      "noticeAccess": {
+        "items": ["Durante o período de aviso prévio de 30 dias, o aluno mantém o acesso completo às aulas e continua obrigado ao pagamento integral das mensalidades nos termos do plano em vigor.", "O cancelamento só produz efeitos após o termo completo deste período de 30 dias."]
+      },
+      "noRefund": {
+        "items": ["Não existe qualquer possibilidade de reembolso ou redução proporcional do valor da mensalidade durante o período de aviso prévio."]
+      },
+      "noCommitment": {
+        "items": ["Não existe fidelização mínima neste plano, para além do prazo de aviso prévio acima mencionado."]
+      },
+      "pause": {
+        "items": ["O Plano Mensal pode ser suspenso (pausa) uma vez por ano, por um período máximo de 90 dias consecutivos, mediante pedido por escrito à administração.", "O desbloqueio automático do plano será agendado para a data de termo da pausa, sem necessidade de novo pagamento para reativação.", "Durante o período de pausa, o aluno não tem acesso às aulas e o prazo da subscrição é prolongado pelo período correspondente."]
+      }
+    },
+    "s3": {
+      "title": "3. Mudança de Plano (Upgrade ou Downgrade) – Subscrições Mensais",
+      "p1": "O aluno pode solicitar a alteração de plano (upgrade ou downgrade) a qualquer momento.",
+      "items": ["As novas condições do plano entram em vigor imediatamente após a aprovação da mudança.", "A primeira cobrança ao novo preço ocorrerá apenas na próxima data de renovação (30 dias após o último pagamento).", "Recomenda-se efetuar a mudança de plano o mais próximo possível do final do período atual, de forma a evitar desfasamentos ou sobreposições de valores."]
+    },
+    "s4": {
+      "title": "4. Planos de Passes (Pacotes Pré-Pagos) e Mudança de Pacotes",
+      "p1": "Os planos de passes funcionam como pacotes pré-pagos de um determinado número de aulas.",
+      "prepaid": {
+        "title": "Funcionamento",
+        "items": ["Os planos de passes funcionam como pacotes pré-pagos de um determinado número de aulas."]
+      },
+      "changeRequest": {
+        "title": "Alteração",
+        "items": ["O aluno pode solicitar a qualquer momento a alteração do seu plano de passes (upgrade ou downgrade).", "A alteração entra em vigor imediatamente após aprovação."]
+      },
+      "upgrade": {
+        "title": "Upgrade (ex: de 5 para 10 passes)",
+        "intro": "Os passes restantes do plano anterior mantêm-se válidos e são somados ao novo pacote adquirido.",
+        "items": ["Exemplo: Se o aluno tinha 5 passes restantes e faz upgrade para 10 passes, passa a ter 15 passes no total."]
+      },
+      "downgrade": {
+        "title": "Downgrade (ex: de 10 para 5 passes)",
+        "items": ["Os passes restantes do plano anterior não são reembolsados.", "A Striker's House poderá zerar os passes antigos no momento da mudança e atribuir apenas o novo saldo de passes."]
+      },
+      "charge": {
+        "title": "Cobrança",
+        "items": ["A cobrança do valor do novo plano de passes ocorrerá apenas na próxima data de renovação ou pagamento."]
+      }
+    },
+    "s5": {
+      "title": "5. Plano Trimestral (Pré-Pago com Desconto)",
+      "items": ["O Plano Trimestral corresponde a um pacote fechado de 3 meses consecutivos, pago integralmente no momento da adesão.", "O desconto aplicado reflete o compromisso com a totalidade do período contratado.", "Este plano não é cancelável, não é pausável e não é reembolsável.", "O acesso mantém-se válido durante os 3 meses consecutivos após ativação.", "Decorrido o período de 3 meses, o plano não renova automaticamente."],
+      "p1": "O Plano Trimestral é pago integralmente no momento da adesão e não renova automaticamente."
+    },
+    "s6": {
+      "title": "6. Planos Pagos com Klarna ou Financiamento Externo",
+      "items": ["Quando o pagamento é realizado através de Klarna ou outro sistema de financiamento externo, a Striker's House recebe o valor integral no momento da adesão.", "O contrato de financiamento é celebrado entre o aluno e a entidade financeira.", "Para efeitos internos da academia, o plano é considerado pagamento integral antecipado.", "Nestes casos não é possível cancelar parcialmente, pausar ou obter reembolso proporcional.", "Qualquer questão relacionada com prestações deve ser tratada diretamente com a entidade financeira."]
+    },
+    "s7": {
+      "title": "7. Exceção por Motivo Médico",
+      "items": ["Em caso de lesão ou condição médica que impeça a prática desportiva, poderá ser concedido congelamento excecional mediante apresentação de comprovativo médico e pedido por escrito.", "O congelamento suspende o prazo remanescente do plano, não implica reembolso e retoma após autorização médica.", "A decisão final cabe à administração da Striker's House."]
+    },
+    "s8": {
+      "title": "8. Falhas de Pagamento",
+      "p1": "Em caso de falha no débito automático poderão ser realizadas novas tentativas de cobrança e o acesso às aulas poderá ser suspenso até regularização.",
+      "items": ["Em caso de falha no débito automático poderão ser realizadas novas tentativas de cobrança e o acesso às aulas poderá ser suspenso até regularização.", "Incumprimentos reiterados poderão levar ao cancelamento do plano."],
+      "p2": "Incumprimentos reiterados poderão levar ao cancelamento do plano."
+    },
+    "s9": {
+      "title": "9. Alteração de Preços",
+      "p1": "A Striker's House reserva-se o direito de atualizar os valores dos planos.",
+      "items": ["No caso de planos mensais recorrentes, qualquer alteração será comunicada com pelo menos 30 dias de antecedência.", "O aluno poderá cancelar antes da entrada em vigor do novo valor."]
+    },
+    "s10": {
+      "title": "10. Acesso às Aulas",
+      "p1": "O acesso às aulas está sujeito a lotação máxima, reserva prévia (quando aplicável) e cumprimento das regras internas.",
+      "items": ["O acesso está sujeito a lotação máxima, reserva prévia (quando aplicável) e cumprimento das regras internas.", "A Striker's House pode alterar horários ou estrutura de aulas por motivos operacionais."]
+    },
+    "s11": {
+      "title": "11. Reserva de Aulas e Penalizações por Não Comparência (No-Show)",
+      "p1": "A participação nas aulas está sujeita a reserva prévia obrigatória através do sistema da Striker's House.",
+      "items": ["O aluno deve cancelar a reserva com, pelo menos, 2 horas de antecedência antes do início da aula. Cancelamentos dentro deste prazo não acarretam penalização.", "Em caso de não comparência (no-show) sem cancelamento atempado, o aluno perde 1 passe do pacote adquirido. Esta regra aplica-se a pacotes de passes e planos com limite de acesso.", "A Striker's House pode limitar ou suspender o acesso a reservas em caso de no-shows reiterados."]
+    },
+    "s12": {
+      "title": "12. Direito de Livre Resolução (Contratação Online)",
+      "p1": "Se a adesão for efetuada online, o aluno dispõe de 14 dias para exercer o direito de livre resolução, desde que não tenha iniciado a utilização dos serviços.",
+      "items": ["Se a adesão for efetuada online, o aluno dispõe de 14 dias para exercer o direito de livre resolução, desde que não tenha iniciado a utilização dos serviços.", "Caso já tenha frequentado aulas, poderá ser cobrado o valor proporcional ao período utilizado."]
+    },
+    "s13": {
+      "title": "13. Responsabilidade",
+      "p1": "A prática de desporto envolve risco físico.",
+      "items": ["O aluno declara estar apto para a prática desportiva e assume responsabilidade pela sua condição física.", "Recomenda-se avaliação médica prévia."]
+    },
+    "s14": {
+      "title": "14. Dados Pessoais",
+      "p1": "O tratamento de dados pessoais é efetuado nos termos da Política de Privacidade disponível no website.",
+      "items": ["O tratamento de dados pessoais é efetuado nos termos da Política de Privacidade disponível no website."]
     }
   }
 }

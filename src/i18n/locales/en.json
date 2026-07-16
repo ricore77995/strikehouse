@@ -159,7 +159,9 @@
     "contact": "Contact",
     "copyright": "© 2026 Striker's House. All rights reserved.",
     "instagram": "Instagram",
-    "privacy": "Privacy Policy"
+    "privacy": "Privacy Policy",
+    "terms": "General Terms",
+    "subscriptionTerms": "Subscription Terms"
   },
   "membership": {
     "page": {
@@ -430,16 +432,17 @@
   "privacy": {
     "title": "Privacy Policy",
     "lastUpdated": "Last updated: March 2026",
-    "entity": "Striker's House – Associação Desportiva",
-    "address": "R. Itália 2A, 1º andar, sala G\n2775-604 Carcavelos, Cascais, Portugal",
+    "entity": "Striker's House – Sports Association",
+    "address": "R. Itália 2A, 1st floor, room G\n2775-604 Carcavelos, Cascais, Portugal",
     "s1": {
       "title": "1. Who We Are",
-      "p1": "Striker's House – Associação Desportiva (hereinafter \"Striker's House\") is the entity responsible for processing personal data collected in the context of its activities, including:",
-      "items": ["Website", "Mobile application", "Registration forms", "Social media", "In-person contact", "Member management platforms"],
+      "p1": "Striker's House – Sports Association (hereinafter \"Striker's House\") is the entity responsible for processing personal data collected in the context of its activities, including:",
+      "items": ["Website", "Registration forms", "Social media", "In-person contact", "Management platforms (e.g. member software)"],
       "p2": "We comply with the General Data Protection Regulation (GDPR) and all applicable Portuguese legislation."
     },
     "s2": {
       "title": "2. What Data We Collect",
+      "p1": "We may collect the following categories of data:",
       "identification": {
         "title": "Identification Data",
         "items": ["Full name", "Date of birth", "Gender"]
@@ -454,8 +457,7 @@
       },
       "payment": {
         "title": "Payment Data",
-        "items": ["Payment history", "Subscription plan", "Subscription status"],
-        "note": "Card details are not stored by Striker's House when payments are processed via third-party providers."
+        "items": ["Payment history", "Subscription plan"]
       },
       "health": {
         "title": "Health Data (when applicable)",
@@ -464,43 +466,43 @@
       },
       "usage": {
         "title": "Usage Data",
-        "items": ["Class history", "Attendance", "Bookings", "Feedback"]
+        "items": ["Class history", "Attendance", "Feedback"]
       }
     },
     "s3": {
       "title": "3. Purpose of Data Processing",
-      "p1": "We process your data for the following purposes:",
-      "items": ["Managing registrations and memberships", "Invoicing and compliance with tax obligations", "Communication regarding schedules, updates, and events", "Booking management", "Marketing (with consent)", "Insurance management in case of accident", "Compliance with legal obligations", "Operation of the mobile application"],
+      "p1": "We process your data for:",
+      "items": ["Managing registrations and plans", "Invoicing and compliance with tax obligations", "Communication regarding schedules, updates, and events", "Booking management", "Marketing (with consent)", "Insurance management in case of accident", "Compliance with legal obligations"],
       "p2": "Your data will never be used for purposes incompatible with those for which it was collected."
     },
     "s4": {
       "title": "4. Legal Basis",
       "p1": "Processing is based on:",
-      "items": ["Performance of a contract", "Compliance with legal obligations", "Legitimate interest", "Consent (marketing and health data)"],
+      "items": ["Performance of a contract (registration and service provision)", "Compliance with legal obligations", "Legitimate interest (organization of the academy's activity)", "Consent (marketing and health data)"],
       "p2": "You may withdraw your consent at any time."
     },
     "s5": {
-      "title": "5. Data Retention",
-      "items": ["Active members: for the duration of the contractual relationship", "Tax data: 10 years", "Marketing data: until consent is withdrawn", "Applicants (e.g. instructors): up to 1 year", "Inactive members: up to 2 years after termination"]
+      "title": "5. How Long We Keep Your Data",
+      "items": ["Active members: for the duration of the contractual relationship", "Tax data: 10 years (legal obligation)", "Marketing data: until consent is withdrawn", "Applicants (e.g. instructors): up to 1 year"]
     },
     "s6": {
       "title": "6. Data Sharing",
-      "p1": "Data may be shared, when necessary, with:",
-      "items": ["Member management platforms (e.g., YogoBooking or equivalent)", "Payment processors (e.g., Stripe or equivalent)", "Accountant", "Insurance provider", "Public authorities (when legally required)"],
-      "p2": "Some providers may be located outside the European Economic Area. In such cases, appropriate safeguards are applied.",
-      "p3": "We never sell personal data."
+      "p1": "We may only share data when necessary with:",
+      "items": ["Member management software", "Payment processors", "Accountant", "Insurance provider (in case of accident)", "Public authorities (when legally required)"],
+      "p2": "We never sell personal data."
     },
     "s7": {
       "title": "7. Security",
       "p1": "We implement appropriate technical and organizational measures, including:",
-      "items": ["Restricted access", "HTTPS encryption", "Permission controls", "Internal confidentiality procedures"]
+      "items": ["Restricted access to data", "Encryption in transit (HTTPS)", "Permission controls", "Internal confidentiality procedures"],
+      "p2": "Despite this, no system is completely invulnerable."
     },
     "s8": {
       "title": "8. Data Subject Rights",
-      "p1": "You have the right to:",
-      "items": ["Access", "Rectification", "Erasure", "Restriction", "Objection", "Portability", "Withdraw consent"],
-      "contact": "Contact: admin@strikershouse.com",
-      "p2": "You may lodge a complaint with the Portuguese Data Protection Authority (CNPD – www.cnpd.pt)."
+      "p1": "As the data subject, you have the right to:",
+      "items": ["Right of access", "Right of rectification", "Right to erasure", "Right to restriction", "Right to object", "Right to portability", "Right to withdraw consent"],
+      "contact": "To exercise any right:\n📩 Email: geral@strikershouse.pt",
+      "p2": "You may also lodge a complaint with:\nNational Data Protection Commission (CNPD)\nwww.cnpd.pt"
     },
     "s9": {
       "title": "9. Minors",
@@ -508,11 +510,196 @@
     },
     "s10": {
       "title": "10. Cookies",
-      "p1": "The website may use essential, performance, and marketing cookies (subject to consent)."
+      "p1": "The website may use:",
+      "items": ["Essential cookies", "Performance cookies", "Marketing cookies (subject to consent)"],
+      "p2": "You can manage your preferences in your browser."
     },
     "s11": {
       "title": "11. Changes",
-      "p1": "We reserve the right to update this Policy whenever necessary. The most recent version will always be available on our website."
+      "p1": "We reserve the right to update this Policy whenever necessary.",
+      "p2": "The most recent version will always be available on the website."
+    }
+  },
+  "terms": {
+    "title": "General Terms",
+    "lastUpdated": "Last updated: July 2026",
+    "entity": "Striker's House – Sports Association",
+    "address": "R. Itália 2A, 1st floor, room G\n2775-604 Carcavelos, Cascais, Portugal",
+    "s1": {
+      "title": "1. Scope and Acceptance",
+      "p1": "These General Terms govern the use of services provided by Striker's House – Sports Association (hereinafter \"Striker's House\"). By enrolling, accessing the facilities, or using any service, the user confirms that they have read, understood, and accepted these terms.",
+      "items": ["These terms apply to all members, students, and visitors.", "Striker's House reserves the right to refuse admission or cancel access in case of non-compliance.", "Individuals under 16 require parental or legal guardian authorization."]
+    },
+    "s2": {
+      "title": "2. Access and Facilities",
+      "p1": "Access to the facilities is subject to the following rules:",
+      "eligibility": {
+        "title": "Eligibility",
+        "items": ["Be over 16 years old or have parental authorization.", "Be in health conditions compatible with sports practice.", "Respect the safety and hygiene rules of the space."]
+      },
+      "checkIn": {
+        "title": "Check-in",
+        "items": ["All members must check in upon entry.", "Access may be denied if the plan is expired, blocked, or the area is exclusive."]
+      },
+      "hours": {
+        "title": "Schedule",
+        "items": ["Classes and opening hours are published on the website and applicable.", "Striker's House may change schedules with prior notice."]
+      },
+      "conduct": {
+        "title": "Conduct",
+        "items": ["Consumption of alcohol, drugs, or harmful substances on the premises is prohibited.", "Instructors, staff, and other practitioners must be respected.", "Proper use of equipment is the responsibility of each user."]
+      }
+    },
+    "s3": {
+      "title": "3. Plans and Payments",
+      "p1": "Training plans, modalities, and prices are available on the website and subject to change. By purchasing a plan, the member agrees to the following conditions:",
+      "items": ["Payments must be made within the agreed deadlines.", "Active plans are personal and non-transferable, unless expressly authorized.", "Striker's House may suspend access in case of late payment.", "Enrollment fees and other specific charges are informed at the time of registration."],
+      "p2": "All amounts are displayed in euros (EUR) and include VAT where applicable."
+    },
+    "s4": {
+      "title": "4. Cancellations and Refunds",
+      "p1": "Cancellation conditions are as follows:",
+      "items": ["The member may cancel their subscription with 30 days' notice.", "No refunds are given for plans already started, except in cases of force majeure and management assessment.", "Trial classes cancelled with less than 24 hours' notice may not be rescheduled."],
+      "p2": "Striker's House may unilaterally terminate the contractual relationship in case of serious breach of these terms."
+    },
+    "s5": {
+      "title": "5. Health and Safety",
+      "p1": "The practice of martial arts and combat sports involves inherent risks. By participating, the member declares that:",
+      "items": ["They are in good health condition for sports practice.", "They have informed Striker's House of any relevant medical condition.", "They accept that Striker's House is not liable for injuries resulting from their own or third-party negligence."],
+      "p2": "A medical evaluation is recommended before starting the activity."
+    },
+    "s6": {
+      "title": "6. Liability",
+      "p1": "Striker's House undertakes to keep the facilities in safe conditions and to supervise activities appropriately. However:",
+      "items": ["Striker's House is not responsible for lost or damaged personal belongings.", "The member is responsible for intentional damage caused to facilities or equipment.", "Participation in external competitions or events is the responsibility of the participant."]
+    },
+    "s7": {
+      "title": "7. Changes to Terms",
+      "p1": "Striker's House may update these General Terms at any time. The most recent version will always be available on the website, and continued use of the services implies acceptance."
+    },
+    "s8": {
+      "title": "8. Contact",
+      "p1": "For questions related to these General Terms, contact us at:",
+      "items": ["Email: admin@strikershouse.com", "Phone: +351 913 378 459", "Address: R. Itália 2A, 1st floor, room G, 2775-604 Carcavelos, Cascais, Portugal"],
+      "p2": "For matters related to personal data, please consult our Privacy Policy."
+    }
+  },
+  "subscriptionTerms": {
+    "title": "Subscription and Prepaid Plan Terms",
+    "lastUpdated": "Last updated: March 2026",
+    "entity": "Striker's House – Sports Association",
+    "address": "R. Itália 2A, 1st floor, room G\n2775-604 Carcavelos, Cascais, Portugal",
+    "s1": {
+      "title": "1. Object",
+      "p1": "These Terms govern the subscription to the plans offered by Striker's House, including monthly recurring subscriptions, prepaid pass packages and plans paid through external financing.",
+      "p2": "By subscribing to any plan, the student declares that they have read, understood and accept these Terms."
+    },
+    "s2": {
+      "title": "2. Monthly Plan (Flexible Recurring Subscription)",
+      "p1": "The Monthly Plan renews automatically every 30 days, counted from the date of the last payment made.",
+      "renewal": {
+        "items": ["The Monthly Plan renews automatically every 30 days, counted from the date of the last payment made."]
+      },
+      "debit": {
+        "items": ["The amount is automatically debited to the indicated payment method."]
+      },
+      "cancellationRequest": {
+        "items": ["The student may request cancellation of the subscription at any time through the system or by written communication to Striker's House."]
+      },
+      "noticePeriod": {
+        "items": ["Cancellation is subject to a mandatory 30-day prior notice period (1 month).", "This period starts immediately from the date the cancellation request is made."]
+      },
+      "noticeAccess": {
+        "items": ["During the 30-day notice period, the student maintains full access to classes and remains obligated to pay the full monthly fees under the current plan.", "Cancellation only takes effect after the complete end of this 30-day period."]
+      },
+      "noRefund": {
+        "items": ["There is no possibility of refund or proportional reduction of the monthly fee during the notice period."]
+      },
+      "noCommitment": {
+        "items": ["There is no minimum commitment in this plan, other than the notice period mentioned above."]
+      },
+      "pause": {
+        "items": ["The Monthly Plan may be paused once per year for a maximum of 90 consecutive days, upon written request to the administration.", "The plan will be automatically unpaused on the scheduled end date, with no additional payment required for reactivation.", "During the pause period, the student does not have access to classes and the subscription term is extended by the corresponding period."]
+      }
+    },
+    "s3": {
+      "title": "3. Plan Change (Upgrade or Downgrade) – Monthly Subscriptions",
+      "p1": "The student may request a plan change (upgrade or downgrade) at any time.",
+      "items": ["The new plan conditions take effect immediately upon approval of the change.", "The first charge at the new price will occur only on the next renewal date (30 days after the last payment).", "It is recommended to make the plan change as close as possible to the end of the current period to avoid mismatches or overlaps in charges."]
+    },
+    "s4": {
+      "title": "4. Pass Packages and Package Changes",
+      "p1": "Pass plans function as prepaid packages for a specific number of classes.",
+      "prepaid": {
+        "title": "How it works",
+        "items": ["Pass plans function as prepaid packages for a specific number of classes."]
+      },
+      "changeRequest": {
+        "title": "Change",
+        "items": ["The student may request a change to their pass plan (upgrade or downgrade) at any time.", "The change takes effect immediately upon approval."]
+      },
+      "upgrade": {
+        "title": "Upgrade (e.g. from 5 to 10 passes)",
+        "intro": "Any remaining passes from the previous plan remain valid and are added to the new package purchased.",
+        "items": ["Example: If the student had 5 remaining passes and upgrades to 10 passes, they will have 15 passes in total."]
+      },
+      "downgrade": {
+        "title": "Downgrade (e.g. from 10 to 5 passes)",
+        "items": ["Remaining passes from the previous plan are not refunded.", "Striker's House may zero the old passes at the time of the change and assign only the new pass balance."]
+      },
+      "charge": {
+        "title": "Charge",
+        "items": ["The charge for the new pass plan will occur only on the next renewal or payment date."]
+      }
+    },
+    "s5": {
+      "title": "5. Quarterly Plan (Prepaid with Discount)",
+      "items": ["The Quarterly Plan consists of a closed 3-month consecutive package, paid in full at the time of subscription.", "The applied discount reflects the commitment to the entire contracted period.", "This plan is non-cancellable, non-pausable and non-refundable.", "Access remains valid for 3 consecutive months after activation.", "After the 3-month period, the plan does not renew automatically."],
+      "p1": "The Quarterly Plan is paid in full at the time of subscription and does not renew automatically."
+    },
+    "s6": {
+      "title": "6. Plans Paid with Klarna or External Financing",
+      "items": ["When payment is made through Klarna or another external financing system, Striker's House receives the full amount at the time of subscription.", "The financing contract is entered into between the student and the financial entity.", "For internal academy purposes, the plan is considered full advance payment.", "In these cases, partial cancellation, pausing or proportional refund is not possible.", "Any issues related to instalments must be handled directly with the financial entity."]
+    },
+    "s7": {
+      "title": "7. Medical Exception",
+      "items": ["In the event of injury or medical condition preventing sports practice, an exceptional freeze may be granted upon presentation of medical proof and written request.", "The medical freeze suspends the remaining term of the plan, does not imply refund and resumes after medical authorization.", "The final decision rests with the Striker's House administration."]
+    },
+    "s8": {
+      "title": "8. Payment Failures",
+      "p1": "In case of automatic debit failure, new collection attempts may be made and access to classes may be suspended until regularized.",
+      "items": ["In case of automatic debit failure, new collection attempts may be made and access to classes may be suspended until regularized.", "Repeated defaults may lead to cancellation of the plan."],
+      "p2": "Repeated defaults may lead to cancellation of the plan."
+    },
+    "s9": {
+      "title": "9. Price Changes",
+      "p1": "Striker's House reserves the right to update the prices of the plans.",
+      "items": ["In the case of recurring monthly plans, any change will be communicated at least 30 days in advance.", "The student may cancel before the new price comes into effect."]
+    },
+    "s10": {
+      "title": "10. Access to Classes",
+      "p1": "Access to classes is subject to maximum capacity, prior booking (when applicable) and compliance with internal rules.",
+      "items": ["Access is subject to maximum capacity, prior booking (when applicable) and compliance with internal rules.", "Striker's House may change class schedules or structure for operational reasons."]
+    },
+    "s11": {
+      "title": "11. Class Booking and No-Show Policy",
+      "p1": "Participation in classes is subject to mandatory prior booking through the Striker's House system.",
+      "items": ["The student must cancel the booking with at least 2 hours' notice before the start of the class. Cancellations made within this timeframe incur no penalty.", "In case of no-show without timely cancellation, the student forfeits 1 pass from the purchased package. This rule applies to pass packages and plans with limited access.", "Striker's House may limit or suspend future booking access in case of repeated no-shows."]
+    },
+    "s12": {
+      "title": "12. Right of Free Resolution (Online Contracting)",
+      "p1": "If the subscription is made online, the student has 14 days to exercise the right of free resolution, provided the services have not been used.",
+      "items": ["If the subscription is made online, the student has 14 days to exercise the right of free resolution, provided the services have not been used.", "If classes have already been attended, the proportional value for the period used may be charged."]
+    },
+    "s13": {
+      "title": "13. Liability",
+      "p1": "Sports practice involves physical risk.",
+      "items": ["The student declares that they are fit for sports practice and assumes responsibility for their physical condition.", "A prior medical evaluation is recommended."]
+    },
+    "s14": {
+      "title": "14. Personal Data",
+      "p1": "Personal data processing is carried out in accordance with the Privacy Policy available on the website.",
+      "items": ["Personal data processing is carried out in accordance with the Privacy Policy available on the website."]
     }
   }
 }
