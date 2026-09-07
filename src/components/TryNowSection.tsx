@@ -2,8 +2,9 @@ import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import trainingImg from "@/assets/training-calm.jpg";
 import coachImg from "@/assets/WhatsApp Image 2026-03-30 at 14.20.16.jpeg";
+import { buildPurchaseUrl } from "@/lib/yogoLinks";
 
-const TRIAL_URL = "https://strikershouse.yogobooking.pt/frontend/index.html?itemType=class_pass_type&itemId=14172#/login-with-cart";
+const TRIAL_CLASS_PASS_ID = 14172;
 
 export default function TryNowSection() {
   const { t } = useTranslation();
@@ -16,10 +17,10 @@ export default function TryNowSection() {
         <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a14] via-[#0a0a14]/80 to-[#0a0a14]/60" />
       </div>
 
-      <div className="relative z-10 p-8 md:p-10 grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+      <div className="relative z-10 p-8 md:p-10 grid grid-cols-1 2xl:grid-cols-2 gap-8 items-start">
         {/* Left — Text + button */}
         <div>
-          <h2 className="text-3xl md:text-4xl font-light text-white leading-tight mb-4">
+          <h2 className="text-3xl break-words font-light text-white leading-tight mb-4">
             {t("tryNow.heroTitle")}{" "}
             <span className="font-bold text-red-500">{t("tryNow.heroPrice")}</span>
             <br />
@@ -29,7 +30,7 @@ export default function TryNowSection() {
             {t("tryNow.heroDescription")}
           </p>
           <a
-            href={TRIAL_URL}
+            href={buildPurchaseUrl("class_pass_type", TRIAL_CLASS_PASS_ID)}
             target="_blank"
             rel="noopener noreferrer"
             data-yogo-parsed="true"

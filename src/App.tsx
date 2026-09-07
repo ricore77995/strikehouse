@@ -99,7 +99,9 @@ const StaffRoutes = () => (
       <Route path="/login" element={<Login />} />
       <Route path="/m/:qrCode" element={<MemberQR />} />
       <Route path="/checkout/success" element={<CheckoutSuccess />} />
-      <Route path="/lojafisica" element={<Shop />} />
+      <Route path="/loja" element={<Shop />} />
+      {/* The old in-gym self-service URL may be printed on posters or saved by members. */}
+      <Route path="/lojafisica" element={<Navigate to="/loja" replace />} />
 
       {/* Owner routes */}
       <Route

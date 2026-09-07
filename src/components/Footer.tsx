@@ -67,7 +67,7 @@ const Footer = () => {
               <div className="text-sm font-light space-y-3">
                 <a
                   href="mailto:admin@strikershouse.com"
-                  className="block hover:text-accent transition-colors"
+                  className="block break-all hover:text-accent transition-colors"
                 >
                   admin@strikershouse.com
                 </a>

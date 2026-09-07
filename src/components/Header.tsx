@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
 import { X, Menu, ChevronDown } from "lucide-react";
 import LanguageSwitcher from "./LanguageSwitcher";
+import { yogoProfileUrl } from "@/lib/yogoLinks";
 
 const Header = () => {
   const { t } = useTranslation();
@@ -141,6 +142,13 @@ const Header = () => {
                   {t('header.corporate')}
                 </Link>
               </li>
+
+              {/* Loja */}
+              <li>
+                <Link to="/loja" className="text-xs uppercase tracking-[0.15em] text-foreground/80 hover:text-foreground transition-colors py-2">
+                  {t('header.shop')}
+                </Link>
+              </li>
             </ul>
 
             {/* Desktop CTAs + Language + Login */}
@@ -173,7 +181,7 @@ const Header = () => {
               </SmartLink>
 
               <LanguageSwitcher />
-              <a href="https://strikershouse.yogobooking.pt/frontend/index.html#/my-profile" target="_blank" rel="noopener noreferrer" className="text-xs uppercase tracking-[0.12em] text-foreground/60 hover:text-foreground transition-colors">
+              <a href={yogoProfileUrl()} target="_blank" rel="noopener noreferrer" className="text-xs uppercase tracking-[0.12em] text-foreground/60 hover:text-foreground transition-colors">
                 {t('header.myAccount')}
               </a>
             </div>
@@ -276,6 +284,15 @@ const Header = () => {
                 {t('header.corporate')}
               </Link>
 
+              {/* Loja */}
+              <Link
+                to="/loja"
+                onClick={handleLinkClick}
+                className="text-2xl tracking-[0.2em] uppercase font-light text-white/80 hover:text-white transition-colors"
+              >
+                {t('header.shop')}
+              </Link>
+
               {/* CTAs */}
               <div className="mt-6 flex flex-col items-center gap-4">
                 <SmartLink
@@ -307,7 +324,7 @@ const Header = () => {
               <div className="mt-6 flex flex-col items-center gap-5">
                 <LanguageSwitcher />
                 <a
-                  href="https://strikershouse.yogobooking.pt/frontend/index.html#/my-profile"
+                  href={yogoProfileUrl()}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={handleLinkClick}

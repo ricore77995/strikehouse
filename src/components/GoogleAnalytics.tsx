@@ -3,8 +3,17 @@ import { useLocation } from 'react-router-dom';
 
 const GA_MEASUREMENT_ID = 'G-TTSKRR4PP2';
 
-// Public routes where Google Analytics should be active
-const PUBLIC_ROUTES = ['/', '/team', '/membership', '/login'];
+/**
+ * Back-office areas, which must not be measured. This is a blocklist on purpose: the
+ * previous allowlist of four paths silently left every other public page untracked —
+ * /comunidade, /corporate, /loja, /faq and the legal pages were all invisible, while
+ * /membership was tracked despite being only a redirect.
+ */
+const PRIVATE_PREFIXES = ['/admin', '/staff', '/owner', '/partner', '/coach', '/kiosk'];
+
+function isPublicRoute(pathname: string): boolean {
+  return !PRIVATE_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
 
 declare global {
   interface Window {
@@ -16,19 +25,11 @@ declare global {
 export function GoogleAnalytics() {
   const location = useLocation();
 
-  const isPublicRoute = () => {
-    // Check exact matches
-    if (PUBLIC_ROUTES.includes(location.pathname)) return true;
-    // Check /m/:qrCode pattern
-    if (location.pathname.startsWith('/m/')) return true;
-    return false;
-  };
-
   useEffect(() => {
     // Only track in production
     if (!import.meta.env.PROD) return;
 
-    if (!isPublicRoute()) return;
+    if (!isPublicRoute(location.pathname)) return;
 
     // Check if script already loaded
     if (document.querySelector(`script[src*="googletagmanager.com/gtag/js"]`)) {
@@ -41,11 +42,11 @@ export function GoogleAnalytics() {
       return;
     }
 
-    // Initialize dataLayer
+    // Initialize dataLayer. `arguments` is deliberate: this is Google's canonical
+    // gtag shim, and gtag.js expects the arguments object rather than an array.
     window.dataLayer = window.dataLayer || [];
-    window.gtag = function gtag() {
-      window.dataLayer.push(arguments);
-    };
+    // eslint-disable-next-line prefer-rest-params
+    window.gtag = function gtag() { window.dataLayer.push(arguments); };
     window.gtag('js', new Date());
     window.gtag('config', GA_MEASUREMENT_ID);
 
@@ -54,7 +55,7 @@ export function GoogleAnalytics() {
     script.async = true;
     script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
     document.head.appendChild(script);
-  }, [location.pathname]);
+  }, [location.pathname, location.search]);
 
   return null;
 }

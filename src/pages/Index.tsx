@@ -10,18 +10,16 @@ import ChatBubble from "@/components/ChatBubble";
 import WhyDifferent from "@/components/WhyDifferent";
 import Kids from "@/components/Kids";
 import PricingSection from "@/components/PricingSection";
+import HowItWorks from "@/components/HowItWorks";
+import Modalities from "@/components/Modalities";
+import WeeklyGrid from "@/components/schedule/WeeklyGrid";
 import TryNowSection from "@/components/TryNowSection";
 import AppDownloadSection from "@/components/AppDownloadSection";
 import ReviewsSection from "@/components/ReviewsSection";
 import GalleryCarousel from "@/components/GalleryCarousel";
 import { WHATSAPP_URL } from "@/constants/contact";
-import heroImage from "@/assets/hero-editorial.jpg";
 import heroVideo from "@/assets/hero-bg.mp4";
 import heroPoster from "@/assets/hero-poster.jpg";
-import trainingImg from "@/assets/training-calm.jpg";
-import muayThaiImg from "@/assets/istockphoto-1620896814-612x612.jpg";
-import glovesImg from "@/assets/gloves-detail.jpg";
-import mmaImg from "@/assets/mma.jpg";
 import athleteImg from "@/assets/athlete-portrait.jpg";
 
 const scrollToTryNow = () =>
@@ -29,28 +27,6 @@ const scrollToTryNow = () =>
 
 const Index = () => {
   const { t } = useTranslation();
-
-  // Modalities for display
-  const modalities = [
-    {
-      key: "boxing",
-      name: t("membership.page.modalities.boxing.name"),
-      description: t("membership.page.modalities.boxing.description"),
-      image: glovesImg,
-    },
-    {
-      key: "muayThai",
-      name: t("membership.page.modalities.muayThai.name"),
-      description: t("membership.page.modalities.muayThai.description"),
-      image: muayThaiImg,
-    },
-    {
-      key: "mma",
-      name: t("membership.page.modalities.mma.name"),
-      description: t("membership.page.modalities.mma.description"),
-      image: mmaImg,
-    },
-  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -177,53 +153,48 @@ const Index = () => {
             descriptionClassName="text-gray-600"
           />
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {modalities.map((mod, index) => (
-              <motion.div
-                key={mod.key}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="group relative overflow-hidden border border-gray-200 bg-white rounded-xl"
-              >
-                <div className="aspect-square overflow-hidden">
-                  <img
-                    src={mod.image}
-                    alt={mod.name}
-                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105"
-                  />
-                </div>
-                <div className="p-6 border-t border-gray-200">
-                  <h3 className="text-lg font-light tracking-wider mb-2 text-red-600">
-                    {mod.name}
-                  </h3>
-                  <p className="text-sm text-gray-600 leading-relaxed">
-                    {mod.description}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+          <Modalities />
         </div>
       </section>
 
-      {/* Plans Section - Dark */}
-      {/* Gallery Carousel */}
-      <GalleryCarousel />
+      {/* Schedule - YOGO Calendar */}
+      <section id="horario" className="py-20 bg-background relative overflow-hidden">
+        <div className="container mx-auto px-6">
+          <SectionHeader
+            title={t("membership.page.scheduleTitle")}
+            description={t("membership.page.scheduleDescription")}
+          />
+          <WeeklyGrid />
+        </div>
+      </section>
 
       <section id="planos" className="py-20 bg-[#0a0a14] relative overflow-hidden">
         <div className="container mx-auto px-6 relative z-10">
           <SectionHeader
             title={t("membership.page.plansTitle")}
             description={t("membership.page.plansDescription")}
-            titleClassName="text-red-600"
-            titleStyle={{ fontSize: "3.25rem" }}
+            titleClassName="text-accent"
             descriptionClassName="text-white/60"
           />
           <PricingSection />
         </div>
       </section>
+
+      {/* How it works — the rules everyone asks about, right after the prices */}
+      <section id="como-funciona" className="py-20 bg-[#0a0a14] relative overflow-hidden">
+        <div className="container mx-auto px-6 relative z-10">
+          <SectionHeader
+            title={t("howItWorks.title")}
+            description={t("howItWorks.description")}
+            titleClassName="text-accent"
+            descriptionClassName="text-white/60"
+          />
+          <HowItWorks />
+        </div>
+      </section>
+
+      {/* Gallery Carousel */}
+      <GalleryCarousel />
 
       {/* Google Reviews */}
       <ReviewsSection />
@@ -238,13 +209,13 @@ const Index = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start"
+              className="grid grid-cols-1 2xl:grid-cols-2 gap-6 items-start"
             >
               <div>
                 <p className="text-black text-sm font-bold tracking-wider uppercase mb-3">
                   {t("welcome.subtitle")}
                 </p>
-                <h2 className="text-3xl md:text-4xl text-black leading-tight mb-4 font-light">
+                <h2 className="text-3xl break-words text-black leading-tight mb-4 font-light">
                   {t("welcome.title")}{" "}
                   <span className="font-bold text-red-600">{t("welcome.titleBold")}</span>
                 </h2>
@@ -278,25 +249,6 @@ const Index = () => {
 
       {/* App Download */}
       <AppDownloadSection />
-
-      {/* Schedule - YOGO Calendar */}
-      <section id="horario" className="py-20 bg-background relative overflow-hidden">
-        <div className="container mx-auto px-6">
-          <SectionHeader
-            title={t("membership.page.scheduleTitle")}
-            description={t("membership.page.scheduleDescription")}
-          />
-        </div>
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="yogo-calendar-wrapper"
-        >
-          <div className="yogo-calendar"></div>
-        </motion.div>
-      </section>
 
       {/* Why Different */}
       <WhyDifferent />

@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { buildPurchaseUrl as buildYogoPurchaseUrl } from "@/lib/yogoLinks";
 
 // --- Types matching YOGO API responses ---
 
@@ -72,6 +73,8 @@ export interface PaymentOptionItem {
   id: number;
   name: string;
   price: number;
+  /** Months this single payment covers. null for class passes, which have no period. */
+  months: number | null;
   purchaseUrl: string;
 }
 
@@ -109,14 +112,19 @@ export interface PriceGroup {
 
 // --- Helpers ---
 
-function getYogoServer(): string {
-  return (window as unknown as Record<string, string>).YOGO_APP_SERVER || "";
-}
-
 function getApiHeaders(): Record<string, string> {
   return {
     accept: "application/json",
   };
+}
+
+/**
+ * Yogo writes -1 (and null on class passes) for "no explicit position". Those must
+ * sort last rather than leapfrog plans that do have one — otherwise every plan the
+ * gym edits jumps to the front of the row.
+ */
+export function groupSortKey(sort: number | null | undefined): number {
+  return sort != null && sort >= 0 ? sort : 999;
 }
 
 function buildImageUrl(image: YogoImage | null | undefined): string | null {
@@ -129,15 +137,9 @@ function buildPurchaseUrl(
   itemId: number,
   paymentOptionId?: number
 ): string {
-  const server = getYogoServer();
-  const base = `https://${server}/frontend/index.html#`;
-  if (type === "class_pass") {
-    return `${base}/class-pass-type/${itemId}/buy`;
-  }
-  if (paymentOptionId) {
-    return `${base}/membership-type/${itemId}/payment-option/${paymentOptionId}/buy`;
-  }
-  return `${base}/membership-type/${itemId}/buy`;
+  return type === "class_pass"
+    ? buildYogoPurchaseUrl("class_pass_type", itemId)
+    : buildYogoPurchaseUrl("membership_type", itemId, { paymentOption: paymentOptionId });
 }
 
 // --- API fetchers ---
@@ -193,12 +195,27 @@ function buildPriceGroups(
       // Process membership types in this group
       for (const rawMember of group.membership_types) {
         const fullMember = membershipMap.get(rawMember.id) || rawMember;
-        const paymentOptions = (fullMember.payment_options || []).filter((o) => o.for_sale);
+        const paymentOptions = (fullMember.payment_options || [])
+          .filter((o) => o.for_sale)
+          .map((o) => ({
+            id: o.id,
+            name: o.name,
+            price: o.payment_amount,
+            months: o.number_of_months_payment_covers || 1,
+            purchaseUrl: buildPurchaseUrl("membership", fullMember.id, o.id),
+          }))
+          // Period order, not price order: the duration selector depends on it, and it
+          // makes paymentOptions[0] mean "shortest commitment".
+          .sort((a, b) => (a.months ?? 1) - (b.months ?? 1) || a.price - b.price);
         const firstOption = paymentOptions[0];
 
         if (!firstOption) continue;
 
-        const isUnlimited = !fullMember.has_max_number_of_classes_per_week;
+        // A plan capped per MONTH is not unlimited either — checking only the weekly
+        // flag made "12 passes/month" plans render as "Aulas ilimitadas".
+        const isUnlimited =
+          !fullMember.has_max_number_of_classes_per_week &&
+          !fullMember.has_max_number_of_classes_per_month;
 
         const campaign: CampaignInfo | null = fullMember.active_campaign
           ? {
@@ -214,14 +231,7 @@ function buildPriceGroups(
           name: fullMember.name,
           description: fullMember.description || "",
           imageUrl: buildImageUrl(fullMember.image),
-          paymentOptions: paymentOptions
-            .map((o) => ({
-              id: o.id,
-              name: o.name,
-              price: o.payment_amount,
-              purchaseUrl: buildPurchaseUrl("membership", fullMember.id, o.id),
-            }))
-            .sort((a, b) => a.price - b.price),
+          paymentOptions,
           registrationFee: fullMember.registration_fee,
           classesPerWeek: fullMember.has_max_number_of_classes_per_week
             ? fullMember.max_number_of_classes_per_week
@@ -233,7 +243,7 @@ function buildPriceGroups(
           numberOfClasses: null,
           validDays: null,
           purchaseUrl: buildPurchaseUrl("membership", fullMember.id, firstOption.id),
-          sortInGroup: rawMember.sort_in_price_group,
+          sortInGroup: groupSortKey(rawMember.sort_in_price_group),
           campaign,
         });
       }
@@ -252,6 +262,7 @@ function buildPriceGroups(
             id: fullPass.id,
             name: "",
             price: fullPass.price,
+            months: null,
             purchaseUrl: buildPurchaseUrl("class_pass", fullPass.id),
           }],
           registrationFee: 0,
@@ -261,7 +272,7 @@ function buildPriceGroups(
           numberOfClasses: fullPass.number_of_classes,
           validDays: fullPass.days,
           purchaseUrl: buildPurchaseUrl("class_pass", fullPass.id),
-          sortInGroup: fullPass.sort_in_price_group,
+          sortInGroup: groupSortKey(fullPass.sort_in_price_group),
           campaign: null,
         });
       }
@@ -334,6 +345,7 @@ export function useYogoTrialPlans() {
             id: o.id,
             name: o.name,
             price: 0,
+            months: o.number_of_months_payment_covers || 1,
             purchaseUrl: buildPurchaseUrl("membership", m.id, o.id),
           })),
           registrationFee: m.registration_fee,
@@ -343,11 +355,12 @@ export function useYogoTrialPlans() {
           classesPerMonth: m.has_max_number_of_classes_per_month
             ? m.max_number_of_classes_per_month
             : null,
-          isUnlimited: !m.has_max_number_of_classes_per_week,
+          isUnlimited:
+            !m.has_max_number_of_classes_per_week && !m.has_max_number_of_classes_per_month,
           numberOfClasses: null,
           validDays: null,
           purchaseUrl: buildPurchaseUrl("membership", m.id, freeOptions[0].id),
-          sortInGroup: m.sort_in_price_group,
+          sortInGroup: groupSortKey(m.sort_in_price_group),
           campaign: null,
         });
       }
@@ -365,6 +378,7 @@ export function useYogoTrialPlans() {
             id: cp.id,
             name: "",
             price: 0,
+            months: null,
             purchaseUrl: buildPurchaseUrl("class_pass", cp.id),
           }],
           registrationFee: 0,
@@ -374,7 +388,7 @@ export function useYogoTrialPlans() {
           numberOfClasses: cp.number_of_classes,
           validDays: cp.days,
           purchaseUrl: buildPurchaseUrl("class_pass", cp.id),
-          sortInGroup: cp.sort_in_price_group,
+          sortInGroup: groupSortKey(cp.sort_in_price_group),
           campaign: null,
         });
       }
